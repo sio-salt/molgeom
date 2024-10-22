@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "molgeom"
+version = "0.1.1"
+description = "A simple molecular geometry manipulation module"
+readme = "README.md"
+requires-python = ">=3.7"
+dependencies = [
+    "easyvec>=0.1.0"
+]
+authors = [
+    { name = "Yo Kato", email = "saltinthedesertyou@gmail.com" }
+]
+
+[tool.setuptools]
+packages = ["molgeom"]  # find_packages()に相当
+
