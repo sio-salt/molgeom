@@ -16,5 +16,5 @@ authors = [
 ]
 
 [tool.setuptools]
-packages = ["molgeom"]  # find_packages()に相当
+packages = ["molgeom"]
 
