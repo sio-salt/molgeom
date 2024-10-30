@@ -30,7 +30,6 @@ def is_valid_xyz_line(line: str) -> bool:
 
 
 def xyz_parser(filepath: str, mode: str) -> Molecule:
-
     mole = Molecule()
 
     with open(filepath, mode) as file:
@@ -38,40 +37,34 @@ def xyz_parser(filepath: str, mode: str) -> Molecule:
 
         first_line = lines[0].strip()
         mol_struc_lines = []
-        if re.fullmatch(r'\d+', first_line):
+        if re.fullmatch(r"\d+", first_line):
             num_atoms = int(first_line)
-            comment_line = lines[1].strip()
+            _comment_line = lines[1].strip()
             mol_struc_lines = lines[2:]
         elif re.fullmatch(atom_xyz_regex, first_line):
             mol_struc_lines = lines
             num_atoms = len(mol_struc_lines)
         else:
-            print(
-                "xyz_parser : invalid file format in first line \n" +
-                f"{first_line}"
-            )
+            print("xyz_parser : invalid file format in first line \n" + f"{first_line}")
             sys.exit(1)
 
         for line in mol_struc_lines:
-
             if not is_valid_xyz_line(line):
                 print(
-                    "xyz_parser : invalid data format or empty line found " +
-                    f"{line}"
+                    "xyz_parser : invalid data format or empty line found " + f"{line}"
                 )
                 sys.exit(1)
 
             data = line.strip().split()
             atom = Atom(
-                symbol=data[0],
-                x=float(data[1]), y=float(data[2]), z=float(data[3])
+                symbol=data[0], x=float(data[1]), y=float(data[2]), z=float(data[3])
             )
             mole.add_atoms(atom)
 
         if num_atoms != len(mole):
             raise ValueError(
-                f"Number of atoms specified ({num_atoms}) " +
-                f"does not match number of atoms read ({len(mole)})."
+                f"Number of atoms specified ({num_atoms}) "
+                + f"does not match number of atoms read ({len(mole)})."
             )
 
     return mole
@@ -79,7 +72,6 @@ def xyz_parser(filepath: str, mode: str) -> Molecule:
 
 # Gaussian com file parser
 def com_parser(filepath: str, mode: str) -> Molecule:
-
     mole = Molecule()
 
     with open(filepath, mode) as file:
@@ -87,12 +79,12 @@ def com_parser(filepath: str, mode: str) -> Molecule:
 
         # link0 section
         link0 = []
-        while lines and lines[0].strip().startswith('%'):
+        while lines and lines[0].strip().startswith("%"):
             link0.append(lines.popleft().strip())
 
         # route section
         route_section = []
-        if not lines[0].strip().startswith('#'):
+        if not lines[0].strip().startswith("#"):
             print(f"com_parser : invalid file format \n{lines[0]}")
             sys.exit(1)
         while lines and lines[0].strip():
@@ -103,7 +95,7 @@ def com_parser(filepath: str, mode: str) -> Molecule:
         if not lines[0].strip() or lines[1].strip():
             print(f"com_parser : invalid file format \n{lines[0]}")
             sys.exit(1)
-        title = lines.popleft().strip()
+        _title = lines.popleft().strip()
         lines.popleft()
 
         # molecule Specification section
@@ -123,8 +115,7 @@ def com_parser(filepath: str, mode: str) -> Molecule:
                 sys.exit(1)
             data = lines.popleft().strip().split()
             atom = Atom(
-                symbol=data[0],
-                x=float(data[1]), y=float(data[2]), z=float(data[3])
+                symbol=data[0], x=float(data[1]), y=float(data[2]), z=float(data[3])
             )
             mole.add_atoms(atom)
         if not mole:
@@ -134,6 +125,8 @@ def com_parser(filepath: str, mode: str) -> Molecule:
 
 
 atom_mass_xyz_regex = re.compile(r"(\w\w?)(\s+\d+\.\d+)(\s+[-+]?\d*\.\d+){3}")
+
+
 def is_valid_gms_xyz_line(line: str) -> bool:
     data = line.strip().split()
     if not data:
@@ -149,7 +142,6 @@ def is_valid_gms_xyz_line(line: str) -> bool:
 
 # GAMESS input file parser
 def inp_parser(filepath: str, mode: str) -> Molecule:
-
     mole = Molecule()
 
     with open(filepath, mode) as file:
@@ -157,8 +149,8 @@ def inp_parser(filepath: str, mode: str) -> Molecule:
 
         # input description section
         input_descriptions = []
-        while lines and not lines[0].strip().upper().startswith('$DATA'):
-            if lines[0].strip().startswith('!'):
+        while lines and not lines[0].strip().upper().startswith("$DATA"):
+            if lines[0].strip().startswith("!"):
                 lines.popleft()
                 continue
             input_descriptions.append(lines.popleft().strip())
@@ -167,37 +159,34 @@ def inp_parser(filepath: str, mode: str) -> Molecule:
         lines.popleft()
         if not lines[0].strip() or not lines[1].strip():
             print(
-                "inp_parser DATA group : invalid file format \n" +
-                f"{lines[0]}\n" +
-                f"{lines[1]}"
+                "inp_parser DATA group : invalid file format \n"
+                + f"{lines[0]}\n"
+                + f"{lines[1]}"
             )
             sys.exit(1)
-        title = lines.popleft().strip()
-        group_naxis = lines.popleft().strip()
+        _title = lines.popleft().strip()
+        _group_naxis = lines.popleft().strip()
 
         # atom cartesian coordinates
-        while lines and lines[0].strip() != '$END':
+        while lines and lines[0].strip() != "$END":
             if not is_valid_gms_xyz_line(lines[0]):
                 print(
-                    "inp_parser atom cartesian coords : " +
-                    f"invalid file format \n{lines[0]}"
+                    "inp_parser atom cartesian coords : "
+                    + f"invalid file format \n{lines[0]}"
                 )
                 sys.exit(1)
             data = lines.popleft().strip().split()
             atom = Atom(
-                symbol=data[0],
-                x=float(data[2]), y=float(data[3]), z=float(data[4])
+                symbol=data[0], x=float(data[2]), y=float(data[3]), z=float(data[4])
             )
             mole.add_atoms(atom)
 
     return mole
 
 
-def parse_file(filepath: str, mode: str = 'r') -> Molecule:
-    ext_parser_map = {
-        '.xyz': xyz_parser, '.com': com_parser, '.inp': inp_parser
-    }
-    supported_mode = {'r'}
+def parse_file(filepath: str, mode: str = "r") -> Molecule:
+    ext_parser_map = {".xyz": xyz_parser, ".com": com_parser, ".inp": inp_parser}
+    supported_mode = {"r"}
 
     if not os.path.exists(filepath):
         raise FileNotFoundError(f"{filepath} do not exist")
@@ -209,24 +198,23 @@ def parse_file(filepath: str, mode: str = 'r') -> Molecule:
             return ext_parser_map[ext](filepath, mode)
     else:
         raise RuntimeError(
-            f'file extension for "{os.path.basename(filepath)}" ' +
-            'is not supported or extensionless file'
+            f'file extension for "{os.path.basename(filepath)}" '
+            + "is not supported or extensionless file"
         )
 
 
 def main():
     if len(sys.argv) < 2:
-        print('Usage: python script.py <xyz_file_path>')
+        print("Usage: python script.py <xyz_file_path>")
         sys.exit(1)
 
     print()
     filepaths = sys.argv[1:]
     for filepath in filepaths:
         print(filepath)
-        mole = parse_file(filepath, 'r')
+        mole = parse_file(filepath, "r")
         print(mole.to_xyz())
 
 
 if __name__ == "__main__":
     main()
-

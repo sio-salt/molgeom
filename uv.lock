@@ -1,0 +1,18 @@
+version = 1
+requires-python = ">=3.7"
+
+[[package]]
+name = "easyvec"
+version = "0.1.1"
+source = { directory = "../easyvec" }
+
+[[package]]
+name = "molgeom"
+version = "0.1.1"
+source = { editable = "." }
+dependencies = [
+    { name = "easyvec" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "easyvec", directory = "../easyvec" }]

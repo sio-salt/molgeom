@@ -1,13 +1,12 @@
 import sys
-try:
-    import readline
-except ImportError:
-    pass
+import importlib
 from easyvec import Vec3
 import molgeom
-import importlib
+from molgeom import parse_file
+
 importlib.reload(molgeom)
-from molgeom import parse_file, Molecule
+if importlib.util.find_spec("readline"):
+    import readline  # noqa
 
 
 def translate_molecule(mole):

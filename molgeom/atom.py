@@ -43,4 +43,3 @@ class Atom(Vec3):
             if self.distance_to(atom) < self.distance_to(closest):
                 closest = atom
         return closest
-

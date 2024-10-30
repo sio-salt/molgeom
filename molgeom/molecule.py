@@ -73,10 +73,12 @@ class Molecule:
         for atom in self.atoms:
             atom.rotate_by_axis(axis_point1, axis_point2, angle_degrees)
 
-    def bonds(self, lower_bound: float, upper_bound: float) -> list[tuple[int, int, Atom, Atom]]:
+    def bonds(
+        self, lower_bound: float, upper_bound: float
+    ) -> list[tuple[int, int, Atom, Atom]]:
         bonds = []
         for i, atom1 in enumerate(self):
-            for j, atom2 in enumerate(self[i + 1:], start=i + 1):
+            for j, atom2 in enumerate(self[i + 1 :], start=i + 1):
                 dist_angst = atom1.distance_to(atom2)
                 if lower_bound <= dist_angst <= upper_bound:
                     bonds.append((i, j, dist_angst, atom1, atom2))
@@ -107,4 +109,3 @@ class Molecule:
 
     def to_xyz(self) -> str:
         return "\n".join([atom.to_xyz() for atom in self])
-
