@@ -68,7 +68,7 @@ class Molecule:
         for atom in self.atoms:
             atom.rotate_by_axis(axis_point1, axis_point2, angle_degrees)
 
-    def bonds(
+    def get_bonds(
         self, lower_bound: float, upper_bound: float
     ) -> list[tuple[int, int, Atom, Atom]]:
         bonds = []
