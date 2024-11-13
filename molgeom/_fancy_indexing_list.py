@@ -1,10 +1,10 @@
 from collections import UserList
 
 
-class FancyIndexingList(UserList):
+class _FancyIndexingList(UserList):
     def __getitem__(self, key):
         if isinstance(key, (list, tuple)):
-            return FancyIndexingList([self.data[i] for i in key])
+            return _FancyIndexingList([self.data[i] for i in key])
         return super().__getitem__(key)
 
     def __setitem__(self, key, value):
@@ -25,4 +25,3 @@ class FancyIndexingList(UserList):
 
     def __repr__(self):
         return f"FancyIndexingList({self.data})"
-

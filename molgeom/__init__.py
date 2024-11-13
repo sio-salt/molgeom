@@ -2,6 +2,7 @@ from . import consts
 from .atom import Atom as Atom
 from .molecule import Molecule as Molecule
 from .parsers import xyz_parser, com_parser, inp_parser, parse_file
+from ._fancy_indexing_list import _FancyIndexingList
 
 __all__ = [
     "Atom",
@@ -11,4 +12,5 @@ __all__ = [
     "com_parser",
     "inp_parser",
     "parse_file",
+    "_FancyIndexingList",
 ]
