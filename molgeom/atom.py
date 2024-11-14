@@ -30,9 +30,13 @@ class Atom(Vec3):
     def __init__(self, symbol: str, x: float, y: float, z: float) -> None:
         super().__init__(x, y, z)
         self.symbol = symbol
-        self._data, self.bond_len = self.get_atomic_data(symbol)
+        self._data, self._std_bond_rad = self.get_atomic_data(symbol)
         self.mass = self._data.get("Atomic mass", 0.0)
         self.atomic_number = self._data.get("Atomic no", 0.0)
+
+    @classmethod
+    def from_point(cls, symbol: str, point: Vec3) -> Atom:
+        return cls(symbol, point.x, point.y, point.z)
 
     @staticmethod
     def get_atomic_data(symbol):
@@ -57,12 +61,13 @@ class Atom(Vec3):
         if self.mass != other.mass:
             return self.mass < other.mass
 
-    @classmethod
-    def from_point(cls, symbol: str, point: Vec3) -> Atom:
-        return cls(symbol, point.x, point.y, point.z)
-
     def to_xyz(self) -> str:
         return f"{self.symbol:2s} {self.x:19.12f} {self.y:19.12f} {self.z:19.12f}"
+
+    def is_bonded_to(self, other, tol=0.15):
+        dist_angst = self.distance_to(other)
+        std_bond_len = self._std_bond_rad + other._std_bond_rad
+        return abs(dist_angst - std_bond_len) <= tol
 
     def closest_atom(self, mole, symbol=None) -> Atom:
         closest = mole.atoms[0]

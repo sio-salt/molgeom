@@ -74,19 +74,19 @@ class Molecule:
         for atom in self.atoms:
             atom.rotate_by_axis(axis_point1, axis_point2, angle_degrees)
 
-    def get_bonds(
-        self, lower_bound: float, upper_bound: float
-    ) -> list[tuple[int, int, Atom, Atom]]:
-        bonds = []
-        for i, atom1 in enumerate(self):
-            for j, atom2 in enumerate(self[i + 1 :], start=i + 1):
-                dist_angst = atom1.distance_to(atom2)
-                if lower_bound <= dist_angst <= upper_bound:
-                    bonds.append((i, j, dist_angst, atom1, atom2))
+    def get_bonds(self, tol=0.15) -> tuple[tuple[int, int]]:
+        bonds = tuple()
+        num_atoms = len(self)
+        for i in range(num_atoms):
+            ai = self[i]
+            for j in range(i + 1, num_atoms):
+                aj = self[j]
+                if ai.is_bonded_to(aj):
+                    bonds.append((i, j))
         return bonds
 
     def total_mass(self) -> float:
-        return sum(atom.mass for atom in self.atoms)
+        return sum(atom.mass for atom in self)
 
     def center_of_mass(self) -> Vec3:
         total_mass = self.total_mass()
