@@ -14,8 +14,21 @@ def main():
                 sys.exit(1)
 
     print()
-    lower_bound = float(input("Enter the lower bond threshold: "))
-    upper_bound = float(input("Enter the upper bond threshold: "))
+    while True:
+        try:
+            inp_str = input(
+                'Enter tolerance of bond length ( or "default": tol=0.15 (Å) )\n >>> '
+            ).strip()
+            if inp_str.lower() == "default":
+                tolerance = 0.15
+            else:
+                tolerance = float(inp_str)
+
+            break
+        except ValueError:
+            print("Please Enter valid float value")
+        # lower_bound = float(input("Enter the lower bond threshold: "))
+        # upper_bound = float(input("Enter the upper bond threshold: "))
 
     print()
     filepaths = sys.argv[1:]
@@ -23,15 +36,17 @@ def main():
         print(filepath)
         output = []
         mole = parse_file(filepath, "r")
-        bonds = mole.bonds(lower_bound, upper_bound)
+        bonds = mole.get_bonds(tolerance)
         output.append(f"Number of bonds: {len(bonds)}")
-        output.append(f"bond threshold,   lower: {lower_bound}, upper: {upper_bound}")
+        output.append(f"bond tolerance: {tolerance}")
         output.append(
             "label   bond length (Angstrom)       atom1                                                                 -     atom2"
         )
-        for label, (i, j, dist_angst, atom1, atom2) in enumerate(bonds, start=1):
+        for label, (i, j) in enumerate(bonds):
+            ai, aj = mole[(i, j)]
+            dist_angst = ai.distance_to(aj)
             output.append(
-                f"{label:3d}          {dist_angst:.9f}           {i+1:3d}   {atom1}    -   {j+1:3d}   {atom2}"
+                f"{label:3d}          {dist_angst:.9f}           {i+1:3d}   {ai}    -   {j+1:3d}   {aj}"
             )
         print("\n".join(output))
         print()

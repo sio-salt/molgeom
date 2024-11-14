@@ -1,8 +1,8 @@
 from __future__ import annotations
 from easyvec import Vec3
-from ._fancy_indexing_list import _FancyIndexingList
-from .consts import ANGST2BOHR_GAU16
-from .atom import Atom
+from molgeom._fancy_indexing_list import _FancyIndexingList
+from molgeom.data.consts import ANGST2BOHR_GAU16
+from molgeom.atom import Atom
 
 
 class Molecule:
@@ -74,8 +74,8 @@ class Molecule:
         for atom in self.atoms:
             atom.rotate_by_axis(axis_point1, axis_point2, angle_degrees)
 
-    def get_bonds(self, tol=0.15) -> tuple[tuple[int, int]]:
-        bonds = tuple()
+    def get_bonds(self, tol=0.15) -> list[tuple[int, int]]:
+        bonds = list()
         num_atoms = len(self)
         for i in range(num_atoms):
             ai = self[i]

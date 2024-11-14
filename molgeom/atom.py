@@ -18,11 +18,11 @@ def _load_atomic_data():
                 with importlib.resources.open_text(
                     "molgeom.data", "periodic_table.yaml"
                 ) as f:
-                    _pt_data = yaml.load(f)
+                    _pt_data = yaml.safe_load(f)
                 with importlib.resources.open_text(
                     "molgeom.data", "bonds_jmol_ob.yaml"
                 ) as f:
-                    _bond_data = yaml.load(f)
+                    _bond_data = yaml.safe_load(f)
     return _pt_data, _bond_data
 
 

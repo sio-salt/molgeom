@@ -30,7 +30,7 @@ def translate_molecule(mole):
             continue
     trans_vec = pB - pA
     print(f"trans vector : \n {trans_vec}")
-    mole.translate(*trans_vec)
+    mole.translate(trans_vec)
 
     return mole
 
