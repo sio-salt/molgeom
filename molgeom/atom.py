@@ -1,14 +1,43 @@
 from __future__ import annotations
+import yaml
+import threading
+import importlib.resources
 from easyvec import Vec3
-from .consts import ATOMIC_NUMBER, ATOMIC_MASSES
+
+
+_pt_data = None
+_atomic_data_lock = threading.Lock()
+
+
+def _load_atomic_data():
+    global _pt_data
+    global _bond_data
+    if _pt_data is None:
+        with _atomic_data_lock:
+            if _pt_data is None:
+                with importlib.resources.open_text(
+                    "molgeom.data", "periodic_table.yaml"
+                ) as f:
+                    _pt_data = yaml.load(f)
+                with importlib.resources.open_text(
+                    "molgeom.data", "bonds_jmol_ob.yaml"
+                ) as f:
+                    _bond_data = yaml.load(f)
+    return _pt_data, _bond_data
 
 
 class Atom(Vec3):
     def __init__(self, symbol: str, x: float, y: float, z: float) -> None:
         super().__init__(x, y, z)
         self.symbol = symbol
-        self.mass = ATOMIC_MASSES.get(self.symbol, 0.0)
-        self.atomic_number = ATOMIC_NUMBER.get(self.symbol, 0)
+        self._data, self.bond_len = self.get_atomic_data(symbol)
+        self.mass = self._data.get("Atomic mass", 0.0)
+        self.atomic_number = self._data.get("Atomic no", 0.0)
+
+    @staticmethod
+    def get_atomic_data(symbol):
+        _pt_data, _bond_data = _load_atomic_data()
+        return _pt_data.get(symbol, {}), _bond_data.get(symbol, {})
 
     def __str__(self) -> str:
         return f"{self.symbol:2s} {self.x:19.12f} {self.y:19.12f} {self.z:19.12f}"

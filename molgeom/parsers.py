@@ -2,9 +2,9 @@ import sys
 import os
 import re
 from collections import deque
-from .consts import ATOMIC_MASSES
-from .atom import Atom
-from .molecule import Molecule
+from molgeom.data.consts import ATOMIC_MASSES
+from molgeom.atom import Atom
+from molgeom.molecule import Molecule
 
 
 atom_xyz_regex = re.compile(r"(\w\w?)(\s+[-+]?\d*\.\d+){3}")
