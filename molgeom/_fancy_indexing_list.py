@@ -24,4 +24,4 @@ class _FancyIndexingList(UserList):
             super().__delitem__(key)
 
     def __repr__(self):
-        return f"<{self.__class__.__name__} with {len(self._items)} items>"
+        return f"_FancyIndexingList({self.data})"

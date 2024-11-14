@@ -1,13 +1,13 @@
 from __future__ import annotations
 from easyvec import Vec3
-from .fancy_indexing_list import FancyIndexingList
+from ._fancy_indexing_list import _FancyIndexingList
 from .consts import ANGST2BOHR_GAU16
 from .atom import Atom
 
 
 class Molecule:
     def __init__(self, *atoms) -> None:
-        self.atoms: FancyIndexingList[Atom] = FancyIndexingList()
+        self.atoms: _FancyIndexingList[Atom] = _FancyIndexingList()
         if atoms:
             self.add_atoms(*atoms)
 
@@ -22,6 +22,12 @@ class Molecule:
 
     def __contains__(self, atom: Atom) -> bool:
         return atom in self.atoms
+
+    def __getitem__(self, index: int) -> Atom:
+        return self.atoms[index]
+
+    def __setitem__(self, index: int, atom: Atom) -> None:
+        self.atoms[index] = atom
 
     def __iter__(self):
         return iter(self.atoms)
@@ -68,7 +74,7 @@ class Molecule:
         for atom in self.atoms:
             atom.rotate_by_axis(axis_point1, axis_point2, angle_degrees)
 
-    def bonds(
+    def get_bonds(
         self, lower_bound: float, upper_bound: float
     ) -> list[tuple[int, int, Atom, Atom]]:
         bonds = []

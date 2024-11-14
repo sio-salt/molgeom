@@ -18,9 +18,3 @@ authors = [
 [tool.setuptools]
 packages = ["molgeom"]
 
-[tool.uv.sources]
-easyvec = { path = "../easyvec" }
-
-[tool.black]
-line-ending = "lf"
-
