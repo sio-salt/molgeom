@@ -32,6 +32,12 @@ class Molecule:
     def __iter__(self):
         return iter(self.atoms)
 
+    def __str__(self):
+        return f"class Molecule containing {len(self)} Atoms"
+
+    def __repr__(self):
+        return f"class Molecule containing {len(self)} Atoms"
+
     def sort(self) -> None:
         self.atoms.sort()
 
