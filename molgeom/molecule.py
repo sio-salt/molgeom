@@ -6,7 +6,7 @@ from molgeom.atom import Atom
 
 
 class Molecule:
-    def __init__(self, *atoms) -> None:
+    def __init__(self, *atoms: Atom) -> None:
         self.atoms: _FancyIndexingList[Atom] = _FancyIndexingList()
         if atoms:
             self.add_atoms(*atoms)
@@ -23,8 +23,16 @@ class Molecule:
     def __contains__(self, atom: Atom) -> bool:
         return atom in self.atoms
 
-    def __getitem__(self, index: int) -> Atom:
-        return self.atoms[index]
+    def __getitem__(self, index: int | slice | list | tuple) -> Atom | Molecule:
+        result = self.atoms[index]
+        if isinstance(index, int):
+            return result
+        elif isinstance(index, slice):
+            return Molecule(*result)
+        elif isinstance(index, (list, tuple)):
+            return Molecule(*result)
+        else:
+            raise TypeError("Index must be int, slice, list, or tuple")
 
     def __setitem__(self, index: int, atom: Atom) -> None:
         self.atoms[index] = atom
@@ -33,13 +41,19 @@ class Molecule:
         return iter(self.atoms)
 
     def __str__(self):
-        return f"class Molecule containing {len(self)} Atoms"
+        # return f"class Molecule containing {len(self)} Atoms"
+        atom_symbols = [atom.symbol for atom in self]
+        return f"Molecule({', '.join(atom_symbols)})"
 
     def __repr__(self):
-        return f"class Molecule containing {len(self)} Atoms"
+        atom_symbols = [atom.symbol for atom in self]
+        return f"Molecule({', '.join(atom_symbols)})"
 
     def sort(self) -> None:
         self.atoms.sort()
+
+    def get_symbols(self) -> list[str]:
+        return tuple(atom.symbol for atom in self)
 
     def get_atoms_by_symbol(self, symbol: str) -> Molecule:
         matching_atoms = [atom for atom in self if atom.symbol == symbol]

@@ -1,13 +1,14 @@
+from typing import Any
 from collections import UserList
 
 
 class _FancyIndexingList(UserList):
-    def __getitem__(self, key):
+    def __getitem__(self, key: Any):
         if isinstance(key, (list, tuple)):
             return _FancyIndexingList([self.data[i] for i in key])
         return super().__getitem__(key)
 
-    def __setitem__(self, key, value):
+    def __setitem__(self, key: Any, value: Any):
         if isinstance(key, (list, tuple)):
             if len(key) != len(value):
                 raise ValueError("Key and value must have the same length")
@@ -16,7 +17,7 @@ class _FancyIndexingList(UserList):
         else:
             super().__setitem__(key, value)
 
-    def __delitem__(self, key):
+    def __delitem__(self, key: Any):
         if isinstance(key, (list, tuple)):
             for k in sorted(key, reverse=True):
                 del self.data[k]
