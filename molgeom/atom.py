@@ -44,7 +44,9 @@ class Atom(Vec3):
         return _pt_data.get(symbol, {}), _bond_data.get(symbol, {})
 
     def __str__(self) -> str:
-        return f"Atom({self.symbol:2s} {self.x:19.12f} {self.y:19.12f} {self.z:19.12f})"
+        return (
+            f"Atom({self.symbol:2s}, {self.x:19.12f}, {self.y:19.12f}, {self.z:19.12f})"
+        )
 
     def __repr__(self) -> str:
         return f"Atom({self.symbol!r}, {self.x:.12f}, {self.y:.12f}, {self.z:.12f})"

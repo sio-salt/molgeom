@@ -8,6 +8,9 @@ class _FancyIndexingList(UserList):
             return _FancyIndexingList([self.data[i] for i in key])
         return super().__getitem__(key)
 
+    def __iter__(self):
+        return iter(self.data)
+
     def __setitem__(self, key: Any, value: Any):
         if isinstance(key, (list, tuple)):
             if len(key) != len(value):

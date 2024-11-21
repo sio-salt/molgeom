@@ -59,7 +59,7 @@ def xyz_parser(filepath: str, mode: str) -> Molecule:
             atom = Atom(
                 symbol=data[0], x=float(data[1]), y=float(data[2]), z=float(data[3])
             )
-            mole.add_atoms(atom)
+            mole.atoms.append(atom)
 
         if num_atoms != len(mole):
             raise ValueError(

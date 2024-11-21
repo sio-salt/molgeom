@@ -1,12 +1,13 @@
 from __future__ import annotations
+from collections.abc import Iterable
 from easyvec import Vec3
 from molgeom._fancy_indexing_list import _FancyIndexingList
-from molgeom.data.consts import ANGST2BOHR_GAU16
+from molgeom.data.consts import ANGST2BOHR_GAU16, ATOMIC_NUMBER
 from molgeom.atom import Atom
 
 
 class Molecule:
-    def __init__(self, *atoms: Atom) -> None:
+    def __init__(self, *atoms: Atom | Iterable[Atom]) -> None:
         self.atoms: _FancyIndexingList[Atom] = _FancyIndexingList()
         if atoms:
             self.add_atoms(*atoms)
@@ -23,13 +24,11 @@ class Molecule:
     def __contains__(self, atom: Atom) -> bool:
         return atom in self.atoms
 
-    def __getitem__(self, index: int | slice | list | tuple) -> Atom | Molecule:
+    def __getitem__(self, index: int | slice | Iterable) -> Atom | Molecule:
         result = self.atoms[index]
-        if isinstance(index, int):
+        if isinstance(result, Atom):
             return result
-        elif isinstance(index, slice):
-            return Molecule(*result)
-        elif isinstance(index, (list, tuple)):
+        elif isinstance(result, Iterable):
             return Molecule(*result)
         else:
             raise TypeError("Index must be int, slice, list, or tuple")
@@ -38,37 +37,70 @@ class Molecule:
         self.atoms[index] = atom
 
     def __iter__(self):
-        return iter(self.atoms)
+        for atom in self.atoms:
+            if not isinstance(atom, Atom):
+                raise TypeError(
+                    "Invalid element type: atom must be Atom object"
+                    + f"{type(atom) = }"
+                )
+            yield atom
 
     def __str__(self):
-        # return f"class Molecule containing {len(self)} Atoms"
-        atom_symbols = [atom.symbol for atom in self]
-        return f"Molecule({', '.join(atom_symbols)})"
+        formula = self.get_formula()
+        return f"Molecule({formula})"
 
     def __repr__(self):
-        atom_symbols = [atom.symbol for atom in self]
-        return f"Molecule({', '.join(atom_symbols)})"
+        formula = self.get_formula()
+        return f"Molecule({formula})"
 
-    def sort(self) -> None:
-        self.atoms.sort()
+    def sort(self, key=None) -> None:
+        if key is None:
+            self.atoms.sort(key=lambda atom: ATOMIC_NUMBER[atom.symbol])
+        else:
+            self.atoms.sort(key=key)
 
     def get_symbols(self) -> list[str]:
         return tuple(atom.symbol for atom in self)
+
+    def get_formula(self) -> str:
+        symbol_count = dict()
+        for atom in self:
+            symbol_count[atom.symbol] = symbol_count.get(atom.symbol, 0) + 1
+
+        formula = "".join(
+            f"{symbol}{count}" if count > 1 else symbol
+            for symbol, count in sorted(
+                symbol_count.items(), key=lambda x: ATOMIC_NUMBER[x[0]]
+            )
+        )
+        return formula
 
     def get_atoms_by_symbol(self, symbol: str) -> Molecule:
         matching_atoms = [atom for atom in self if atom.symbol == symbol]
         return Molecule(*matching_atoms)
 
-    def add_atoms(self, *atoms) -> None:
+    def add_atoms(self, *atoms: Atom | Iterable[Atom]) -> None:
+        """
+        Add atoms to the molecule. Accepts either:
+        - A list or tuple of Atom objects
+        - Multiple Atom objects as separate arguments
+        """
         if not atoms:
-            raise ValueError("atoms must not be empty")
-        if not all(isinstance(atom, Atom) for atom in atoms):
-            raise TypeError("atoms must be a list of Atom objects")
-        for atom in atoms:
-            self.atoms.append(atom)
+            return
 
-    def append(self, *atoms) -> None:
-        self.add_atoms(*atoms)
+        error_msg = "atoms must be a Atom object or a list/tuple of Atom objects"
+        if isinstance(atoms, Atom):
+            self.atoms.append(atoms)
+            return
+        elif isinstance(atoms, Iterable):
+            for i, atom in enumerate(atoms):
+                if not isinstance(atom, Atom):
+                    raise TypeError(
+                        f"invalid type: {i}th element type : {type(atom) = }\n{error_msg}"
+                    )
+            self.atoms.extend(atoms)
+        else:
+            raise TypeError(error_msg)
 
     def translate(self, trans_vec: Vec3) -> None:
         for atom in self.atoms:
@@ -101,7 +133,7 @@ class Molecule:
             ai = self[i]
             for j in range(i + 1, num_atoms):
                 aj = self[j]
-                if ai.is_bonded_to(aj):
+                if ai.is_bonded_to(aj, tol):
                     bonds.append((i, j))
         return bonds
 
