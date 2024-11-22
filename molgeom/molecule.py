@@ -75,7 +75,7 @@ class Molecule:
         )
         return formula
 
-    def get_atoms_by_symbol(self, symbol: str) -> Molecule:
+    def filter_by_symbol(self, symbol: str) -> Molecule:
         matching_atoms = [atom for atom in self if atom.symbol == symbol]
         return Molecule(*matching_atoms)
 
