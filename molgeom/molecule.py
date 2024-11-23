@@ -1,9 +1,10 @@
 from __future__ import annotations
 from collections.abc import Iterable
 from easyvec import Vec3
-from molgeom._fancy_indexing_list import _FancyIndexingList
+from molgeom.utils._fancy_indexing_list import _FancyIndexingList
 from molgeom.data.consts import ANGST2BOHR_GAU16, ATOMIC_NUMBER
 from molgeom.atom import Atom
+from molgeom.utils._decorators import args_to_set
 
 
 class Molecule:
@@ -40,8 +41,7 @@ class Molecule:
         for atom in self.atoms:
             if not isinstance(atom, Atom):
                 raise TypeError(
-                    "Invalid element type: atom must be Atom object"
-                    + f"{type(atom) = }"
+                    "Invalid element type: atom must be Atom object" + f"{type(atom)=}"
                 )
             yield atom
 
@@ -75,9 +75,9 @@ class Molecule:
         )
         return formula
 
-    def filter_by_symbol(self, symbol: str) -> Molecule:
-        matching_atoms = [atom for atom in self if atom.symbol == symbol]
-        return Molecule(*matching_atoms)
+    @args_to_set
+    def filter_by_symbols(self, symbols: str | Iterable[str]) -> Molecule:
+        return Molecule(*[atom for atom in self if atom.symbol in symbols])
 
     def add_atoms(self, *atoms: Atom | Iterable[Atom]) -> None:
         """
