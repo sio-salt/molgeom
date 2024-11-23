@@ -2,10 +2,10 @@ from typing import Any
 from collections import UserList
 
 
-class _FancyIndexingList(UserList):
+class FancyIndexingList(UserList):
     def __getitem__(self, key: Any):
         if isinstance(key, (list, tuple)):
-            return _FancyIndexingList([self.data[i] for i in key])
+            return FancyIndexingList([self.data[i] for i in key])
         return super().__getitem__(key)
 
     def __iter__(self):
@@ -28,4 +28,4 @@ class _FancyIndexingList(UserList):
             super().__delitem__(key)
 
     def __repr__(self):
-        return f"_FancyIndexingList({self.data})"
+        return f"FancyIndexingList({self.data})"

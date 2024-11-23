@@ -1,5 +1,5 @@
 from __future__ import annotations
-import yaml
+import json
 import threading
 import importlib.resources
 from easyvec import Vec3
@@ -10,19 +10,23 @@ _atomic_data_lock = threading.Lock()
 
 
 def _load_atomic_data():
+    """
+    Load atomic data from yaml files to _pt_data
+    (periodic table data) and _bond_data (bond data)
+    """
     global _pt_data
     global _bond_data
     if _pt_data is None:
         with _atomic_data_lock:
             if _pt_data is None:
                 with importlib.resources.open_text(
-                    "molgeom.data", "periodic_table.yaml"
+                    "molgeom.data", "periodic_table.json"
                 ) as f:
-                    _pt_data = yaml.safe_load(f)
+                    _pt_data = json.load(f)
                 with importlib.resources.open_text(
-                    "molgeom.data", "bonds_jmol_ob.yaml"
+                    "molgeom.data", "bonds_jmol_ob.json"
                 ) as f:
-                    _bond_data = yaml.safe_load(f)
+                    _bond_data = json.load(f)
     return _pt_data, _bond_data
 
 

@@ -1,15 +1,35 @@
 from __future__ import annotations
+import yaml
+import threading
+import importlib.resources
 from collections.abc import Iterable
 from easyvec import Vec3
-from molgeom.utils._fancy_indexing_list import _FancyIndexingList
+from molgeom.utils.fancy_indexing_list import FancyIndexingList
 from molgeom.data.consts import ANGST2BOHR_GAU16, ATOMIC_NUMBER
 from molgeom.atom import Atom
-from molgeom.utils._decorators import args_to_set
+from molgeom.utils.decorators import args_to_set
+
+
+_bond_data = None
+_mole_data_lock = threading.Lock()
+
+
+def _load_bond_data():
+    global _bond_data
+    if _bond_data is None:
+        with _mole_data_lock:
+            if _bond_data is None:
+                with importlib.resources.open_text(
+                    "molgeom.data", "bond_lengths.yaml"
+                ) as f:
+                    _bond_data = yaml.safe_load(f)
+    return _bond_data
 
 
 class Molecule:
     def __init__(self, *atoms: Atom | Iterable[Atom]) -> None:
-        self.atoms: _FancyIndexingList[Atom] = _FancyIndexingList()
+        self.atoms: FancyIndexingList[Atom] = FancyIndexingList()
+        self._data = _load_bond_data()
         if atoms:
             self.add_atoms(*atoms)
 
@@ -59,22 +79,6 @@ class Molecule:
         else:
             self.atoms.sort(key=key)
 
-    def get_symbols(self) -> list[str]:
-        return tuple(atom.symbol for atom in self)
-
-    def get_formula(self) -> str:
-        symbol_count = dict()
-        for atom in self:
-            symbol_count[atom.symbol] = symbol_count.get(atom.symbol, 0) + 1
-
-        formula = "".join(
-            f"{symbol}{count}" if count > 1 else symbol
-            for symbol, count in sorted(
-                symbol_count.items(), key=lambda x: ATOMIC_NUMBER[x[0]]
-            )
-        )
-        return formula
-
     @args_to_set
     def filter_by_symbols(self, symbols: str | Iterable[str]) -> Molecule:
         return Molecule(*[atom for atom in self if atom.symbol in symbols])
@@ -101,6 +105,22 @@ class Molecule:
             self.atoms.extend(atoms)
         else:
             raise TypeError(error_msg)
+
+    def get_symbols(self) -> list[str]:
+        return tuple(atom.symbol for atom in self)
+
+    def get_formula(self) -> str:
+        symbol_count = dict()
+        for atom in self:
+            symbol_count[atom.symbol] = symbol_count.get(atom.symbol, 0) + 1
+
+        formula = "".join(
+            f"{symbol}{count}" if count > 1 else symbol
+            for symbol, count in sorted(
+                symbol_count.items(), key=lambda x: ATOMIC_NUMBER[x[0]]
+            )
+        )
+        return formula
 
     def translate(self, trans_vec: Vec3) -> None:
         for atom in self.atoms:
