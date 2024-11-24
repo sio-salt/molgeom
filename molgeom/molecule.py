@@ -114,7 +114,7 @@ class Molecule:
         for atom in self:
             symbol_count[atom.symbol] = symbol_count.get(atom.symbol, 0) + 1
 
-        formula = "".join(
+        formula = "-".join(
             f"{symbol}{count}" if count > 1 else symbol
             for symbol, count in sorted(
                 symbol_count.items(), key=lambda x: ATOMIC_NUMBER[x[0]]
@@ -146,13 +146,18 @@ class Molecule:
         for atom in self.atoms:
             atom.rotate_by_axis(axis_point1, axis_point2, angle_degrees)
 
-    def get_bonds(self, tol=0.15) -> list[tuple[int, int]]:
+    def get_bonds(
+        # self, tol: float = 0.15, lower_bound=None, upper_bound=None
+        self,
+        tol: float = 0.15,
+    ) -> list[tuple[int, int]]:
         bonds = list()
         num_atoms = len(self)
         for i in range(num_atoms):
             ai = self[i]
             for j in range(i + 1, num_atoms):
                 aj = self[j]
+                # if ai.is_bonded_to(aj, tol, lower_bound, upper_bound):
                 if ai.is_bonded_to(aj, tol):
                     bonds.append((i, j))
         return bonds
@@ -182,3 +187,9 @@ class Molecule:
 
     def to_xyz(self) -> str:
         return "\n".join([atom.to_xyz() for atom in self])
+
+    def write_to_xyz(self, filepath: str) -> None:
+        with open(filepath, "w") as f:
+            f.write(f"{len(self)}\n")
+            f.write(self.get_formula() + "\n")
+            f.write(self.to_xyz())
