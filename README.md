@@ -1,2 +1,2 @@
 # molgeom
-make my quantum chemistry life easier with this module
+make your quantum chemistry life easier with this module
