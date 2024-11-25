@@ -59,6 +59,9 @@ class Molecule:
     def __setitem__(self, index: int, atom: Atom) -> None:
         self.atoms[index] = atom
 
+    def __delitem__(self, idx: int) -> None:
+        del self.atoms[idx]
+
     def __iter__(self):
         for atom in self.atoms:
             if not isinstance(atom, Atom):
@@ -80,6 +83,9 @@ class Molecule:
             self.atoms.sort(key=lambda atom: ATOMIC_NUMBER[atom.symbol])
         else:
             self.atoms.sort(key=key)
+
+    def pop(self, index: int) -> Atom:
+        return self.atoms.pop(index)
 
     def copy(self) -> Molecule:
         return copy.deepcopy(self)
@@ -141,12 +147,18 @@ class Molecule:
                     bonds.append((i, j))
         return bonds
 
-    def get_bond_clusters(self, tol=0.15) -> list[Molecule]:
+    def get_bond_clusters(self, tol: int = 0.15) -> list[Molecule]:
         G = nx.Graph()
         G.add_nodes_from(range(len(self)))
         G.add_edges_from(self.get_bonds(tol))
         copied_mol = self.copy()
         return [copied_mol[list(cluster)] for cluster in nx.connected_components(G)]
+
+    def get_cycles(self, length_bound: int = None, tol: float = 0.15) -> list[Molecule]:
+        G = nx.Graph()
+        G.add_edges_from(self.get_bonds(tol))
+        cycles = nx.simple_cycles(G, length_bound=length_bound)
+        return [self[list(cycle)] for cycle in cycles]
 
     def translate(self, trans_vec: Vec3) -> None:
         for atom in self.atoms:
