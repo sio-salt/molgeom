@@ -2,6 +2,8 @@ from __future__ import annotations
 import yaml
 import threading
 import importlib.resources
+import networkx as nx
+import copy
 from collections.abc import Iterable
 from easyvec import Vec3
 from molgeom.utils.fancy_indexing_list import FancyIndexingList
@@ -79,6 +81,9 @@ class Molecule:
         else:
             self.atoms.sort(key=key)
 
+    def copy(self) -> Molecule:
+        return copy.deepcopy(self)
+
     @args_to_set
     def filter_by_symbols(self, symbols: str | Iterable[str]) -> Molecule:
         return Molecule(*[atom for atom in self if atom.symbol in symbols])
@@ -122,6 +127,27 @@ class Molecule:
         )
         return formula
 
+    def get_bonds(
+        self,
+        tol: float = 0.15,
+    ) -> list[tuple[int, int]]:
+        bonds = list()
+        num_atoms = len(self)
+        for i in range(num_atoms):
+            ai = self[i]
+            for j in range(i + 1, num_atoms):
+                aj = self[j]
+                if ai.is_bonded_to(aj, tol):
+                    bonds.append((i, j))
+        return bonds
+
+    def get_bond_clusters(self, tol=0.15) -> list[Molecule]:
+        G = nx.Graph()
+        G.add_nodes_from(range(len(self)))
+        G.add_edges_from(self.get_bonds(tol))
+        copied_mol = self.copy()
+        return [copied_mol[list(cluster)] for cluster in nx.connected_components(G)]
+
     def translate(self, trans_vec: Vec3) -> None:
         for atom in self.atoms:
             atom.translate(trans_vec)
@@ -145,22 +171,6 @@ class Molecule:
 
         for atom in self.atoms:
             atom.rotate_by_axis(axis_point1, axis_point2, angle_degrees)
-
-    def get_bonds(
-        # self, tol: float = 0.15, lower_bound=None, upper_bound=None
-        self,
-        tol: float = 0.15,
-    ) -> list[tuple[int, int]]:
-        bonds = list()
-        num_atoms = len(self)
-        for i in range(num_atoms):
-            ai = self[i]
-            for j in range(i + 1, num_atoms):
-                aj = self[j]
-                # if ai.is_bonded_to(aj, tol, lower_bound, upper_bound):
-                if ai.is_bonded_to(aj, tol):
-                    bonds.append((i, j))
-        return bonds
 
     def total_mass(self) -> float:
         return sum(atom.mass for atom in self)

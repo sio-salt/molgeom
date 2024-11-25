@@ -97,9 +97,11 @@ class Atom(Vec3):
     def is_bonded_to(self, other, tol=0.15) -> bool:
         dist_angst = self.distance_to(other)
         _bond_pair_data = _load_bond_pair_data()
-        std_bond_lens = _bond_pair_data.get(
-            (self.symbol, other.symbol), [self._std_bond_rad + other._std_bond_rad]
+        estimated_bond_len = self._std_bond_rad + other._std_bond_rad
+        std_bond_lens = _bond_pair_data.get(self.symbol, {}).get(
+            other.symbol, [estimated_bond_len]
         )
+
         # if lower_bound is not None and upper_bound is not None:
         #     for std_bond_len in std_bond_lens:
         #         if lower_bound <= std_bond_len <= upper_bound:

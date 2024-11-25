@@ -1,6 +1,7 @@
 import sys
 import os
 import re
+from pathlib import Path
 from collections import deque
 from molgeom.data.consts import ATOMIC_MASSES
 from molgeom.atom import Atom
@@ -184,7 +185,7 @@ def inp_parser(filepath: str, mode: str) -> Molecule:
     return mole
 
 
-def parse_file(filepath: str, mode: str = "r") -> Molecule:
+def parse_file(filepath: str | Path, mode: str = "r") -> Molecule:
     ext_parser_map = {".xyz": xyz_parser, ".com": com_parser, ".inp": inp_parser}
     supported_mode = {"r"}
 
@@ -194,7 +195,7 @@ def parse_file(filepath: str, mode: str = "r") -> Molecule:
         raise ValueError(f"mode {mode} is not supported yet")
 
     for ext in ext_parser_map:
-        if filepath.endswith(ext):
+        if str(filepath).endswith(ext):
             return ext_parser_map[ext](filepath, mode)
     else:
         raise RuntimeError(

@@ -10,6 +10,7 @@ readme = "README.md"
 requires-python = ">=3.7"
 dependencies = [
     "easyvec>=0.1.0",
+    "networkx>=2.6.3",
     "pyyaml>=6.0.1",
 ]
 authors = [
