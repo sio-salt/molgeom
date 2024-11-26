@@ -14,8 +14,9 @@ def main():
     clusters = mole.get_bond_clusters()
     print(f"{clusters=}")
     for cluster in clusters:
-        print(cluster.to_xyz())
-        print()
+        if len(cluster) >= 3:
+            print(cluster)
+            print(cluster.to_xyz())
 
 
 if __name__ == "__main__":

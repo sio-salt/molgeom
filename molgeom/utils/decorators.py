@@ -36,6 +36,14 @@ def args_to_list(func):
 
     @wraps(func)
     def wrapper(self, *args, **kwargs):
+        # # check if the first argument is an class or instance of a class
+        # print(args)
+        # first_arg = args[0]
+        # is_class_method = inspect.isclass(first_arg)
+        #
+        # if is_class_method:
+        #     args = args[1:]
+
         if (
             len(args) == 1
             and isinstance(args[0], Iterable)

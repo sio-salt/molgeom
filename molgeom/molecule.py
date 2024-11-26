@@ -9,7 +9,7 @@ from easyvec import Vec3
 from molgeom.utils.fancy_indexing_list import FancyIndexingList
 from molgeom.data.consts import ANGST2BOHR_GAU16, ATOMIC_NUMBER
 from molgeom.atom import Atom
-from molgeom.utils.decorators import args_to_set
+from molgeom.utils.decorators import args_to_set, args_to_list
 
 
 _bond_data = None
@@ -160,6 +160,30 @@ class Molecule:
         cycles = nx.simple_cycles(G, length_bound=length_bound)
         return [self[list(cycle)] for cycle in cycles]
 
+    @classmethod
+    @args_to_list
+    def combine(cls, mols: Molecule | Iterable[Molecule]) -> Molecule:
+        """
+        Create a new molecule by merging multiple Molecule objects.
+        """
+        if not all(isinstance(mol, Molecule) for mol in mols):
+            raise TypeError("All elements must be Molecule objects")
+        merged = cls()
+        for mol in mols:
+            merged.add_atoms(*mol)
+        return merged
+
+    @args_to_list
+    def merge(self, mols: Molecule | Iterable[Molecule]) -> Molecule:
+        """
+        Merge other Molecule objects into this Molecule object.
+        """
+        if not all(isinstance(mol, Molecule) for mol in mols):
+            raise TypeError("All elements must be Molecule objects")
+
+        for mol in mols:
+            self.add_atoms(*mol)
+
     def translate(self, trans_vec: Vec3) -> None:
         for atom in self.atoms:
             atom.translate(trans_vec)
@@ -215,3 +239,4 @@ class Molecule:
             f.write(f"{len(self)}\n")
             f.write(self.get_formula() + "\n")
             f.write(self.to_xyz())
+        print(f"File written to {filepath}")
