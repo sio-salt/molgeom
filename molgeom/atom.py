@@ -62,7 +62,15 @@ class Atom(Vec3):
         self.atomic_number = self._data.get("Atomic no", 0.0)
 
     @classmethod
-    def from_point(cls, symbol: str, point: Vec3) -> Atom:
+    def from_vec(cls, symbol: str, point: list | Vec3) -> Atom:
+        if isinstance(point, Vec3):
+            return cls(symbol, point.x, point.y, point.z)
+        if (
+            isinstance(point, list)
+            and len(point) == 3
+            and all(isinstance(i, (int, float)) for i in point)
+        ):
+            return cls(symbol, point[0], point[1], point[2])
         return cls(symbol, point.x, point.y, point.z)
 
     @staticmethod
