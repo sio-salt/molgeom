@@ -56,11 +56,12 @@ class Atom(Vec3):
         super().__init__(x, y, z)
         if symbol not in consts.ATOMIC_NUMBER:
             raise ValueError(f"Invalid atomic symbol: {symbol}")
-        self.symbol = symbol
+        self.symbol: str = symbol
         self._data, self._std_bond_rad = self.get_atomic_data(self.symbol)
         self._bond_pairs = _load_bond_pair_data()
-        self.mass = self._data.get("Atomic mass", 0.0)
-        self.atomic_number = self._data.get("Atomic no", 0.0)
+        self.mass: float = self._data.get("Atomic mass", 0.0)
+        self.atomic_number: int = self._data.get("Atomic no", 0.0)
+        self.charge: int | float | None = None
 
     @classmethod
     def from_vec(cls, symbol: str, point: list | tuple | Vec3) -> Atom:

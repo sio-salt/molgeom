@@ -234,6 +234,29 @@ class Molecule:
                 )
         return nuclrep
 
+    def nuclrep(self) -> float:
+        """
+        Alias for nuclear_repulsion method
+        """
+        return self.nuclear_repulsion()
+
+    def electrostatic_energy(self) -> float:
+        """
+        Calculate the electrostatic energy of the molecule.
+        """
+        elec_energy = 0.0
+        for i in range(len(self.atoms)):
+            for j in range(i + 1, len(self.atoms)):
+                dist_angst = self.atoms[i].distance_to(self.atoms[j])
+                dist_bohr = dist_angst * ANGST2BOHR_GAU16
+                if not (
+                    self.atoms[i].charge is not None
+                    and self.atoms[j].charge is not None
+                ):
+                    raise ValueError("All atoms must have their charge set.")
+                elec_energy += self.atoms[i].charge * self.atoms[j].charge / dist_bohr
+        return elec_energy
+
     def to_xyz(self) -> str:
         return "\n".join([atom.to_xyz() for atom in self])
 

@@ -29,7 +29,8 @@ ATOMIC_NUMBER = {
     # "Au": 79, "Hg": 80, "Tl": 81, "Pb": 82,
 }
 
-# from Yamadai g16 source file  "/usr/local/g16"
+NUMBER_TO_SYMBOL = {v: k for k, v in ATOMIC_NUMBER.items()}
+
 ATOMIC_MASSES = {
     "H" :  1.00790, "He":  4.00260, "Li":  6.94000, "Be":  9.01218, "B" : 10.81000, "C" : 12.01100,
     "N" : 14.00670, "O" : 15.99940, "F" : 18.99840, "Ne": 20.17900, "Na": 22.98977, "Mg": 24.30500,
