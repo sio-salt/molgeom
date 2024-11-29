@@ -94,24 +94,24 @@ class Molecule:
     def filter_by_symbols(self, symbols: str | Iterable[str]) -> Molecule:
         return Molecule(*[atom for atom in self if atom.symbol in symbols])
 
-    def add_atoms(self, *atoms: Atom | Iterable[Atom]) -> None:
+    @args_to_list
+    def add_atoms(self, atoms: Atom | Molecule | Iterable[Atom]) -> None:
         """
         Add atoms to the molecule. Accepts either:
         - A list or tuple of Atom objects
         - Multiple Atom objects as separate arguments
         """
-        if not atoms:
-            return
-
         error_msg = "atoms must be a Atom object or a list/tuple of Atom objects"
         if isinstance(atoms, Atom):
             self.atoms.append(atoms)
             return
+        elif isinstance(atoms, Molecule):
+            self.atoms.extend(atoms)
         elif isinstance(atoms, Iterable):
             for i, atom in enumerate(atoms):
                 if not isinstance(atom, Atom):
                     raise TypeError(
-                        f"invalid type: {i}th element type : {type(atom) = }\n{error_msg}"
+                        f"invalid type:\n {i}, {type(atom) = }\n" + f"{error_msg}\n"
                     )
             self.atoms.extend(atoms)
         else:
@@ -179,7 +179,10 @@ class Molecule:
         Merge other Molecule objects into this Molecule object.
         """
         if not all(isinstance(mol, Molecule) for mol in mols):
-            raise TypeError("All elements must be Molecule objects")
+            raise TypeError(
+                "All elements must be Molecule objects\n"
+                + f"{[(i, type(mol)) for i, mol in enumerate(mols) if not isinstance(mol, Molecule)]}"
+            )
 
         for mol in mols:
             self.add_atoms(*mol)

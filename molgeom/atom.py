@@ -3,6 +3,7 @@ import json
 import yaml
 import threading
 import importlib.resources
+from typing import Any
 from easyvec import Vec3
 from molgeom.data import consts
 
@@ -78,13 +79,8 @@ class Atom(Vec3):
         _pt_data, _bond_rad_data = _load_atomic_data()
         return _pt_data.get(symbol, {}), _bond_rad_data.get(symbol, {})
 
-    def __str__(self) -> str:
-        return (
-            f"Atom({self.symbol:2s}, {self.x:19.12f}, {self.y:19.12f}, {self.z:19.12f})"
-        )
-
-    def __repr__(self) -> str:
-        return f"Atom({self.symbol!r}, {self.x:.12f}, {self.y:.12f}, {self.z:.12f})"
+    def __getitem__(self, index: int) -> Any:
+        return (self.symbol, self.x, self.y, self.z)[index]
 
     def __eq__(self, other: Atom) -> bool:
         return self.symbol == other.symbol and super().__eq__(other)
@@ -97,6 +93,14 @@ class Atom(Vec3):
             return self.atomic_number < other.atomic_number
         if self.mass != other.mass:
             return self.mass < other.mass
+
+    def __str__(self) -> str:
+        return (
+            f"Atom({self.symbol:2s}, {self.x:19.12f}, {self.y:19.12f}, {self.z:19.12f})"
+        )
+
+    def __repr__(self) -> str:
+        return f"Atom({self.symbol!r}, {self.x:.12f}, {self.y:.12f}, {self.z:.12f})"
 
     def to_xyz(self) -> str:
         return f"{self.symbol:2s} {self.x:19.12f} {self.y:19.12f} {self.z:19.12f}"

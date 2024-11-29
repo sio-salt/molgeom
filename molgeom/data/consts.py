@@ -8,7 +8,6 @@ future plan:
 ANGST2BOHR_GAU16 = 1.0 / 0.52917721092
 ANGST2BOHR_GAU09 = 1.0 / 0.52917720860
 
-# from Yamadai g16 source file  "/usr/local/g16"
 # CONV_ENG = 627.51
 CONV_ENG = 627.509541
 

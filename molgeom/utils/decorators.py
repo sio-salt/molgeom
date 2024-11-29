@@ -1,5 +1,7 @@
 from functools import wraps
-from collections.abc import Iterable
+
+
+my_Iterable = (list, tuple, set, dict)
 
 
 def args_to_set(func):
@@ -9,11 +11,7 @@ def args_to_set(func):
 
     @wraps(func)
     def wrapper(self, *args, **kwargs):
-        if (
-            len(args) == 1
-            and isinstance(args[0], Iterable)
-            and not isinstance(args[0], (str, bytes))
-        ):
+        if len(args) == 1 and isinstance(args[0], my_Iterable):
             args = set(args[0])
         elif len(args) == 1 and isinstance(args[0], str):
             args = {args[0]}
@@ -44,11 +42,7 @@ def args_to_list(func):
         # if is_class_method:
         #     args = args[1:]
 
-        if (
-            len(args) == 1
-            and isinstance(args[0], Iterable)
-            and not isinstance(args[0], (str, bytes))
-        ):
+        if len(args) == 1 and isinstance(args[0], my_Iterable):
             args = list(args[0])
         elif len(args) == 1 and isinstance(args[0], (str, bytes)):
             args = [args[0]]
