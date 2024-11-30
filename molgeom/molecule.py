@@ -222,6 +222,10 @@ class Molecule:
         return Vec3(com_x, com_y, com_z)
 
     def nuclear_repulsion(self) -> float:
+        """
+        Calculate the nuclear repulsion energy of the molecule.
+        uses gaussian16 constants
+        """
         nuclrep = 0.0
         for i in range(len(self.atoms)):
             for j in range(i + 1, len(self.atoms)):
