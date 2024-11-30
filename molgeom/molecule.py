@@ -9,7 +9,7 @@ from easyvec import Vec3
 from molgeom.utils.fancy_indexing_list import FancyIndexingList
 from molgeom.data.consts import ANGST2BOHR_GAU16, ATOMIC_NUMBER
 from molgeom.atom import Atom
-from molgeom.utils.decorators import args_to_set
+from molgeom.utils.decorators import args_to_set, args_to_list
 
 
 _bond_data = None
@@ -59,6 +59,9 @@ class Molecule:
     def __setitem__(self, index: int, atom: Atom) -> None:
         self.atoms[index] = atom
 
+    def __delitem__(self, idx: int) -> None:
+        del self.atoms[idx]
+
     def __iter__(self):
         for atom in self.atoms:
             if not isinstance(atom, Atom):
@@ -81,6 +84,9 @@ class Molecule:
         else:
             self.atoms.sort(key=key)
 
+    def pop(self, index: int) -> Atom:
+        return self.atoms.pop(index)
+
     def copy(self) -> Molecule:
         return copy.deepcopy(self)
 
@@ -88,24 +94,24 @@ class Molecule:
     def filter_by_symbols(self, symbols: str | Iterable[str]) -> Molecule:
         return Molecule(*[atom for atom in self if atom.symbol in symbols])
 
-    def add_atoms(self, *atoms: Atom | Iterable[Atom]) -> None:
+    @args_to_list
+    def add_atoms(self, atoms: Atom | Molecule | Iterable[Atom]) -> None:
         """
         Add atoms to the molecule. Accepts either:
         - A list or tuple of Atom objects
         - Multiple Atom objects as separate arguments
         """
-        if not atoms:
-            return
-
         error_msg = "atoms must be a Atom object or a list/tuple of Atom objects"
         if isinstance(atoms, Atom):
             self.atoms.append(atoms)
             return
+        elif isinstance(atoms, Molecule):
+            self.atoms.extend(atoms)
         elif isinstance(atoms, Iterable):
             for i, atom in enumerate(atoms):
                 if not isinstance(atom, Atom):
                     raise TypeError(
-                        f"invalid type: {i}th element type : {type(atom) = }\n{error_msg}"
+                        f"invalid type:\n {i}, {type(atom) = }\n" + f"{error_msg}\n"
                     )
             self.atoms.extend(atoms)
         else:
@@ -141,12 +147,45 @@ class Molecule:
                     bonds.append((i, j))
         return bonds
 
-    def get_bond_clusters(self, tol=0.15) -> list[Molecule]:
+    def get_bond_clusters(self, tol: int = 0.15) -> list[Molecule]:
         G = nx.Graph()
         G.add_nodes_from(range(len(self)))
         G.add_edges_from(self.get_bonds(tol))
         copied_mol = self.copy()
         return [copied_mol[list(cluster)] for cluster in nx.connected_components(G)]
+
+    def get_cycles(self, length_bound: int = None, tol: float = 0.15) -> list[Molecule]:
+        G = nx.Graph()
+        G.add_edges_from(self.get_bonds(tol))
+        cycles = nx.simple_cycles(G, length_bound=length_bound)
+        return [self[list(cycle)] for cycle in cycles]
+
+    @classmethod
+    @args_to_list
+    def combine(cls, mols: Molecule | Iterable[Molecule]) -> Molecule:
+        """
+        Create a new molecule by merging multiple Molecule objects.
+        """
+        if not all(isinstance(mol, Molecule) for mol in mols):
+            raise TypeError("All elements must be Molecule objects")
+        merged = cls()
+        for mol in mols:
+            merged.add_atoms(*mol)
+        return merged
+
+    @args_to_list
+    def merge(self, mols: Molecule | Iterable[Molecule]) -> Molecule:
+        """
+        Merge other Molecule objects into this Molecule object.
+        """
+        if not all(isinstance(mol, Molecule) for mol in mols):
+            raise TypeError(
+                "All elements must be Molecule objects\n"
+                + f"{[(i, type(mol)) for i, mol in enumerate(mols) if not isinstance(mol, Molecule)]}"
+            )
+
+        for mol in mols:
+            self.add_atoms(*mol)
 
     def translate(self, trans_vec: Vec3) -> None:
         for atom in self.atoms:
@@ -183,6 +222,10 @@ class Molecule:
         return Vec3(com_x, com_y, com_z)
 
     def nuclear_repulsion(self) -> float:
+        """
+        Calculate the nuclear repulsion energy of the molecule.
+        uses gaussian16 constants
+        """
         nuclrep = 0.0
         for i in range(len(self.atoms)):
             for j in range(i + 1, len(self.atoms)):
@@ -195,6 +238,29 @@ class Molecule:
                 )
         return nuclrep
 
+    def nuclrep(self) -> float:
+        """
+        Alias for nuclear_repulsion method
+        """
+        return self.nuclear_repulsion()
+
+    def electrostatic_energy(self) -> float:
+        """
+        Calculate the electrostatic energy of the molecule.
+        """
+        elec_energy = 0.0
+        for i in range(len(self.atoms)):
+            for j in range(i + 1, len(self.atoms)):
+                dist_angst = self.atoms[i].distance_to(self.atoms[j])
+                dist_bohr = dist_angst * ANGST2BOHR_GAU16
+                if not (
+                    self.atoms[i].charge is not None
+                    and self.atoms[j].charge is not None
+                ):
+                    raise ValueError("All atoms must have their charge set.")
+                elec_energy += self.atoms[i].charge * self.atoms[j].charge / dist_bohr
+        return elec_energy
+
     def to_xyz(self) -> str:
         return "\n".join([atom.to_xyz() for atom in self])
 
@@ -203,3 +269,4 @@ class Molecule:
             f.write(f"{len(self)}\n")
             f.write(self.get_formula() + "\n")
             f.write(self.to_xyz())
+        print(f"File written to {filepath}")

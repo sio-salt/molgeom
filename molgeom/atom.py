@@ -3,6 +3,7 @@ import json
 import yaml
 import threading
 import importlib.resources
+from typing import Any
 from easyvec import Vec3
 from molgeom.data import consts
 
@@ -55,36 +56,32 @@ class Atom(Vec3):
         super().__init__(x, y, z)
         if symbol not in consts.ATOMIC_NUMBER:
             raise ValueError(f"Invalid atomic symbol: {symbol}")
-        self.symbol = symbol
+        self.symbol: str = symbol
         self._data, self._std_bond_rad = self.get_atomic_data(self.symbol)
         self._bond_pairs = _load_bond_pair_data()
-        self.mass = self._data.get("Atomic mass", 0.0)
-        self.atomic_number = self._data.get("Atomic no", 0.0)
+        self.mass: float = self._data.get("Atomic mass", 0.0)
+        self.atomic_number: int = self._data.get("Atomic no", 0.0)
+        self.charge: int | float | None = None
 
     @classmethod
-    def from_vec(cls, symbol: str, point: list | Vec3) -> Atom:
-        if isinstance(point, Vec3):
-            return cls(symbol, point.x, point.y, point.z)
+    def from_vec(cls, symbol: str, vec: list | tuple | Vec3) -> Atom:
         if (
-            isinstance(point, list)
-            and len(point) == 3
-            and all(isinstance(i, (int, float)) for i in point)
+            isinstance(vec, (list, tuple))
+            and len(vec) == 3
+            and all(isinstance(i, (int, float)) for i in vec)
         ):
-            return cls(symbol, point[0], point[1], point[2])
-        return cls(symbol, point.x, point.y, point.z)
+            return cls(symbol, vec[0], vec[1], vec[2])
+        if isinstance(vec, Vec3):
+            return cls(symbol, vec.x, vec.y, vec.z)
+        return cls(symbol, vec.x, vec.y, vec.z)
 
     @staticmethod
     def get_atomic_data(symbol):
         _pt_data, _bond_rad_data = _load_atomic_data()
         return _pt_data.get(symbol, {}), _bond_rad_data.get(symbol, {})
 
-    def __str__(self) -> str:
-        return (
-            f"Atom({self.symbol:2s}, {self.x:19.12f}, {self.y:19.12f}, {self.z:19.12f})"
-        )
-
-    def __repr__(self) -> str:
-        return f"Atom({self.symbol!r}, {self.x:.12f}, {self.y:.12f}, {self.z:.12f})"
+    def __getitem__(self, index: int) -> Any:
+        return (self.symbol, self.x, self.y, self.z)[index]
 
     def __eq__(self, other: Atom) -> bool:
         return self.symbol == other.symbol and super().__eq__(other)
@@ -97,6 +94,14 @@ class Atom(Vec3):
             return self.atomic_number < other.atomic_number
         if self.mass != other.mass:
             return self.mass < other.mass
+
+    def __str__(self) -> str:
+        return (
+            f"Atom({self.symbol:2s}, {self.x:19.12f}, {self.y:19.12f}, {self.z:19.12f})"
+        )
+
+    def __repr__(self) -> str:
+        return f"Atom({self.symbol!r}, {self.x:.12f}, {self.y:.12f}, {self.z:.12f})"
 
     def to_xyz(self) -> str:
         return f"{self.symbol:2s} {self.x:19.12f} {self.y:19.12f} {self.z:19.12f}"
