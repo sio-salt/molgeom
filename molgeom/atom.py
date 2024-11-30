@@ -64,16 +64,16 @@ class Atom(Vec3):
         self.charge: int | float | None = None
 
     @classmethod
-    def from_vec(cls, symbol: str, point: list | tuple | Vec3) -> Atom:
+    def from_vec(cls, symbol: str, vec: list | tuple | Vec3) -> Atom:
         if (
-            isinstance(point, (list, tuple))
-            and len(point) == 3
-            and all(isinstance(i, (int, float)) for i in point)
+            isinstance(vec, (list, tuple))
+            and len(vec) == 3
+            and all(isinstance(i, (int, float)) for i in vec)
         ):
-            return cls(symbol, point[0], point[1], point[2])
-        if isinstance(point, Vec3):
-            return cls(symbol, point.x, point.y, point.z)
-        return cls(symbol, point.x, point.y, point.z)
+            return cls(symbol, vec[0], vec[1], vec[2])
+        if isinstance(vec, Vec3):
+            return cls(symbol, vec.x, vec.y, vec.z)
+        return cls(symbol, vec.x, vec.y, vec.z)
 
     @staticmethod
     def get_atomic_data(symbol):
