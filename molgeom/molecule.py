@@ -29,11 +29,15 @@ def _load_bond_data():
 
 
 class Molecule:
-    def __init__(self, *atoms: Atom | Iterable[Atom]) -> None:
+    """
+    A class to represent a molecule.
+    """
+
+    def __init__(self, *atoms: Atom):
         self.atoms: FancyIndexingList[Atom] = FancyIndexingList()
         self._data = _load_bond_data()
         if atoms:
-            self.add_atoms(*atoms)
+            self.add_atoms_from(atoms)
 
     def __len__(self) -> int:
         return len(self.atoms)
@@ -94,28 +98,32 @@ class Molecule:
     def filter_by_symbols(self, symbols: str | Iterable[str]) -> Molecule:
         return Molecule(*[atom for atom in self if atom.symbol in symbols])
 
+    @classmethod
     @args_to_list
-    def add_atoms(self, atoms: Atom | Molecule | Iterable[Atom]) -> None:
+    def from_atoms(cls, atoms: Iterable[Atom]) -> Molecule:
         """
-        Add atoms to the molecule. Accepts either:
-        - A list or tuple of Atom objects
-        - Multiple Atom objects as separate arguments
+        Create a new molecule from Atom objects.
         """
-        error_msg = "atoms must be a Atom object or a list/tuple of Atom objects"
-        if isinstance(atoms, Atom):
-            self.atoms.append(atoms)
-            return
-        elif isinstance(atoms, Molecule):
-            self.atoms.extend(atoms)
-        elif isinstance(atoms, Iterable):
-            for i, atom in enumerate(atoms):
-                if not isinstance(atom, Atom):
-                    raise TypeError(
-                        f"invalid type:\n {i}, {type(atom) = }\n" + f"{error_msg}\n"
-                    )
-            self.atoms.extend(atoms)
-        else:
-            raise TypeError(error_msg)
+        if not all(isinstance(atom, Atom) for atom in atoms):
+            raise TypeError("All elements must be Atom objects")
+        return cls(*atoms)
+
+    def add_atom(self, atom: Atom) -> None:
+        self.atoms.append(atom)
+
+    def add_atoms_from(self, atoms: Iterable[Atom]) -> None:
+        """
+        Add atoms to the molecule.
+        Accepts Iterable containing one or more Atom objects.
+        """
+        if not isinstance(atoms, Iterable):
+            raise TypeError("atoms must be an Iterable of Atom objects")
+        not_atoms = [atom for atom in atoms if not isinstance(atom, Atom)]
+        if not_atoms:
+            raise TypeError(
+                "Invalid element type: atoms must be Atom objects" + f"{not_atoms=}"
+            )
+        self.atoms.extend(atoms)
 
     def get_symbols(self) -> list[str]:
         return tuple(atom.symbol for atom in self)
@@ -170,7 +178,7 @@ class Molecule:
             raise TypeError("All elements must be Molecule objects")
         merged = cls()
         for mol in mols:
-            merged.add_atoms(*mol)
+            merged.add_atoms_from(*mol)
         return merged
 
     @args_to_list
@@ -185,7 +193,7 @@ class Molecule:
             )
 
         for mol in mols:
-            self.add_atoms(*mol)
+            self.add_atoms_from(*mol)
 
     def translate(self, trans_vec: Vec3) -> None:
         for atom in self.atoms:

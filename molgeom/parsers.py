@@ -118,7 +118,7 @@ def com_parser(filepath: str, mode: str) -> Molecule:
             atom = Atom(
                 symbol=data[0], x=float(data[1]), y=float(data[2]), z=float(data[3])
             )
-            mole.add_atoms(atom)
+            mole.add_atoms_from(atom)
         if not mole:
             raise ValueError("No atoms found in file.")
 
@@ -180,7 +180,7 @@ def inp_parser(filepath: str, mode: str) -> Molecule:
             atom = Atom(
                 symbol=data[0], x=float(data[2]), y=float(data[3]), z=float(data[4])
             )
-            mole.add_atoms(atom)
+            mole.add_atoms_from(atom)
 
     return mole
 
