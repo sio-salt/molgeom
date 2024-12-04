@@ -121,7 +121,7 @@ class Molecule:
         not_atoms = [atom for atom in atoms if not isinstance(atom, Atom)]
         if not_atoms:
             raise TypeError(
-                "Invalid element type: atoms must be Atom objects" + f"{not_atoms=}"
+                "Invalid element type: atoms must be Atom objects " + f"{not_atoms=}"
             )
         self.atoms.extend(atoms)
 
@@ -178,7 +178,7 @@ class Molecule:
             raise TypeError("All elements must be Molecule objects")
         merged = cls()
         for mol in mols:
-            merged.add_atoms_from(*mol)
+            merged.add_atoms_from(mol)
         return merged
 
     @args_to_list
@@ -193,7 +193,7 @@ class Molecule:
             )
 
         for mol in mols:
-            self.add_atoms_from(*mol)
+            self.add_atoms_from(mol)
 
     def translate(self, trans_vec: Vec3) -> None:
         for atom in self.atoms:
