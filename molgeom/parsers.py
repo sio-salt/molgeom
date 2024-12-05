@@ -119,7 +119,7 @@ def gau_parser(filepath: str) -> Molecule:
             atom = Atom(
                 symbol=data[0], x=float(data[1]), y=float(data[2]), z=float(data[3])
             )
-            mole.add_atoms_from(atom)
+            mole.add_atom(atom)
         if not mole:
             raise ValueError("No atoms found in file.")
 
@@ -181,7 +181,7 @@ def inp_parser(filepath: str) -> Molecule:
             atom = Atom(
                 symbol=data[0], x=float(data[2]), y=float(data[3]), z=float(data[4])
             )
-            mole.add_atoms_from(atom)
+            mole.add_atom(atom)
 
     return mole
 
