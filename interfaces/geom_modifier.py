@@ -145,7 +145,7 @@ def main():
 
     filepath = sys.argv[1]
     print(f"\n{filepath}\n")
-    mole = parse_file(filepath, "r")
+    mole = parse_file(filepath)
 
     operation_order = get_operation_order()
     print()

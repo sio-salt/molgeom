@@ -11,7 +11,7 @@ def main():
     filepaths = sys.argv[1:]
     for filepath in filepaths:
         print(filepath)
-        mole = parse_file(filepath, "r")
+        mole = parse_file(filepath)
         com = mole.center_of_mass()
         print(com)
         print()

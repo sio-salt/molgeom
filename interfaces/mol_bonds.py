@@ -35,7 +35,7 @@ def main():
     for filepath in filepaths:
         print(filepath)
         output = []
-        mole = parse_file(filepath, "r")
+        mole = parse_file(filepath)
         bonds = mole.get_bonds(tolerance)
         output.append(f"Number of bonds: {len(bonds)}")
         output.append(f"bond tolerance: {tolerance}")

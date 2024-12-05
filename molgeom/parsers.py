@@ -31,10 +31,10 @@ def is_valid_xyz_line(line: str) -> bool:
     return True
 
 
-def xyz_parser(filepath: str, mode: str) -> Molecule:
+def xyz_parser(filepath: str) -> Molecule:
     mole = Molecule()
 
-    with open(filepath, mode) as file:
+    with open(filepath, "r") as file:
         lines = remove_trailing_empty_lines(file.readlines())
 
         first_line = lines[0].strip()
@@ -73,10 +73,10 @@ def xyz_parser(filepath: str, mode: str) -> Molecule:
 
 
 # Gaussian com file parser
-def com_parser(filepath: str, mode: str) -> Molecule:
+def gau_parser(filepath: str) -> Molecule:
     mole = Molecule()
 
-    with open(filepath, mode) as file:
+    with open(filepath, "r") as file:
         lines = deque(remove_trailing_empty_lines(file.readlines()))
 
         # link0 section
@@ -87,7 +87,7 @@ def com_parser(filepath: str, mode: str) -> Molecule:
         # route section
         route_section = []
         if not lines[0].strip().startswith("#"):
-            print(f"com_parser : invalid file format \n{lines[0]}")
+            print(f"gau_parser : invalid file format \n{lines[0]}")
             sys.exit(1)
         while lines and lines[0].strip():
             route_section.append(lines.popleft().strip())
@@ -95,25 +95,25 @@ def com_parser(filepath: str, mode: str) -> Molecule:
 
         # title section
         if not lines[0].strip() or lines[1].strip():
-            print(f"com_parser : invalid file format \n{lines[0]}")
+            print(f"gau_parser : invalid file format \n{lines[0]}")
             sys.exit(1)
         _title = lines.popleft().strip()
         lines.popleft()
 
         # molecule Specification section
         if not lines[0].strip():
-            print(f"com_parser : invalid file format \n{lines[0]}")
+            print(f"gau_parser : invalid file format \n{lines[0]}")
             sys.exit(1)
         try:
             charge, multiplicity = map(int, lines.popleft().strip().split())
         except ValueError as e:
-            print(f"com_parser : invalid file format \n{e}")
+            print(f"gau_parser : invalid file format \n{e}")
             sys.exit(1)
 
         # atom cartesian coordinates
         while lines and lines[0].strip():
             if not is_valid_xyz_line(lines[0]):
-                print(f"com_parser : invalid file format \n{lines[0]}")
+                print(f"gau_parser : invalid file format \n{lines[0]}")
                 sys.exit(1)
             data = lines.popleft().strip().split()
             atom = Atom(
@@ -143,10 +143,10 @@ def is_valid_gms_xyz_line(line: str) -> bool:
 
 
 # GAMESS input file parser
-def inp_parser(filepath: str, mode: str) -> Molecule:
+def inp_parser(filepath: str) -> Molecule:
     mole = Molecule()
 
-    with open(filepath, mode) as file:
+    with open(filepath, "r") as file:
         lines = deque(remove_trailing_empty_lines(file.readlines()))
 
         # input description section
@@ -201,12 +201,12 @@ def poscar_parser(
     """
     if mode != "r":
         raise ValueError("mode should be 'r'")
-    if not os.path.exists(filepath) or not os.path.isfile(filepath):
+    if not os.path.exists(filepath, "r") or not os.path.isfile(filepath, "r"):
         raise FileNotFoundError(f"{filepath} do not exist")
-    if "poscar" not in os.path.basename(filepath).lower():
+    if "poscar" not in os.path.basename(filepath, "r").lower():
         raise ValueError(f"{filepath} is not a POSCAR file")
     mole = Molecule()
-    with open(filepath, mode) as file:
+    with open(filepath, "r") as file:
         # The first line is in principle a comment line
         line1 = file.readline().strip()
 
@@ -321,25 +321,28 @@ def poscar_parser(
     return result_mole
 
 
-def parse_file(filepath: str | Path, mode: str = "r") -> Molecule:
-    ext_parser_map = {".xyz": xyz_parser, ".com": com_parser, ".inp": inp_parser}
-    supported_mode = {"r"}
+def parse_file(filepath: str | Path) -> Molecule:
+    ext_parser_map = {
+        ".xyz": xyz_parser,
+        ".com": gau_parser,
+        ".gjf": gau_parser,
+        ".inp": inp_parser,
+    }
 
-    if not os.path.exists(filepath):
+    if not os.path.exists(filepath, "r"):
         raise FileNotFoundError(f"{filepath} do not exist")
-    if mode not in supported_mode:
-        raise ValueError(f"mode {mode} is not supported yet")
 
     for ext in ext_parser_map:
-        if str(filepath).endswith(ext):
-            return ext_parser_map[ext](filepath, mode)
-    if "poscar" in str(filepath).lower():
-        return poscar_parser(filepath, mode)
-    else:
-        raise RuntimeError(
-            f'file extension for "{os.path.basename(filepath)}" '
-            + "is not supported or extensionless file"
-        )
+        if str(filepath, "r").endswith(ext):
+            return ext_parser_map[ext](filepath, "r")
+
+    if "poscar" in str(filepath, "r").lower():
+        return poscar_parser(filepath, "r")
+
+    raise RuntimeError(
+        f'file extension for "{os.path.basename(filepath, "r")}" '
+        + "is not supported or extensionless file"
+    )
 
 
 def main():
@@ -350,7 +353,7 @@ def main():
     print()
     filepaths = sys.argv[1:]
     for filepath in filepaths:
-        print(filepath)
+        print(filepath, "r")
         mole = parse_file(filepath, "r")
         print(mole.to_xyz())
 

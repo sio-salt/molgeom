@@ -10,7 +10,7 @@ def main():
     print()
     filepath = sys.argv[1]
     print(filepath)
-    mole = parse_file(filepath, "r")
+    mole = parse_file(filepath)
     clusters = mole.get_bond_clusters()
     print(f"{clusters=}")
     for cluster in clusters:
