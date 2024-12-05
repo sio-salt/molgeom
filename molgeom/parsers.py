@@ -188,7 +188,6 @@ def inp_parser(filepath: str) -> Molecule:
 
 def poscar_parser(
     filepath: str,
-    mode: str = "r",
     rep_cell_a: list[int] = [0, 1],
     rep_cell_b: list[int] = [0, 1],
     rep_cell_c: list[int] = [0, 1],
@@ -199,11 +198,9 @@ def poscar_parser(
     https://www.vasp.at/wiki/index.php/POSCAR#Full_format_specification
 
     """
-    if mode != "r":
-        raise ValueError("mode should be 'r'")
-    if not os.path.exists(filepath, "r") or not os.path.isfile(filepath, "r"):
+    if not os.path.exists(filepath) or not os.path.isfile(filepath):
         raise FileNotFoundError(f"{filepath} do not exist")
-    if "poscar" not in os.path.basename(filepath, "r").lower():
+    if "poscar" not in os.path.basename(filepath).lower():
         raise ValueError(f"{filepath} is not a POSCAR file")
     mole = Molecule()
     with open(filepath, "r") as file:
@@ -329,18 +326,18 @@ def parse_file(filepath: str | Path) -> Molecule:
         ".inp": inp_parser,
     }
 
-    if not os.path.exists(filepath, "r"):
+    if not os.path.exists(filepath):
         raise FileNotFoundError(f"{filepath} do not exist")
 
     for ext in ext_parser_map:
-        if str(filepath, "r").endswith(ext):
-            return ext_parser_map[ext](filepath, "r")
+        if str(filepath).endswith(ext):
+            return ext_parser_map[ext](filepath)
 
-    if "poscar" in str(filepath, "r").lower():
-        return poscar_parser(filepath, "r")
+    if "poscar" in str(filepath).lower():
+        return poscar_parser(filepath)
 
     raise RuntimeError(
-        f'file extension for "{os.path.basename(filepath, "r")}" '
+        f'file extension for "{os.path.basename(filepath)}" '
         + "is not supported or extensionless file"
     )
 
@@ -353,8 +350,8 @@ def main():
     print()
     filepaths = sys.argv[1:]
     for filepath in filepaths:
-        print(filepath, "r")
-        mole = parse_file(filepath, "r")
+        print(filepath)
+        mole = parse_file(filepath)
         print(mole.to_xyz())
 
 
