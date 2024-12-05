@@ -333,6 +333,8 @@ def parse_file(filepath: str | Path, mode: str = "r") -> Molecule:
     for ext in ext_parser_map:
         if str(filepath).endswith(ext):
             return ext_parser_map[ext](filepath, mode)
+    if "poscar" in str(filepath).lower():
+        return poscar_parser(filepath, mode)
     else:
         raise RuntimeError(
             f'file extension for "{os.path.basename(filepath)}" '
