@@ -82,7 +82,23 @@ class Molecule:
         formula = self.get_formula()
         return f"Molecule({formula})"
 
+    @classmethod
+    def sorted(cls, mols: Molecule | Iterable[Molecule], key=None) -> Molecule:
+        """
+        Create a new molecule by sorting the atoms of the input molecule(s).
+        """
+        if not all(isinstance(mol, Molecule) for mol in mols):
+            raise TypeError("All elements must be Molecule objects")
+        sorted_mols = cls()
+        for mol in mols:
+            mol.sort(key=key)
+            sorted_mols.add_atoms_from(mol)
+        return
+
     def sort(self, key=None) -> None:
+        """
+        Sort the atoms of the molecule.
+        """
         if key is None:
             self.atoms.sort(key=lambda atom: ATOMIC_NUMBER[atom.symbol])
         else:
@@ -155,7 +171,7 @@ class Molecule:
                     bonds.append((i, j))
         return bonds
 
-    def get_bond_clusters(self, tol: int = 0.15) -> list[Molecule]:
+    def get_clusters(self, tol: int = 0.15) -> list[Molecule]:
         G = nx.Graph()
         G.add_nodes_from(range(len(self)))
         G.add_edges_from(self.get_bonds(tol))
@@ -170,7 +186,7 @@ class Molecule:
 
     @classmethod
     @args_to_list
-    def combine(cls, mols: Molecule | Iterable[Molecule]) -> Molecule:
+    def merged(cls, mols: Molecule | Iterable[Molecule]) -> Molecule:
         """
         Create a new molecule by merging multiple Molecule objects.
         """
@@ -271,6 +287,12 @@ class Molecule:
 
     def to_xyz(self) -> str:
         return "\n".join([atom.to_xyz() for atom in self])
+
+    def to_dict(self) -> dict:
+        return {
+            "atoms": [atom.to_dict() for atom in self],
+            "formula": self.get_formula(),
+        }
 
     def write_to_xyz(self, filepath: str) -> None:
         with open(filepath, "w") as f:

@@ -110,6 +110,17 @@ class Atom(Vec3):
     def to_xyz(self) -> str:
         return f"{self.symbol:2s} {self.x:19.12f} {self.y:19.12f} {self.z:19.12f}"
 
+    def to_dict(self) -> dict:
+        return {
+            "symbol": self.symbol,
+            "x": self.x,
+            "y": self.y,
+            "z": self.z,
+            "mass": self.mass,
+            "charge": self.charge,
+            "atomic_number": self.atomic_number,
+        }
+
     # def is_bonded_to(self, other, tol=0.12, lower_bound=None, upper_bound=None) -> bool:
     def is_bonded_to(self, other, tol=0.15) -> bool:
         dist_angst = self.distance_to(other)
