@@ -289,10 +289,10 @@ class Molecule:
         return "\n".join([atom.to_xyz() for atom in self])
 
     def to_dict(self) -> dict:
-        return {
-            "atoms": [atom.to_dict() for atom in self],
-            "formula": self.get_formula(),
-        }
+        mol_dict = dict()
+        for i, atom in enumerate(self):
+            mol_dict[i] = atom.to_dict()
+        return mol_dict
 
     def write_to_xyz(self, filepath: str) -> None:
         with open(filepath, "w") as f:
