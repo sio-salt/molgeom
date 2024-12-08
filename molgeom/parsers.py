@@ -4,7 +4,7 @@ import re
 from pathlib import Path
 from collections import deque
 from easyvec import Vec3
-from molgeom.data.consts import ATOMIC_MASSES
+from molgeom.data.consts import ATOMIC_MASSES, SPECIAL_ELEMENTS
 from molgeom.atom import Atom
 from molgeom.molecule import Molecule
 
@@ -26,7 +26,7 @@ def is_valid_xyz_line(line: str) -> bool:
         return False
     if not re.fullmatch(atom_xyz_regex, line.strip()):
         return False
-    if data[0] not in ATOMIC_MASSES:
+    if not (data[0] in ATOMIC_MASSES or data[0] in SPECIAL_ELEMENTS):
         return False
     return True
 
@@ -47,15 +47,15 @@ def xyz_parser(filepath: str) -> Molecule:
             mol_struc_lines = lines
             num_atoms = len(mol_struc_lines)
         else:
-            print("xyz_parser : invalid file format in first line \n" + f"{first_line}")
-            sys.exit(1)
+            raise ValueError(
+                f"Invalid file format in first line: \n{first_line}"
+            )
 
         for line in mol_struc_lines:
             if not is_valid_xyz_line(line):
-                print(
-                    "xyz_parser : invalid data format or empty line found " + f"{line}"
+                raise ValueError(
+                    f"Invalid line format: \n{line}"
                 )
-                sys.exit(1)
 
             data = line.strip().split()
             atom = Atom(
@@ -77,6 +77,7 @@ def gau_parser(filepath: str) -> Molecule:
     mole = Molecule()
 
     with open(filepath, "r") as file:
+        # remove trailing empty lines and create a deque to pop from left
         lines = deque(remove_trailing_empty_lines(file.readlines()))
 
         # link0 section
@@ -87,23 +88,31 @@ def gau_parser(filepath: str) -> Molecule:
         # route section
         route_section = []
         if not lines[0].strip().startswith("#"):
-            print(f"gau_parser : invalid file format \n{lines[0]}")
-            sys.exit(1)
+            raise ValueError(
+                "Expected route section.\n"
+                + f"Found: {lines[0]}\n"
+            )
         while lines and lines[0].strip():
             route_section.append(lines.popleft().strip())
         lines.popleft()
 
         # title section
         if not lines[0].strip() or lines[1].strip():
-            print(f"gau_parser : invalid file format \n{lines[0]}")
-            sys.exit(1)
+            raise ValueError(
+                "Expected title section.\n"
+                + f"Found: {lines[0]}\n"
+                + f"Found: {lines[1]}\n"
+            )
         _title = lines.popleft().strip()
         lines.popleft()
 
         # molecule Specification section
         if not lines[0].strip():
-            print(f"gau_parser : invalid file format \n{lines[0]}")
-            sys.exit(1)
+            raise ValueError(
+                "Expected molecule specification section.\n"
+                + f"Found: {lines[0]}\n"
+            )
+
         try:
             charge, multiplicity = map(int, lines.popleft().strip().split())
         except ValueError as e:
@@ -113,13 +122,32 @@ def gau_parser(filepath: str) -> Molecule:
         # atom cartesian coordinates
         while lines and lines[0].strip():
             if not is_valid_xyz_line(lines[0]):
-                print(f"gau_parser : invalid file format \n{lines[0]}")
-                sys.exit(1)
+                raise ValueError(
+                    "Expected atom symbol and cartesian coordinates.\n"
+                    + f"Found: {lines[0]}\n"
+                )
             data = lines.popleft().strip().split()
-            atom = Atom(
-                symbol=data[0], x=float(data[1]), y=float(data[2]), z=float(data[3])
-            )
-            mole.add_atom(atom)
+            if data[0] == "Tv":
+                if not (lines[0].strip().startswith("Tv") and lines[1].strip().startswith("Tv")):
+                    raise ValueError("Expected 3 lines of Tv lattice vectors.")
+
+                lat_vec = [data[1:4]]
+                for _ in range(2):
+                    if not is_valid_xyz_line(lines[0]):
+                        raise ValueError(
+                            "Expected atom symbol and cartesian coordinates.\n"
+                            + f"Found: {lines[0]}\n"
+                        )
+                    data = lines.popleft().strip().split()
+                    lat_vec.append(data[1:4])
+                mole.lattice_vecs = [
+                    Vec3(*map(float, vec)) for vec in lat_vec
+                ]
+            else:
+                atom = Atom(
+                    symbol=data[0], x=float(data[1]), y=float(data[2]), z=float(data[3])
+                )
+                mole.add_atom(atom)
         if not mole:
             raise ValueError("No atoms found in file.")
 
