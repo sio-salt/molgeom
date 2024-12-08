@@ -1,9 +1,5 @@
 from __future__ import annotations
-import yaml
-import threading
-import importlib.resources
 import networkx as nx
-import copy
 from collections.abc import Iterable
 from easyvec import Vec3
 from molgeom.utils.fancy_indexing_list import FancyIndexingList
@@ -12,32 +8,40 @@ from molgeom.atom import Atom
 from molgeom.utils.decorators import args_to_set, args_to_list
 
 
-_bond_data = None
-_mole_data_lock = threading.Lock()
-
-
-def _load_bond_data():
-    global _bond_data
-    if _bond_data is None:
-        with _mole_data_lock:
-            if _bond_data is None:
-                with importlib.resources.open_text(
-                    "molgeom.data", "bond_lengths.yaml"
-                ) as f:
-                    _bond_data = yaml.safe_load(f)
-    return _bond_data
-
-
 class Molecule:
     """
     A class to represent a molecule.
     """
 
-    def __init__(self, *atoms: Atom):
+    def __init__(
+        self, *atoms: Atom, lattice_vecs: list[Vec3 | list[float | int]] | None = None
+    ):
         self.atoms: FancyIndexingList[Atom] = FancyIndexingList()
-        self._data = _load_bond_data()
         if atoms:
             self.add_atoms_from(atoms)
+        self._lattice_vecs: list[Vec3] | None = None
+        self.lattice_vecs = lattice_vecs
+        self._bonds: list[tuple[int, int]] | None = None
+        self._cycles: list[Molecule] | None = None
+
+    @property
+    def lattice_vecs(self) -> list[Vec3] | None:
+        return self._lattice_vecs
+
+    @lattice_vecs.setter
+    def lattice_vecs(self, lattice_vecs: list[Vec3 | list[float | int]] | None) -> None:
+        if lattice_vecs is None:
+            self._lattice_vecs = None
+        elif not all(isinstance(vec, (Vec3, list)) for vec in lattice_vecs):
+            raise TypeError(
+                "All elements must be Vec3 objects or list of 3 floats or ints"
+            )
+        elif not all(len(vec) == 3 for vec in lattice_vecs):
+            raise ValueError("All lattice vectors must be of length 3")
+        else:
+            self._lattice_vecs = [
+                Vec3(*vec) if isinstance(vec, list) else vec for vec in lattice_vecs
+            ]
 
     def __len__(self) -> int:
         return len(self.atoms)
@@ -93,7 +97,8 @@ class Molecule:
         for mol in mols:
             mol.sort(key=key)
             sorted_mols.add_atoms_from(mol)
-        return
+
+        return sorted_mols
 
     def sort(self, key=None) -> None:
         """
@@ -108,7 +113,16 @@ class Molecule:
         return self.atoms.pop(index)
 
     def copy(self) -> Molecule:
-        return copy.deepcopy(self)
+        copied_mol = Molecule()
+        copied_mol.add_atoms_from(self)
+        if self.lattice_vecs is not None:
+            copied_mol.lattice_vecs = self.lattice_vecs
+        if self._bonds is not None:
+            copied_mol._bonds = self._bonds
+        if self._cycles is not None:
+            copied_mol._cycles = self._cycles
+
+        return copied_mol
 
     @args_to_set
     def filter_by_symbols(self, symbols: str | Iterable[str]) -> Molecule:
@@ -161,14 +175,21 @@ class Molecule:
         self,
         tol: float = 0.15,
     ) -> list[tuple[int, int]]:
+
+        if self._bonds is not None:
+            return self._bonds
+
         bonds = list()
         num_atoms = len(self)
+
         for i in range(num_atoms):
             ai = self[i]
             for j in range(i + 1, num_atoms):
                 aj = self[j]
                 if ai.is_bonded_to(aj, tol):
                     bonds.append((i, j))
+        self._bonds = bonds
+
         return bonds
 
     def get_clusters(self, tol: int = 0.15) -> list[Molecule]:
@@ -179,16 +200,20 @@ class Molecule:
         return [copied_mol[list(cluster)] for cluster in nx.connected_components(G)]
 
     def get_cycles(self, length_bound: int = None, tol: float = 0.15) -> list[Molecule]:
+        if self._cycles is not None:
+            return self._cycles
         G = nx.Graph()
         G.add_edges_from(self.get_bonds(tol))
         cycles = nx.simple_cycles(G, length_bound=length_bound)
-        return [self[list(cycle)] for cycle in cycles]
+        self._cycles = [self[list(cycle)] for cycle in cycles]
+        return self._cycles
 
     @classmethod
     @args_to_list
     def merged(cls, mols: Molecule | Iterable[Molecule]) -> Molecule:
         """
         Create a new molecule by merging multiple Molecule objects.
+        lattice vectors, bonds, and cycles are initialized to None
         """
         if not all(isinstance(mol, Molecule) for mol in mols):
             raise TypeError("All elements must be Molecule objects")
@@ -201,6 +226,7 @@ class Molecule:
     def merge(self, mols: Molecule | Iterable[Molecule]) -> Molecule:
         """
         Merge other Molecule objects into this Molecule object.
+        resets the lattice vectors, bonds, and cycles
         """
         if not all(isinstance(mol, Molecule) for mol in mols):
             raise TypeError(
@@ -211,8 +237,12 @@ class Molecule:
         for mol in mols:
             self.add_atoms_from(mol)
 
+        self._lattice_vecs = None
+        self._bonds = None
+        self._cycles = None
+
     def translate(self, trans_vec: Vec3) -> None:
-        for atom in self.atoms:
+        for atom in self:
             atom.translate(trans_vec)
 
     def mirror(self, sx: int, sy: int, sz: int) -> None:
@@ -234,6 +264,47 @@ class Molecule:
 
         for atom in self.atoms:
             atom.rotate_by_axis(axis_point1, axis_point2, angle_degrees)
+
+    def replicate(self, rep_a: list[int], rep_b: list[int], rep_c: list[int]) -> None:
+        """
+        Replicate the molecule in the a, b, and c directions.
+        """
+        if self.lattice_vecs is None:
+            raise ValueError("Lattice vectors must be set to replicate the molecule.")
+
+        if not all(isinstance(rep, list) for rep in (rep_a, rep_b, rep_c)):
+            raise TypeError(
+                "Replication vectors must be of length 2 list\n"
+                + f"{(rep_a, rep_b, rep_c)=}"
+            )
+
+        if len(rep_a) != 2 or len(rep_b) != 2 or len(rep_c) != 2:
+            raise ValueError(
+                "Replication vectors must be of length 2 list\n"
+                + f"{(rep_a, rep_b, rep_c)=}"
+            )
+
+        if rep_a[0] >= rep_a[1] or rep_b[0] >= rep_b[1] or rep_c[0] >= rep_c[1]:
+            raise ValueError(
+                "Replication vectors must be of the form [start, end], start < end\n"
+                + f"{(rep_a, rep_b, rep_c)=}"
+            )
+
+        tmp_mol = self.copy()
+        for i in range(rep_a[0], rep_a[1]):
+            for j in range(rep_b[0], rep_b[1]):
+                for k in range(rep_c[0], rep_c[1]):
+                    if i == 0 and j == 0 and k == 0:
+                        continue
+
+                    trans_vec = (
+                        i * tmp_mol.lattice_vecs[0]
+                        + j * tmp_mol.lattice_vecs[1]
+                        + k * tmp_mol.lattice_vecs[2]
+                    )
+                    mol_copied = tmp_mol.copy()
+                    mol_copied.translate(trans_vec)
+                    self.merge(mol_copied)
 
     def total_mass(self) -> float:
         return sum(atom.mass for atom in self)
@@ -277,10 +348,7 @@ class Molecule:
             for j in range(i + 1, len(self.atoms)):
                 dist_angst = self.atoms[i].distance_to(self.atoms[j])
                 dist_bohr = dist_angst * ANGST2BOHR_GAU16
-                if not (
-                    self.atoms[i].charge is not None
-                    and self.atoms[j].charge is not None
-                ):
+                if self.atoms[i].charge is None or self.atoms[j].charge is None:
                     raise ValueError("All atoms must have their charge set.")
                 elec_energy += self.atoms[i].charge * self.atoms[j].charge / dist_bohr
         return elec_energy

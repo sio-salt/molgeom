@@ -301,16 +301,8 @@ def poscar_parser(
         for j in range(rep_cell_b[0], rep_cell_b[1]):
             for k in range(rep_cell_c[0], rep_cell_c[1]):
                 tmp_mole = mole.copy()
-                trans_vec = Vec3(
-                    i * lattice_vecs[0][0]
-                    + j * lattice_vecs[1][0]
-                    + k * lattice_vecs[2][0],
-                    i * lattice_vecs[0][1]
-                    + j * lattice_vecs[1][1]
-                    + k * lattice_vecs[2][1],
-                    i * lattice_vecs[0][2]
-                    + j * lattice_vecs[1][2]
-                    + k * lattice_vecs[2][2],
+                trans_vec = (
+                    i * lattice_vecs[0] + j * lattice_vecs[1] + k * lattice_vecs[2]
                 )
                 tmp_mole.translate(trans_vec)
                 result_mole.merge(tmp_mole)
