@@ -118,6 +118,20 @@ def test_replicate():
     mol.replicate([0, 1], [0, 1], [0, 1])
 
     assert len(mol.atoms) == 3
+    assert mol == Molecule(a1, a2, a3)
 
+    mol = Molecule(a1, a2, a3)
+    mol.lattice_vecs = [[2, 0, 0], [0, 2, 0], [0, 0, 2]]
+    mol_copied = mol.copy()
+    mol_copied.translate(
+        -1 * (mol.lattice_vecs[0] + mol.lattice_vecs[1] + mol.lattice_vecs[2])
+    )
+    mol.replicate([-1, 0], [-1, 0], [-1, 0])
+
+    assert len(mol.atoms) == 3
+    assert mol == mol_copied
+    assert mol.lattice_vecs is None
+
+    mol.lattice_vecs = [[2, 0, 0], [0, 2, 0], [0, 0, 2]]
     mol.replicate([-1, 2], [-1, 2], [-1, 2])
     assert len(mol.atoms) == 81

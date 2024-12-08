@@ -1,4 +1,5 @@
 from __future__ import annotations
+import copy
 import json
 import yaml
 import threading
@@ -101,7 +102,7 @@ class Atom(Vec3):
         return f"Atom({self.symbol!r}, {self.x:.12f}, {self.y:.12f}, {self.z:.12f})"
 
     def copy(self) -> Atom:
-        return Atom(self.symbol, self.x, self.y, self.z)
+        return copy.deepcopy(self)
 
     def to_xyz(self) -> str:
         return f"{self.symbol:2s} {self.x:19.12f} {self.y:19.12f} {self.z:19.12f}"

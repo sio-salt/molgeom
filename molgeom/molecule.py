@@ -1,4 +1,5 @@
 from __future__ import annotations
+import copy
 import networkx as nx
 from collections.abc import Iterable
 from easyvec import Vec3
@@ -113,16 +114,7 @@ class Molecule:
         return self.atoms.pop(index)
 
     def copy(self) -> Molecule:
-        copied_mol = Molecule()
-        copied_mol.add_atoms_from(self)
-        if self.lattice_vecs is not None:
-            copied_mol.lattice_vecs = self.lattice_vecs
-        if self._bonds is not None:
-            copied_mol._bonds = self._bonds
-        if self._cycles is not None:
-            copied_mol._cycles = self._cycles
-
-        return copied_mol
+        return copy.deepcopy(self)
 
     @args_to_set
     def filter_by_symbols(self, symbols: str | Iterable[str]) -> Molecule:
@@ -241,7 +233,18 @@ class Molecule:
         self._bonds = None
         self._cycles = None
 
-    def translate(self, trans_vec: Vec3) -> None:
+    def translate(self, trans_vec: Vec3 | list[float | int]) -> None:
+        if not isinstance(trans_vec, (Vec3, list)):
+            raise TypeError(
+                "trans_vec must be Vec3 object or list of 3 floats or ints"
+            )
+        if isinstance(trans_vec, list):
+            if len(trans_vec) != 3:
+                raise ValueError("trans_vec must be of length 3")
+            if not all(isinstance(i, (int, float)) for i in trans_vec):
+                raise TypeError("elements of trans_vec must be int or float")
+            trans_vec = Vec3(*trans_vec)
+
         for atom in self:
             atom.translate(trans_vec)
 
@@ -291,11 +294,10 @@ class Molecule:
             )
 
         tmp_mol = self.copy()
+        self.atoms = FancyIndexingList()
         for i in range(rep_a[0], rep_a[1]):
             for j in range(rep_b[0], rep_b[1]):
                 for k in range(rep_c[0], rep_c[1]):
-                    if i == 0 and j == 0 and k == 0:
-                        continue
 
                     trans_vec = (
                         i * tmp_mol.lattice_vecs[0]

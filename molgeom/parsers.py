@@ -186,12 +186,7 @@ def inp_parser(filepath: str) -> Molecule:
     return mole
 
 
-def poscar_parser(
-    filepath: str,
-    rep_cell_a: list[int] = [0, 1],
-    rep_cell_b: list[int] = [0, 1],
-    rep_cell_c: list[int] = [0, 1],
-) -> Molecule:
+def poscar_parser(filepath: str | Path) -> Molecule:
     """
     Parse a POSCAR file and return a Molecule object.
 
@@ -218,6 +213,7 @@ def poscar_parser(
         lattice_vec_a = Vec3(*map(float, file.readline().split()[:3]))
         lattice_vec_b = Vec3(*map(float, file.readline().split()[:3]))
         lattice_vec_c = Vec3(*map(float, file.readline().split()[:3]))
+        mole.lattice_vecs = [lattice_vec_a, lattice_vec_b, lattice_vec_c]
         lattice_vecs = [lattice_vec_a, lattice_vec_b, lattice_vec_c]
 
         if len(scale) == 1:
@@ -286,28 +282,7 @@ def poscar_parser(
         else:
             raise ValueError(f"Unknown coordinate type {coord_type=}")
 
-    # Replicate the cell
-    if (
-        rep_cell_a[0] >= rep_cell_a[1]
-        or rep_cell_b[0] >= rep_cell_b[1]
-        or rep_cell_c[0] >= rep_cell_c[1]
-    ):
-        raise ValueError(
-            "The lower bound of the range must be less than the upper bound."
-        )
-
-    result_mole = Molecule()
-    for i in range(rep_cell_a[0], rep_cell_a[1]):
-        for j in range(rep_cell_b[0], rep_cell_b[1]):
-            for k in range(rep_cell_c[0], rep_cell_c[1]):
-                tmp_mole = mole.copy()
-                trans_vec = (
-                    i * lattice_vecs[0] + j * lattice_vecs[1] + k * lattice_vecs[2]
-                )
-                tmp_mole.translate(trans_vec)
-                result_mole.merge(tmp_mole)
-
-    return result_mole
+    return mole
 
 
 def parse_file(filepath: str | Path) -> Molecule:
