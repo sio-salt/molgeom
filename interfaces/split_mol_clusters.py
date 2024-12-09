@@ -11,7 +11,7 @@ def main():
     filepath = sys.argv[1]
     print(filepath)
     mole = parse_file(filepath)
-    clusters = mole.get_bond_clusters()
+    clusters = mole.get_clusters()
     print(f"{clusters=}")
     for cluster in clusters:
         if len(cluster) >= 3:

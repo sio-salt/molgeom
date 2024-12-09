@@ -1,6 +1,10 @@
 import os
 import sys
+import importlib.util
 from molgeom import parse_file
+
+if importlib.util.find_spec("readline"):
+    import readline  # noqa
 
 
 def main():
@@ -16,9 +20,10 @@ def main():
     print()
     while True:
         try:
-            inp_str = input(
-                'Enter tolerance of bond length ( or "default": tol=0.15 (Å) )\n >>> '
-            ).strip()
+            print(
+                'Enter tolerance of bond length ( e.g. 0.15  or "default": [default tol = 0.15 (Å)] )'
+            )
+            inp_str = input(" >>> ").strip()
             if inp_str.lower() == "default":
                 tolerance = 0.15
             else:
@@ -40,7 +45,8 @@ def main():
         output.append(f"Number of bonds: {len(bonds)}")
         output.append(f"bond tolerance: {tolerance}")
         output.append(
-            "label   bond length (Angstrom)       atom1                                                                 -     atom2"
+            "label   bond length (Angstrom)       "
+            + "atom1                                                                          -     atom2"
         )
         for label, (i, j) in enumerate(bonds):
             ai, aj = mole[(i, j)]
@@ -51,12 +57,12 @@ def main():
         print("\n".join(output))
         print()
 
-    output_file = "bonds_output.txt"
-    with open(output_file, "w") as f:
-        f.write("\n".join(output))
-
-    print(f"Output written to {output_file}")
-    print()
+    # output_file = "bonds_output.txt"
+    # with open(output_file, "w") as f:
+    #     f.write("\n".join(output))
+    #
+    # print(f"Output written to {output_file}")
+    # print()
 
 
 if __name__ == "__main__":

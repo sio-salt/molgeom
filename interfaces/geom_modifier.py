@@ -105,14 +105,12 @@ def get_operation_order():
     operations = ["translate", "reflect", "rotate"]
     while True:
         try:
-            input_str = input(
-                "---------------------------------------------------\n"
-                " Enter the order of operations separated by spaces \n"
-                "     0 if you don't want to apply the operation    \n"
-                "   translate  reflect  rotate   ( e.g.  2  0  1 )  \n"
-                "---------------------------------------------------\n"
-                " > "
-            )
+            print("---------------------------------------------------")
+            print(" Enter the order of operations separated by spaces ")
+            print("     0 if you don't want to apply the operation    ")
+            print("   translate  reflect  rotate   ( e.g.  2  0  1 )  ")
+            print("---------------------------------------------------")
+            input_str = input(" > ")
             values = [int(v.strip()) for v in input_str.strip().split()]
             if len(values) != 3:
                 print("Please enter 3 numbers.")
@@ -140,7 +138,7 @@ def get_operation_order():
 
 def main():
     if len(sys.argv) != 2:
-        print("Usage: python script.py <xyz_file_path>")
+        print("Usage: python script.py <xyz_file_path>\ntakes one input argument")
         sys.exit(1)
 
     filepath = sys.argv[1]
