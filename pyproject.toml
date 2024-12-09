@@ -28,5 +28,5 @@ dev-dependencies = [
 ]
 
 [tool.uv.sources]
-easyvec = { path = "../easyvec" }
+easyvec = { git = "https://github.com/sio-salt/easyvec", tag = "v0.1.2" }
 
