@@ -168,7 +168,7 @@ class Molecule:
         tol: float = 0.15,
     ) -> list[tuple[int, int]]:
 
-        if self._bonds is not None:
+        if self._bonds is not None and getattr(self, "_bonds_tol", None) == tol:
             return self._bonds
 
         bonds = list()
@@ -182,6 +182,7 @@ class Molecule:
                     bonds.append((i, j))
         self._bonds = bonds
 
+        self._bonds_tol = tol
         return bonds
 
     def get_clusters(self, tol: int = 0.15) -> list[Molecule]:
