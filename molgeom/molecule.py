@@ -234,7 +234,9 @@ class Molecule:
         self._bonds = None
         self._cycles = None
 
-    def translate(self, trans_vec: Vec3 | list[float | int]) -> None:
+    def translate(
+        self, trans_vec: Vec3 | list[float | int], with_lattice_vecs: bool = False
+    ) -> None:
         if not isinstance(trans_vec, (Vec3, list)):
             raise TypeError("trans_vec must be Vec3 object or list of 3 floats or ints")
         if isinstance(trans_vec, list):
@@ -246,6 +248,10 @@ class Molecule:
 
         for atom in self:
             atom.translate(trans_vec)
+
+        if with_lattice_vecs and self.lattice_vecs is not None:
+            for vec in self.lattice_vecs:
+                vec.translate(trans_vec)
 
     def mirror(self, sx: int, sy: int, sz: int) -> None:
         for atom in self.atoms:
@@ -306,6 +312,8 @@ class Molecule:
                     mol_copied = tmp_mol.copy()
                     mol_copied.translate(trans_vec)
                     self.merge(mol_copied)
+
+        self.lattice_vecs = tmp_mol.lattice_vecs
 
     def total_mass(self) -> float:
         return sum(atom.mass for atom in self)
