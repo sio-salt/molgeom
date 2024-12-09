@@ -235,9 +235,7 @@ class Molecule:
 
     def translate(self, trans_vec: Vec3 | list[float | int]) -> None:
         if not isinstance(trans_vec, (Vec3, list)):
-            raise TypeError(
-                "trans_vec must be Vec3 object or list of 3 floats or ints"
-            )
+            raise TypeError("trans_vec must be Vec3 object or list of 3 floats or ints")
         if isinstance(trans_vec, list):
             if len(trans_vec) != 3:
                 raise ValueError("trans_vec must be of length 3")
