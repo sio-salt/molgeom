@@ -4,12 +4,12 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "molgeom"
-version = "0.1.1"
+version = "0.2.0"
 description = "A simple molecular geometry manipulation module"
 readme = "README.md"
-requires-python = ">=3.7"
+requires-python = ">=3.9"
 dependencies = [
-    "easyvec>=0.1.0",
+    "easyvec",
     "networkx>=2.6.3",
     "pyyaml>=6.0.1",
 ]
@@ -19,6 +19,13 @@ authors = [
 
 [tool.setuptools]
 packages = ["molgeom"]
+
+[tool.uv]
+dev-dependencies = [
+    "icecream>=2.1.3",
+    "pytest-timeout>=2.3.1",
+    "pytest>=7.4.4",
+]
 
 [tool.uv.sources]
 easyvec = { path = "../easyvec" }
