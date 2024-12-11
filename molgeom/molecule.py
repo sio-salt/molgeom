@@ -260,7 +260,21 @@ class Molecule:
         for atom in self.atoms:
             atom.mirror_by_plane(p1, p2, p3)
 
-    def rotate_by_axis(self, axis_point1: Vec3, axis_point2: Vec3, deg: float) -> None:
+    def rotate_by_mat(self, rot_mat: mat_type, with_lattice_vecs: bool = True) -> None:
+        for atom in self.atoms:
+            atom.rotate_by_mat(rot_mat)
+
+        if with_lattice_vecs and self.lattice_vecs is not None:
+            for vec in self.lattice_vecs:
+                vec.rotate_by_mat(rot_mat)
+
+    def rotate_by_axis(
+        self,
+        axis_point1: Vec3,
+        axis_point2: Vec3,
+        deg: float,
+        with_lattice_vecs: bool = True,
+    ) -> None:
         """
         :param axis_point1: One point on the rotation axis
         :param axis_point2: Another point on the rotation axis
@@ -269,6 +283,10 @@ class Molecule:
 
         for atom in self.atoms:
             atom.rotate_by_axis(axis_point1, axis_point2, deg)
+
+        if with_lattice_vecs and self.lattice_vecs is not None:
+            for vec in self.lattice_vecs:
+                vec.rotate_by_axis(axis_point1, axis_point2, deg)
 
     def replicate(self, rep_a: list[int], rep_b: list[int], rep_c: list[int]) -> None:
         """
@@ -321,12 +339,12 @@ class Molecule:
         if self.lattice_vecs is None:
             raise ValueError("Lattice vectors must be set to replicate the molecule.")
 
-        ops = xyz_str.strip().replace(" ", "").split(",").lower()
+        ops = xyz_str.strip().lower().replace(" ", "").split(",")
         re_rot = re.compile(r"([+-]?)([\d\.]*)/?([\d\.]*)([x-z])")
         re_trans = re.compile(r"([+-]?)([\d\.]+)/?([\d\.]*)(?![x-z])")
 
         rot_mat = [[0.0] * 3 for _ in range(3)]
-        trans_vec = [0.0] * 3
+        trans_vec_fract = Vec3(0, 0, 0)
         for i, op in enumerate(ops):
 
             # make rot mat
@@ -351,14 +369,13 @@ class Molecule:
                     if match[3] != ""
                     else float(match[2])
                 )
-                trans_vec[i] = factor * num
-
-        for i in range(3):
-            trans_vec[i] *= self.lattice_vecs[i]
+                trans_vec_fract[i] = factor * num
 
         new_mol = self.copy()
-        new_mol.rotate(rot_mat)
-        new_mol.translate(trans_vec)
+        new_mol.rotate_by_mat(rot_mat)
+        trans_vec_fract.rotate_by_mat(self.lattice_vecs)
+        trans_vec_cart = trans_vec_fract
+        new_mol.translate(trans_vec_cart)
 
         return new_mol
 

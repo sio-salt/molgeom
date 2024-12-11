@@ -3,7 +3,7 @@ from .atom import Atom
 from .molecule import Molecule
 from .parsers.xyz import xyz_parser
 from .parsers.gaussian import gau_inp_parser
-from .parsers.gms import gms_inp_parser
+from .parsers.gamess import gms_inp_parser
 from .parsers.cif import cif_parser
 from .parsers.poscar import poscar_parser
 from .parsers.parser_selector import read_file
