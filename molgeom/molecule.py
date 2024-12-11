@@ -1,5 +1,6 @@
 from __future__ import annotations
 import copy
+import re
 import networkx as nx
 from collections.abc import Iterable
 from easyvec import Vec3, mat_type
@@ -310,6 +311,56 @@ class Molecule:
                     self.merge(mol_copied)
 
         self.lattice_vecs = tmp_mol.lattice_vecs
+
+    def replicated_from_xyz_str(self, xyz_str: str) -> None:
+        """
+        Replicate the molecule from an xyz string in cif format.
+        e.g.   ‘x, y, z’, ‘-x, -y, z’, '-x, y + 1/2, -z + 1/2', ‘-2y+1/2, 3x+1/2, z-y+1/2’,
+        """
+
+        if self.lattice_vecs is None:
+            raise ValueError("Lattice vectors must be set to replicate the molecule.")
+
+        ops = xyz_str.strip().replace(" ", "").split(",").lower()
+        re_rot = re.compile(r"([+-]?)([\d\.]*)/?([\d\.]*)([x-z])")
+        re_trans = re.compile(r"([+-]?)([\d\.]+)/?([\d\.]*)(?![x-z])")
+
+        rot_mat = [[0.0] * 3 for _ in range(3)]
+        trans_vec = [0.0] * 3
+        for i, op in enumerate(ops):
+
+            # make rot mat
+            for match in re_rot.finditer(op):
+                # match[0] contains the whole match
+                # match[n] (n > 0) contains the n-th group surrounded by ()
+                factor = -1.0 if match[1] == "-" else 1.0
+                if match[2] != "":
+                    factor *= (
+                        float(match[2]) / float(match[3])
+                        if match[3] != ""
+                        else float(match[2])
+                    )
+                j = ord(match[4]) - 120
+                rot_mat[i][j] = factor
+
+            # make trans vec
+            for match in re_trans.finditer(op):
+                factor = -1 if match[1] == "-" else 1
+                num = (
+                    float(match[2]) / float(match[3])
+                    if match[3] != ""
+                    else float(match[2])
+                )
+                trans_vec[i] = factor * num
+
+        for i in range(3):
+            trans_vec[i] *= self.lattice_vecs[i]
+
+        new_mol = self.copy()
+        new_mol.rotate(rot_mat)
+        new_mol.translate(trans_vec)
+
+        return new_mol
 
     def total_mass(self) -> float:
         return sum(atom.mass for atom in self)
