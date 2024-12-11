@@ -24,8 +24,8 @@ wheels = [
 
 [[package]]
 name = "easyvec"
-version = "0.1.1"
-source = { git = "https://github.com/sio-salt/easyvec?tag=v0.1.2#72d6f3a5418106306b84fe5d6a682d76f1e89547" }
+version = "0.1.2"
+source = { directory = "../easyvec" }
 
 [[package]]
 name = "exceptiongroup"
@@ -88,7 +88,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "easyvec", git = "https://github.com/sio-salt/easyvec?tag=v0.1.2" },
+    { name = "easyvec", directory = "../easyvec" },
     { name = "networkx", specifier = ">=2.6.3" },
     { name = "pyyaml", specifier = ">=6.0.1" },
 ]

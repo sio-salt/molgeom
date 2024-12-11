@@ -2,7 +2,7 @@ from __future__ import annotations
 import copy
 import networkx as nx
 from collections.abc import Iterable
-from easyvec import Vec3
+from easyvec import Vec3, mat_type
 from molgeom.utils.fancy_indexing_list import FancyIndexingList
 from molgeom.data.consts import ANGST2BOHR_GAU16, ATOMIC_NUMBER
 from molgeom.atom import Atom
@@ -14,9 +14,7 @@ class Molecule:
     A class to represent a molecule.
     """
 
-    def __init__(
-        self, *atoms: Atom, lattice_vecs: list[Vec3 | list[float | int]] | None = None
-    ):
+    def __init__(self, *atoms: Atom, lattice_vecs: mat_type | None = None):
         self.atoms: FancyIndexingList[Atom] = FancyIndexingList()
         if atoms:
             self.add_atoms_from(atoms)
@@ -30,7 +28,7 @@ class Molecule:
         return self._lattice_vecs
 
     @lattice_vecs.setter
-    def lattice_vecs(self, lattice_vecs: list[Vec3 | list[float | int]] | None) -> None:
+    def lattice_vecs(self, lattice_vecs: mat_type | None) -> None:
         if lattice_vecs is None:
             self._lattice_vecs = None
         elif not all(isinstance(vec, (Vec3, list)) for vec in lattice_vecs):
@@ -261,9 +259,7 @@ class Molecule:
         for atom in self.atoms:
             atom.mirror_by_plane(p1, p2, p3)
 
-    def rotate_by_axis(
-        self, axis_point1: Vec3, axis_point2: Vec3, angle_degrees: float
-    ) -> None:
+    def rotate_by_axis(self, axis_point1: Vec3, axis_point2: Vec3, deg: float) -> None:
         """
         :param axis_point1: One point on the rotation axis
         :param axis_point2: Another point on the rotation axis
@@ -271,7 +267,7 @@ class Molecule:
         """
 
         for atom in self.atoms:
-            atom.rotate_by_axis(axis_point1, axis_point2, angle_degrees)
+            atom.rotate_by_axis(axis_point1, axis_point2, deg)
 
     def replicate(self, rep_a: list[int], rep_b: list[int], rep_c: list[int]) -> None:
         """
@@ -376,4 +372,17 @@ class Molecule:
             f.write(f"{len(self)}\n")
             f.write(self.get_formula() + "\n")
             f.write(self.to_xyz())
+        print(f"File written to {filepath}")
+
+    def write_to_gaussian_input(self, filepath: str) -> None:
+        with open(filepath, "w") as f:
+            f.write("#p B3LYP\n")
+            f.write("\n")
+            f.write(f"{self.get_formula()}\n")
+            f.write("\n")
+            f.write("0 1\n")
+            f.write(self.to_xyz() + "\n")
+            if self.lattice_vecs is not None:
+                for vec in self.lattice_vecs:
+                    f.write(f"{'Tv':2s} {vec.x:19.12f} {vec.y:19.12f} {vec.z:19.12f}\n")
         print(f"File written to {filepath}")
