@@ -28,6 +28,7 @@ def cif_tag_parser(filepath: str) -> dict:
                     "_symmetry_equiv_pos_as_xyz",
                 ]
             ):
+                line = next(file)
                 symops = []
                 while line.strip():
                     symop_str = line.strip().replace("'", "").replace('"', "")
@@ -61,25 +62,25 @@ def cif_tag_parser(filepath: str) -> dict:
                 cif_tags["cell_angle_gamma"] = float(angle_val_str)
 
             # load atom symbols and positions
-            if line.strip().startswith("_atom"):
+            if line.strip().startswith("_atom_site_label"):
                 while line.strip().startswith("_atom"):
                     line = next(file)
-            atoms = []
-            while line.strip():
-                line_splited = line.strip().split()
-                symbol = line_splited[1]
-                fract_x = line_splited[2]
-                fract_y = line_splited[3]
-                fract_z = line_splited[4]
-                atom = {
-                    "symbol": symbol,
-                    "fract_x": float(fract_x),
-                    "fract_y": float(fract_y),
-                    "fract_z": float(fract_z),
-                }
-                atoms.append(atom)
-                line = next(file)
-            cif_tags["atoms"] = atoms
+                atoms = []
+                while line.strip():
+                    line_splited = line.strip().split()
+                    symbol = line_splited[1]
+                    fract_x = line_splited[2].split("(")[0]
+                    fract_y = line_splited[3].split("(")[0]
+                    fract_z = line_splited[4].split("(")[0]
+                    atom = {
+                        "symbol": symbol,
+                        "fract_x": float(fract_x),
+                        "fract_y": float(fract_y),
+                        "fract_z": float(fract_z),
+                    }
+                    atoms.append(atom)
+                    line = next(file)
+                cif_tags["atoms"] = atoms
 
     return cif_tags
 
@@ -135,7 +136,7 @@ def ciftag2mol(ciftag: dict) -> Molecule:
 
 
 def cif_parser(filepath: str, apply_symop: bool = True) -> Molecule:
-    cif_tags = cif_tag_parser(filepath, apply_symop)
+    cif_tags = cif_tag_parser(filepath)
     mol = ciftag2mol(cif_tags)
     tmp_mol = mol.copy()
     if apply_symop:
