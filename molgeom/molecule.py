@@ -1,13 +1,16 @@
 from __future__ import annotations
+
 import copy
 import re
-import networkx as nx
 from collections.abc import Iterable
-from easyvec import Vec3, mat_type
+
+import networkx as nx
+
 from molgeom.utils.fancy_indexing_list import FancyIndexingList
-from molgeom.data.consts import ANGST2BOHR_GAU16, ATOMIC_NUMBER
+from molgeom.utils.vec3 import Vec3, mat_type
 from molgeom.atom import Atom
-from molgeom.utils.decorators import args_to_set, args_to_list
+from molgeom.data.consts import ANGST2BOHR_GAU16, ATOMIC_NUMBER
+from molgeom.utils.decorators import args_to_list, args_to_set
 
 
 class Molecule:
@@ -116,7 +119,7 @@ class Molecule:
         return copy.deepcopy(self)
 
     @args_to_set
-    def filter_by_symbols(self, symbols: str | Iterable[str]) -> Molecule:
+    def filtered_by_symbols(self, symbols: str | Iterable[str]) -> Molecule:
         return Molecule(*[atom for atom in self if atom.symbol in symbols])
 
     @classmethod
@@ -335,6 +338,9 @@ class Molecule:
         Replicate the molecule from an xyz string in cif format.
         e.g.   ‘x, y, z’, ‘-x, -y, z’, '-x, y + 1/2, -z + 1/2', ‘-2y+1/2, 3x+1/2, z-y+1/2’,
         """
+
+        print(f"in replicated_from_xyz_str func {xyz_str=}, {self.lattice_vecs=}")
+        print(self.lattice_vecs)
 
         if self.lattice_vecs is None:
             raise ValueError("Lattice vectors must be set to replicate the molecule.")

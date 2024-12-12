@@ -1,12 +1,10 @@
 import sys
 from collections import deque
-from easyvec import Vec3
+
+from molgeom import Vec3
 from molgeom.atom import Atom
 from molgeom.molecule import Molecule
-from molgeom.parsers.parser_tools import (
-    is_valid_xyz_line,
-    remove_trailing_empty_lines,
-)
+from molgeom.parsers.parser_tools import is_valid_xyz_line, remove_trailing_empty_lines
 
 
 # Gaussian input file parser (com, gjf)

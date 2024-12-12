@@ -1,10 +1,7 @@
-import os
 import math
-from easyvec import Vec3
-from molgeom.data.consts import ATOMIC_MASSES
-from molgeom.atom import Atom
-from molgeom.molecule import Molecule
+import os
 
+from molgeom import Vec3, Atom, Molecule
 
 # CIF format specification:
 # http://www.physics.gov.az/book_I/S_R_Hall.pdf
@@ -17,9 +14,6 @@ def cif_tag_parser(filepath: str) -> dict:
     cif_tags = dict()
     with open(filepath, "r") as file:
         for line in file:
-            # sitesym = self._get_any(['_space_group_symop_operation_xyz',
-            #              '_space_group_symop.operation_xyz',
-            #               '_symmetry_equiv_pos_as_xyz'])
             if any(
                 line.strip().startswith(tag)
                 for tag in [
@@ -37,7 +31,7 @@ def cif_tag_parser(filepath: str) -> dict:
                             f"Invalid symop string: {symop_str}\n"
                             + "at least 3 tokens separated by comma are required"
                         )
-                        symops.append(symop_str)
+                    symops.append(symop_str)
                     line = next(file)
                 cif_tags["symops"] = symops
 
@@ -111,26 +105,30 @@ def get_fract_to_cart_mat(
     return mat
 
 
-def ciftag2mol(ciftag: dict) -> Molecule:
+def ciftag2mol(cif_tags: dict) -> Molecule:
     frac_to_cart_mat = get_fract_to_cart_mat(
-        ciftag["cell_length_a"],
-        ciftag["cell_length_b"],
-        ciftag["cell_length_c"],
-        ciftag["cell_angle_alpha"],
-        ciftag["cell_angle_beta"],
-        ciftag["cell_angle_gamma"],
+        cif_tags["cell_length_a"],
+        cif_tags["cell_length_b"],
+        cif_tags["cell_length_c"],
+        cif_tags["cell_angle_alpha"],
+        cif_tags["cell_angle_beta"],
+        cif_tags["cell_angle_gamma"],
     )
     mol = Molecule()
-    for atom in ciftag["atoms"]:
+    for atom in cif_tags["atoms"]:
         fract_vec = Vec3(atom["fract_x"], atom["fract_y"], atom["fract_z"])
         cart_vec = fract_vec.matmul(frac_to_cart_mat)
         symbol = atom["symbol"]
-
-        if symbol not in ATOMIC_MASSES:
-            raise ValueError(f"Invalid atom symbol: {symbol}")
-
         atom = Atom.from_vec(symbol, cart_vec)
         mol.add_atom(atom)
+
+    lattice_vecs = []
+    for i in range(3):
+        vec = []
+        for j in range(3):
+            vec.append(frac_to_cart_mat[j][i])
+        lattice_vecs.append(Vec3(*vec))
+    mol.lattice_vecs = lattice_vecs
 
     return mol
 
@@ -139,7 +137,7 @@ def cif_parser(filepath: str, apply_symop: bool = True) -> Molecule:
     cif_tags = cif_tag_parser(filepath)
     mol = ciftag2mol(cif_tags)
     tmp_mol = mol.copy()
-    if apply_symop:
+    if apply_symop and "symops" in cif_tags:
         for symop in cif_tags["symops"]:
             new_mol = tmp_mol.replicated_from_xyz_str(symop)
             mol.merge(new_mol)

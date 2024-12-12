@@ -1,5 +1,5 @@
-from typing import Any
 from collections import UserList
+from typing import Any
 
 
 class FancyIndexingList(UserList):

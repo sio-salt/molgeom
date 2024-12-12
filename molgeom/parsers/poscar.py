@@ -1,8 +1,10 @@
 from __future__ import annotations
+
 import os
-from easyvec import Vec3
-from molgeom.data.consts import ATOMIC_MASSES
+
+from molgeom import Vec3
 from molgeom.atom import Atom
+from molgeom.data.consts import ATOMIC_MASSES
 from molgeom.molecule import Molecule
 
 

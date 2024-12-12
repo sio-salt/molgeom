@@ -1,5 +1,4 @@
-from easyvec import Vec3
-from molgeom import Atom
+from molgeom import Atom, Vec3
 
 
 def test_instanciation():

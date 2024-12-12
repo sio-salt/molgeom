@@ -1,13 +1,15 @@
 from __future__ import annotations
+
 import copy
 import json
-import yaml
 import threading
 from importlib.resources import files
 from typing import Any
-from easyvec import Vec3
-from molgeom.data import consts
 
+import yaml
+
+from molgeom.utils.vec3 import Vec3
+from molgeom.data.consts import ATOMIC_NUMBER
 
 _pt_data = None
 _bond_pair_data = None
@@ -52,7 +54,7 @@ def _load_bond_pair_data():
 class Atom(Vec3):
     def __init__(self, symbol: str, x: float, y: float, z: float) -> None:
         super().__init__(x, y, z)
-        if symbol not in consts.ATOMIC_NUMBER:
+        if symbol not in ATOMIC_NUMBER:
             raise ValueError(f"Invalid atomic symbol: {symbol}")
         self.symbol: str = symbol
         self._atomic_data, self._std_bond_rad = self.get_atomic_data(self.symbol)

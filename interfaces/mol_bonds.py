@@ -1,6 +1,7 @@
+import importlib.util
 import os
 import sys
-import importlib.util
+
 from molgeom import parse_file
 
 if importlib.util.find_spec("readline"):

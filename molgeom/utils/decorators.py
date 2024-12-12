@@ -1,6 +1,5 @@
 from functools import wraps
 
-
 my_Iterable = (list, tuple, set, dict)
 
 

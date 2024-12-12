@@ -1,6 +1,6 @@
 import copy
-from easyvec import Vec3
-from molgeom import Molecule, Atom
+
+from molgeom import Atom, Molecule, Vec3
 
 
 def test_FancyIndexing_Molecule():

@@ -1,11 +1,10 @@
 import sys
 from collections import deque
+
 from molgeom.atom import Atom
 from molgeom.molecule import Molecule
-from molgeom.parsers.parser_tools import (
-    remove_trailing_empty_lines,
-    is_valid_gms_xyz_line,
-)
+from molgeom.parsers.parser_tools import (is_valid_gms_xyz_line,
+                                          remove_trailing_empty_lines)
 
 
 # GAMESS input file parser

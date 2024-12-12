@@ -1,12 +1,13 @@
-import sys
 import os
+import sys
 from pathlib import Path
+
 from molgeom.molecule import Molecule
-from molgeom.parsers.xyz import xyz_parser
-from molgeom.parsers.gaussian import gau_inp_parser
-from molgeom.parsers.gamess import gms_inp_parser
 from molgeom.parsers.cif import cif_parser
+from molgeom.parsers.gamess import gms_inp_parser
+from molgeom.parsers.gaussian import gau_inp_parser
 from molgeom.parsers.poscar import poscar_parser
+from molgeom.parsers.xyz import xyz_parser
 
 
 def read_file(filepath: str | Path) -> Molecule:

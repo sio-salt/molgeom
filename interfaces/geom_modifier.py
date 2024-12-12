@@ -1,8 +1,8 @@
-import sys
 import importlib
-from easyvec import Vec3
+import sys
+
 import molgeom
-from molgeom import parse_file
+from molgeom import Vec3, parse_file
 
 importlib.reload(molgeom)
 if importlib.util.find_spec("readline"):

@@ -1,8 +1,8 @@
 #!/usr/bin/python3
-import sys
 import os
-from molgeom import poscar_parser
+import sys
 
+from molgeom import poscar_parser
 
 help_msg = """
 Usage:

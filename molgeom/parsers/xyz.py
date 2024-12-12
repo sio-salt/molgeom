@@ -1,4 +1,5 @@
 import re
+
 from molgeom.atom import Atom
 from molgeom.molecule import Molecule
 from molgeom.parsers.parser_tools import (

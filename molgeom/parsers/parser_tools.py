@@ -1,4 +1,5 @@
 import re
+
 from molgeom.data.consts import ATOMIC_MASSES, SPECIAL_ELEMENTS
 
 atom_xyz_regex = re.compile(r"(\w\w?)(\s+[-+]?\d*\.\d+){3}")
