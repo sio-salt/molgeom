@@ -35,25 +35,23 @@ class Molecule:
     def lattice_vecs(self, lattice_vecs: mat_type | None) -> None:
         if lattice_vecs is None:
             self._lattice_vecs = None
+            return
         elif len(lattice_vecs) != 3:
-            raise ValueError(
-                "lattice_vecs must be a list of 3 vectors"
-            )
+            raise ValueError("lattice_vecs must be a list of 3 vectors")
         elif not all(isinstance(vec, (Vec3, list)) for vec in lattice_vecs):
             raise TypeError(
                 "All elements must be Vec3 objects or list of 3 floats or ints"
             )
         elif not all(len(vec) == 3 for vec in lattice_vecs):
-            raise ValueError(
-                "All lattice vectors must be of length 3"
-            )
+            raise ValueError("All lattice vectors must be of length 3")
 
         # check if lattice vectors are linearly independent
-        if 
-        else:
-            self._lattice_vecs = [
-                Vec3(*vec) if isinstance(vec, list) else vec for vec in lattice_vecs
-            ]
+        if not Vec3.is_linearly_independent(*lattice_vecs):
+            raise ValueError("Lattice vectors must be linearly independent")
+
+        self._lattice_vecs = [
+            Vec3(*vec) if isinstance(vec, list) else vec for vec in lattice_vecs
+        ]
 
     def __len__(self) -> int:
         return len(self.atoms)
@@ -196,14 +194,16 @@ class Molecule:
         self._bonds_tol = tol
         return bonds
 
-    def get_clusters(self, tol: int = 0.15) -> list[Molecule]:
+    def get_clusters(self, tol: float = 0.15) -> list[Molecule]:
         G = nx.Graph()
         G.add_nodes_from(range(len(self)))
         G.add_edges_from(self.get_bonds(tol))
         copied_mol = self.copy()
         return [copied_mol[list(cluster)] for cluster in nx.connected_components(G)]
 
-    def get_cycles(self, length_bound: int = None, tol: float = 0.15) -> list[Molecule]:
+    def get_cycles(
+        self, length_bound: int | None = None, tol: float = 0.15
+    ) -> list[Molecule]:
         if self._cycles is not None:
             return self._cycles
         G = nx.Graph()
@@ -211,6 +211,11 @@ class Molecule:
         cycles = nx.simple_cycles(G, length_bound=length_bound)
         self._cycles = [self[list(cycle)] for cycle in cycles]
         return self._cycles
+
+    def get_connected_cluster(self, atom_idx: int, tol: float = 0.15) -> Molecule:
+        G = nx.Graph()
+        G.add_edges_from(self.get_bonds(tol))
+        return self[list(nx.node_connected_component(G, atom_idx))]
 
     @classmethod
     @args_to_list
@@ -342,6 +347,18 @@ class Molecule:
 
         self.lattice_vecs = tmp_mol.lattice_vecs
 
+    def is_inside_cell(self, atom_idx: int) -> bool:
+        if self.lattice_vecs is None:
+            raise ValueError("Lattice vectors must be set to bound the molecule.")
+
+        lat_params = [vec.norm() for vec in self.lattice_vecs]
+        atom = self[atom_idx]
+        lat_coords = atom.to_Vec3().matmul(Vec3.inv_mat(self.lattice_vecs))
+        for i in range(3):
+            if lat_coords[i] < 0 or lat_coords[i] >= lat_params[i]:
+                return False
+        return True
+
     def bound_to_cell(self) -> None:
         if self.lattice_vecs is None:
             raise ValueError("Lattice vectors must be set to bound the molecule.")
@@ -350,14 +367,14 @@ class Molecule:
         prim2lat_mat = Vec3.inv_mat(mat=self.lattice_vecs)
         lat_params = [vec.norm() for vec in self.lattice_vecs]
         for atom in self:
-            lat_coords = prim2lat_mat @ atom.to_Vec3()
+            lat_coords = atom.to_Vec3().matmul(prim2lat_mat)
             for i in range(3):
                 while lat_coords[i] < 0:
                     lat_coords[i] += lat_params[i]
                 while lat_coords[i] >= lat_params[i]:
                     lat_coords[i] -= lat_params[i]
 
-            cart_coords = self.lattice_vecs @ lat_coords
+            cart_coords = lat_coords.matmul(self.lattice_vecs)
             atom.x, atom.y, atom.z = cart_coords
 
     def replicated_from_xyz_str(

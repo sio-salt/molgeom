@@ -141,4 +141,5 @@ def cif_parser(filepath: str, apply_symop: bool = True) -> Molecule:
         for symop in cif_tags["symops"]:
             new_mol = tmp_mol.replicated_from_xyz_str(symop)
             mol.merge(new_mol)
+    mol.lattice_vecs = tmp_mol.lattice_vecs
     return mol

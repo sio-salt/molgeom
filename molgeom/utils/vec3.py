@@ -119,9 +119,6 @@ class Vec3:
     def __pow__(self, scalar: float) -> Vec3:
         return Vec3(self.x**scalar, self.y**scalar, self.z**scalar)
 
-    def __matmul__(self, mat: mat_type) -> Vec3:
-        return self.matmul(mat)
-
     def __len__(self) -> int:
         return 3
 
