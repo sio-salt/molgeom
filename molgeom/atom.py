@@ -106,6 +106,9 @@ class Atom(Vec3):
     def copy(self) -> Atom:
         return copy.deepcopy(self)
 
+    def to_Vec3(self) -> Vec3:
+        return Vec3(self.x, self.y, self.z)
+
     def to_xyz(self) -> str:
         return f"{self.symbol:2s} {self.x:19.12f} {self.y:19.12f} {self.z:19.12f}"
 

@@ -35,12 +35,21 @@ class Molecule:
     def lattice_vecs(self, lattice_vecs: mat_type | None) -> None:
         if lattice_vecs is None:
             self._lattice_vecs = None
+        elif len(lattice_vecs) != 3:
+            raise ValueError(
+                "lattice_vecs must be a list of 3 vectors"
+            )
         elif not all(isinstance(vec, (Vec3, list)) for vec in lattice_vecs):
             raise TypeError(
                 "All elements must be Vec3 objects or list of 3 floats or ints"
             )
         elif not all(len(vec) == 3 for vec in lattice_vecs):
-            raise ValueError("All lattice vectors must be of length 3")
+            raise ValueError(
+                "All lattice vectors must be of length 3"
+            )
+
+        # check if lattice vectors are linearly independent
+        if 
         else:
             self._lattice_vecs = [
                 Vec3(*vec) if isinstance(vec, list) else vec for vec in lattice_vecs
@@ -333,14 +342,31 @@ class Molecule:
 
         self.lattice_vecs = tmp_mol.lattice_vecs
 
-    def replicated_from_xyz_str(self, xyz_str: str) -> None:
+    def bound_to_cell(self) -> None:
+        if self.lattice_vecs is None:
+            raise ValueError("Lattice vectors must be set to bound the molecule.")
+
+        # matrix to convert primitive basis to lattice_vecs basis
+        prim2lat_mat = Vec3.inv_mat(mat=self.lattice_vecs)
+        lat_params = [vec.norm() for vec in self.lattice_vecs]
+        for atom in self:
+            lat_coords = prim2lat_mat @ atom.to_Vec3()
+            for i in range(3):
+                while lat_coords[i] < 0:
+                    lat_coords[i] += lat_params[i]
+                while lat_coords[i] >= lat_params[i]:
+                    lat_coords[i] -= lat_params[i]
+
+            cart_coords = self.lattice_vecs @ lat_coords
+            atom.x, atom.y, atom.z = cart_coords
+
+    def replicated_from_xyz_str(
+        self, xyz_str: str, bound_to_cell: bool = True
+    ) -> Molecule:
         """
         Replicate the molecule from an xyz string in cif format.
         e.g.   ‘x, y, z’, ‘-x, -y, z’, '-x, y + 1/2, -z + 1/2', ‘-2y+1/2, 3x+1/2, z-y+1/2’,
         """
-
-        print(f"in replicated_from_xyz_str func {xyz_str=}, {self.lattice_vecs=}")
-        print(self.lattice_vecs)
 
         if self.lattice_vecs is None:
             raise ValueError("Lattice vectors must be set to replicate the molecule.")
@@ -382,6 +408,9 @@ class Molecule:
         trans_vec_fract.rotate_by_mat(self.lattice_vecs)
         trans_vec_cart = trans_vec_fract
         new_mol.translate(trans_vec_cart)
+
+        if bound_to_cell:
+            new_mol.bound_to_cell()
 
         return new_mol
 

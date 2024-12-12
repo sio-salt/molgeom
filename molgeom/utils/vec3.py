@@ -140,18 +140,62 @@ class Vec3:
         )
 
     def matmul(self, mat: mat_type) -> Vec3:
-        if not (
-            isinstance(mat, list)
-            and len(mat) == 3
-            and all(len(row) == 3 for row in mat)
-            and all(isinstance(i, (int, float)) for row in mat for i in row)
-        ):
+        if not is_mat_type(mat):
             raise ValueError("matrix must be 3x3 list of int or float")
-
         x = mat[0][0] * self.x + mat[0][1] * self.y + mat[0][2] * self.z
         y = mat[1][0] * self.x + mat[1][1] * self.y + mat[1][2] * self.z
         z = mat[2][0] * self.x + mat[2][1] * self.y + mat[2][2] * self.z
+
         return Vec3(x, y, z)
+
+    @staticmethod
+    def det(mat: mat_type) -> float:
+        if not is_mat_type(mat):
+            raise ValueError("matrix must be 3x3 list of int or float")
+
+        return (
+            mat[0][0] * (mat[1][1] * mat[2][2] - mat[1][2] * mat[2][1])
+            - mat[0][1] * (mat[1][0] * mat[2][2] - mat[1][2] * mat[2][0])
+            + mat[0][2] * (mat[1][0] * mat[2][1] - mat[1][1] * mat[2][0])
+        )
+
+    @staticmethod
+    def is_linearly_independent(v1: vec_type, v2: vec_type, v3: vec_type) -> bool:
+        if not all(isinstance(v, Vec3) for v in (v1, v2, v3)):
+            raise TypeError("v1, v2, v3 must be Vec3 instances")
+
+        mat = [v1, v2, v3]
+        return Vec3.det(mat) != 0
+
+    @staticmethod
+    def inv_mat(mat: mat_type) -> mat_type:
+        if not is_mat_type(mat):
+            raise ValueError("matrix must be 3x3 list of int or float")
+
+        det = Vec3.det(mat)
+        if det == 0:
+            raise ValueError("matrix is singular")
+
+        inv_det = 1 / det
+        inv_mat = [
+            [
+                (mat[1][1] * mat[2][2] - mat[1][2] * mat[2][1]) * inv_det,
+                (mat[0][2] * mat[2][1] - mat[0][1] * mat[2][2]) * inv_det,
+                (mat[0][1] * mat[1][2] - mat[0][2] * mat[1][1]) * inv_det,
+            ],
+            [
+                (mat[1][2] * mat[2][0] - mat[1][0] * mat[2][2]) * inv_det,
+                (mat[0][0] * mat[2][2] - mat[0][2] * mat[2][0]) * inv_det,
+                (mat[0][2] * mat[1][0] - mat[0][0] * mat[1][2]) * inv_det,
+            ],
+            [
+                (mat[1][0] * mat[2][1] - mat[1][1] * mat[2][0]) * inv_det,
+                (mat[0][1] * mat[2][0] - mat[0][0] * mat[2][1]) * inv_det,
+                (mat[0][0] * mat[1][1] - mat[0][1] * mat[1][0]) * inv_det,
+            ],
+        ]
+
+        return inv_mat
 
     def distance_to(self, other: Vec3) -> float:
         other = vectorize_arg(other)
@@ -203,12 +247,7 @@ class Vec3:
         self += 2 * (projection - self)
 
     def rotate_by_mat(self, rot_mat: mat_type) -> None:
-        if not (
-            isinstance(rot_mat, (list, tuple, Vec3))
-            and len(rot_mat) == 3
-            and all(len(row) == 3 for row in rot_mat)
-            and all(isinstance(i, (int, float)) for row in rot_mat for i in row)
-        ):
+        if not is_mat_type(rot_mat):
             raise ValueError("rotation matrix must be 3x3 list of int or float")
 
         x_rot = rot_mat[0][0] * self.x + rot_mat[0][1] * self.y + rot_mat[0][2] * self.z
@@ -333,3 +372,14 @@ def other_class_check_for_operand(self, other, operand: str) -> None:
             f"unsupported operand type(s) for {operand}:"
             + f"'{self.__class__.__name__}' and '{other.__class__.__name__}'"
         )
+
+
+def is_mat_type(mat: mat_type) -> bool:
+    return (
+        isinstance(mat, list)
+        and len(mat) == 3
+        and all(len(row) == 3 for row in mat)
+        and all(
+            isinstance(i, (int, float)) for row in mat for i in [*row]
+        )  # True if row is a list or Vec3
+    )
