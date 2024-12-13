@@ -45,10 +45,6 @@ class Molecule:
         elif not all(len(vec) == 3 for vec in lattice_vecs):
             raise ValueError("All lattice vectors must be of length 3")
 
-        # check if lattice vectors are linearly independent
-        if not Vec3.is_linearly_independent(*lattice_vecs):
-            raise ValueError("Lattice vectors must be linearly independent")
-
         self._lattice_vecs = [
             Vec3(*vec) if isinstance(vec, list) else vec for vec in lattice_vecs
         ]
@@ -63,6 +59,8 @@ class Molecule:
         return not self == other
 
     def __contains__(self, atom: Atom) -> bool:
+        if not isinstance(atom, Atom):
+            raise TypeError("atom must be an Atom object")
         return atom in self.atoms
 
     def __getitem__(self, index: int | slice | Iterable) -> Atom | Molecule:
@@ -84,7 +82,8 @@ class Molecule:
         for atom in self.atoms:
             if not isinstance(atom, Atom):
                 raise TypeError(
-                    "Invalid element type: atom must be Atom object" + f"{type(atom)=}"
+                    "Invalid element type: atom must be Atom object\n"
+                    + f"{type(atom)=}"
                 )
             yield atom
 
@@ -158,6 +157,9 @@ class Molecule:
 
     def get_symbols(self) -> list[str]:
         return tuple(atom.symbol for atom in self)
+
+    def get_coords(self) -> list[Vec3]:
+        return [[a.x, a.y, a.z] for a in self]
 
     def get_formula(self) -> str:
         symbol_count = dict()
@@ -421,9 +423,12 @@ class Molecule:
                 trans_vec_fract[i] = factor * num
 
         new_mol = self.copy()
+        print(f"rot_mat: {rot_mat}")
+        print(f"new_mol: {new_mol}")
         new_mol.rotate_by_mat(rot_mat)
         trans_vec_fract.rotate_by_mat(self.lattice_vecs)
         trans_vec_cart = trans_vec_fract
+        print(f"trans_vec_cart: {trans_vec_cart}")
         new_mol.translate(trans_vec_cart)
 
         if bound_to_cell:

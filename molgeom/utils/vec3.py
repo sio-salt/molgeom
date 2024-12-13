@@ -1,4 +1,5 @@
 from __future__ import annotations
+from copy import deepcopy
 
 import math
 
@@ -43,6 +44,12 @@ class Vec3:
         if not isinstance(value, (int, float)):
             raise TypeError("z must be an int or float")
         self._z = float(value)
+
+    def to_list(self) -> list[float]:
+        return [self.x, self.y, self.z]
+
+    def to_dict(self) -> dict[str, float]:
+        return {"x": self.x, "y": self.y, "z": self.z}
 
     def __str__(self) -> str:
         return f"{self.x:19.12f} {self.y:19.12f} {self.z:19.12f}"
@@ -111,19 +118,36 @@ class Vec3:
         return self
 
     def __truediv__(self, scalar: float) -> Vec3:
+        if not isinstance(scalar, (int, float)):
+            raise TypeError("scalar must be an int or float")
         return Vec3(self.x / scalar, self.y / scalar, self.z / scalar)
 
     def __itruediv__(self, scalar: float) -> Vec3:
-        return self / scalar
+        if not isinstance(scalar, (int, float)):
+            raise TypeError("scalar must be an int or float")
+        self.x /= scalar
+        self.y /= scalar
+        self.z /= scalar
+        return self
 
-    def __pow__(self, scalar: float) -> Vec3:
-        return Vec3(self.x**scalar, self.y**scalar, self.z**scalar)
+    def __floordiv__(self, scalar: float) -> Vec3:
+        if not isinstance(scalar, (int, float)):
+            raise TypeError("scalar must be an int or float")
+        return Vec3(self.x // scalar, self.y // scalar, self.z // scalar)
+
+    def __ifloordiv__(self, scalar: float) -> Vec3:
+        if not isinstance(scalar, (int, float)):
+            raise TypeError("scalar must be an int or float")
+        self.x //= scalar
+        self.y //= scalar
+        self.z //= scalar
+        return self
 
     def __len__(self) -> int:
         return 3
 
     def copy(self) -> Vec3:
-        return Vec3(self.x, self.y, self.z)
+        return deepcopy(self)
 
     def dot(self, other: vec_type) -> float:
         other = vectorize_arg(other)
@@ -137,6 +161,9 @@ class Vec3:
         )
 
     def matmul(self, mat: mat_type) -> Vec3:
+        """
+        calc: matrix @ self(vector)
+        """
         if not is_mat_type(mat):
             raise ValueError("matrix must be 3x3 list of int or float")
         x = mat[0][0] * self.x + mat[0][1] * self.y + mat[0][2] * self.z
@@ -151,18 +178,13 @@ class Vec3:
             raise ValueError("matrix must be 3x3 list of int or float")
 
         return (
-            mat[0][0] * (mat[1][1] * mat[2][2] - mat[1][2] * mat[2][1])
-            - mat[0][1] * (mat[1][0] * mat[2][2] - mat[1][2] * mat[2][0])
-            + mat[0][2] * (mat[1][0] * mat[2][1] - mat[1][1] * mat[2][0])
+            (mat[0][0] * mat[1][1] * mat[2][2])
+            + (mat[0][1] * mat[1][2] * mat[2][0])
+            + (mat[0][2] * mat[1][0] * mat[2][1])
+            - (mat[0][2] * mat[1][1] * mat[2][0])
+            - (mat[0][0] * mat[1][2] * mat[2][1])
+            - (mat[0][1] * mat[1][0] * mat[2][2])
         )
-
-    @staticmethod
-    def is_linearly_independent(v1: vec_type, v2: vec_type, v3: vec_type) -> bool:
-        if not all(isinstance(v, Vec3) for v in (v1, v2, v3)):
-            raise TypeError("v1, v2, v3 must be Vec3 instances")
-
-        mat = [v1, v2, v3]
-        return Vec3.det(mat) != 0
 
     @staticmethod
     def inv_mat(mat: mat_type) -> mat_type:
@@ -260,7 +282,6 @@ class Vec3:
         axis_point1: vec_type,
         axis_point2: vec_type,
         deg: float | int,
-        # self, axis_vec: Vec3 | list[int | float] | tuple[int | float], deg: float | int
     ) -> None:
         """
         :param axis_point1: One point on the rotation axis
@@ -350,17 +371,18 @@ class Vec3:
         self = xyz_rotated + axis_point1
 
 
-vec_type = Vec3 | list[int | float] | tuple[int | float]
-mat_type = list[Vec3 | list[int | float] | tuple[int | float]]
+# can be used as a type hint. not isinstance() check
+vec_type = Vec3 | list[int | float]
+mat_type = list[Vec3 | list[int | float]]
 
 
 def vectorize_arg(arg: vec_type) -> Vec3:
     if isinstance(arg, Vec3):
         return arg
-    if isinstance(arg, (list, tuple)) and len(arg) == 3:
+    if isinstance(arg, list) and len(arg) == 3:
         if all(isinstance(i, (int, float)) for i in arg):
             return Vec3(*arg)
-    raise ValueError("arg must be a Vec3 instance or a list/tuple of 3 int or float")
+    raise ValueError("arg must be a Vec3 instance or a list of 3 int or float")
 
 
 def other_class_check_for_operand(self, other, operand: str) -> None:
