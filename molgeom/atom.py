@@ -8,7 +8,8 @@ from typing import Any
 
 import yaml
 
-from molgeom.utils.vec3 import Vec3
+from molgeom.utils.vec3 import Vec3, mat_type
+from molgeom.utils.mat3 import Mat3, is_mat_type
 from molgeom.data.consts import ATOMIC_NUMBER
 
 _pt_data = None
@@ -105,6 +106,24 @@ class Atom(Vec3):
 
     def copy(self) -> Atom:
         return copy.deepcopy(self)
+
+    def get_frac_coords(self, lattice_vecs: mat_type) -> Vec3:
+        if not is_mat_type(lattice_vecs):
+            raise ValueError("Invalid lattice vector type")
+        if not isinstance(lattice_vecs, Mat3):
+            lattice_vecs = Mat3(lattice_vecs)
+
+        cell_volume = lattice_vecs.det()
+        return (
+            Mat3(
+                [
+                    lattice_vecs[1].cross(lattice_vecs[2]) / cell_volume,
+                    lattice_vecs[2].cross(lattice_vecs[0]) / cell_volume,
+                    lattice_vecs[0].cross(lattice_vecs[1]) / cell_volume,
+                ]
+            )
+            @ self.to_Vec3()
+        )
 
     def to_Vec3(self) -> Vec3:
         return Vec3(self.x, self.y, self.z)

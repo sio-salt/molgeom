@@ -1,6 +1,6 @@
 import sys
 
-from molgeom import parse_file
+from molgeom import read_file
 
 
 def main():
@@ -12,7 +12,7 @@ def main():
     filepaths = sys.argv[1:]
     for filepath in filepaths:
         print(filepath)
-        mole = parse_file(filepath)
+        mole = read_file(filepath)
         nuclrep = mole.nuclear_repulsion()
         print(f" {nuclrep}")
         print()

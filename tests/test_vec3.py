@@ -1,5 +1,5 @@
-import math
 from molgeom import Vec3
+from molgeom import Mat3
 
 
 def test_vec3_init():
@@ -112,10 +112,12 @@ def test_vec3_types():
     assert isinstance(v1, Vec3)
 
 
-def test_vec3_matmul():
+def test_mat3_matmul():
     v1 = Vec3(1, 2, 3)
     mat1 = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
-    mat2 = [Vec3(1, 2, 3), Vec3(4, 5, 6), Vec3(7, 8, 9)]
+    mat2 = Mat3([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+    mat3 = [Vec3(1, 2, 3), Vec3(4, 5, 6), Vec3(7, 8, 9)]
+    mat4 = Mat3([Vec3(1, 2, 3), Vec3(4, 5, 6), Vec3(7, 8, 9)])
 
     assert v1.matmul(mat1) == Vec3(
         1 * 1 + 2 * 2 + 3 * 3, 1 * 4 + 2 * 5 + 3 * 6, 1 * 7 + 2 * 8 + 3 * 9
@@ -123,51 +125,9 @@ def test_vec3_matmul():
     assert v1.matmul(mat2) == Vec3(
         1 * 1 + 2 * 2 + 3 * 3, 1 * 4 + 2 * 5 + 3 * 6, 1 * 7 + 2 * 8 + 3 * 9
     )
-
-
-def test_vec3_mat_det():
-    identity = [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
-    assert Vec3.det(identity) == 1
-
-    mat1 = [[2, -1, 0], [-1, 2, -1], [0, -1, 2]]
-    # det A = A11A22A33 + A12A23A31 + A13A21A32 - A13A22A31 - A12A21A33 - A11A23A32
-    mat1_det = (
-        (2 * 2 * 2)
-        + (-1 * -1 * 0)
-        + (0 * -1 * -1)
-        - (0 * 2 * 0)
-        - (-1 * -1 * 2)
-        - (2 * -1 * -1)
+    assert v1.matmul(mat3) == Vec3(
+        1 * 1 + 2 * 2 + 3 * 3, 1 * 4 + 2 * 5 + 3 * 6, 1 * 7 + 2 * 8 + 3 * 9
     )
-    assert Vec3.det(mat1) == mat1_det
-
-    mat2 = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
-    mat2_det = (
-        (1 * 5 * 9)
-        + (2 * 6 * 7)
-        + (3 * 4 * 8)
-        - (3 * 5 * 7)
-        - (2 * 4 * 9)
-        - (1 * 6 * 8)
+    assert v1.matmul(mat4) == Vec3(
+        1 * 1 + 2 * 2 + 3 * 3, 1 * 4 + 2 * 5 + 3 * 6, 1 * 7 + 2 * 8 + 3 * 9
     )
-    assert Vec3.det(mat2) == mat2_det
-
-
-def test_vec3_inv_mat():
-    identity = [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
-    assert Vec3.inv_mat(identity) == identity
-
-    mat1 = [[2, -1, 0], [-1, 2, -1], [0, -1, 2]]
-    assert Vec3.inv_mat(mat1) == [
-        [3 / 4, 2 / 4, 1 / 4],
-        [2 / 4, 4 / 4, 2 / 4],
-        [1 / 4, 2 / 4, 3 / 4],
-    ]
-
-    # use sin cos
-    mat2 = [[math.cos(1), -math.sin(1), 0], [math.sin(1), math.cos(1), 0], [0, 0, 1]]
-    assert Vec3.inv_mat(mat2) == [
-        [math.cos(1), math.sin(1), 0],
-        [-math.sin(1), math.cos(1), 0],
-        [0, 0, 1],
-    ]

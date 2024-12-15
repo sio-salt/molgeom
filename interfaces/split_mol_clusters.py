@@ -1,6 +1,6 @@
 import sys
 
-from molgeom import parse_file
+from molgeom import read_file
 
 
 def main():
@@ -11,7 +11,7 @@ def main():
     print()
     filepath = sys.argv[1]
     print(filepath)
-    mole = parse_file(filepath)
+    mole = read_file(filepath)
     clusters = mole.get_clusters()
     print(f"{clusters=}")
     for cluster in clusters:

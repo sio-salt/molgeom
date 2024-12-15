@@ -2,6 +2,10 @@ from __future__ import annotations
 from copy import deepcopy
 
 import math
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .mat3 import Mat3
 
 # import numpy as np
 # from scipy.spatial.transform import Rotation as R
@@ -44,6 +48,12 @@ class Vec3:
         if not isinstance(value, (int, float)):
             raise TypeError("z must be an int or float")
         self._z = float(value)
+
+    @classmethod
+    def from_list(cls, vec: list[int | float]) -> Vec3:
+        if not is_vec_type(vec):
+            raise ValueError("vec must be a list of 3 int or float")
+        return cls(*vec)
 
     def to_list(self) -> list[float]:
         return [self.x, self.y, self.z]
@@ -160,62 +170,6 @@ class Vec3:
             self.x * other.y - self.y * other.x,
         )
 
-    def matmul(self, mat: mat_type) -> Vec3:
-        """
-        calc: matrix @ self(vector)
-        """
-        if not is_mat_type(mat):
-            raise ValueError("matrix must be 3x3 list of int or float")
-        x = mat[0][0] * self.x + mat[0][1] * self.y + mat[0][2] * self.z
-        y = mat[1][0] * self.x + mat[1][1] * self.y + mat[1][2] * self.z
-        z = mat[2][0] * self.x + mat[2][1] * self.y + mat[2][2] * self.z
-
-        return Vec3(x, y, z)
-
-    @staticmethod
-    def det(mat: mat_type) -> float:
-        if not is_mat_type(mat):
-            raise ValueError("matrix must be 3x3 list of int or float")
-
-        return (
-            (mat[0][0] * mat[1][1] * mat[2][2])
-            + (mat[0][1] * mat[1][2] * mat[2][0])
-            + (mat[0][2] * mat[1][0] * mat[2][1])
-            - (mat[0][2] * mat[1][1] * mat[2][0])
-            - (mat[0][0] * mat[1][2] * mat[2][1])
-            - (mat[0][1] * mat[1][0] * mat[2][2])
-        )
-
-    @staticmethod
-    def inv_mat(mat: mat_type) -> mat_type:
-        if not is_mat_type(mat):
-            raise ValueError("matrix must be 3x3 list of int or float")
-
-        det = Vec3.det(mat)
-        if det == 0:
-            raise ValueError("matrix is singular")
-
-        inv_det = 1 / det
-        inv_mat = [
-            [
-                (mat[1][1] * mat[2][2] - mat[1][2] * mat[2][1]) * inv_det,
-                (mat[0][2] * mat[2][1] - mat[0][1] * mat[2][2]) * inv_det,
-                (mat[0][1] * mat[1][2] - mat[0][2] * mat[1][1]) * inv_det,
-            ],
-            [
-                (mat[1][2] * mat[2][0] - mat[1][0] * mat[2][2]) * inv_det,
-                (mat[0][0] * mat[2][2] - mat[0][2] * mat[2][0]) * inv_det,
-                (mat[0][2] * mat[1][0] - mat[0][0] * mat[1][2]) * inv_det,
-            ],
-            [
-                (mat[1][0] * mat[2][1] - mat[1][1] * mat[2][0]) * inv_det,
-                (mat[0][1] * mat[2][0] - mat[0][0] * mat[2][1]) * inv_det,
-                (mat[0][0] * mat[1][1] - mat[0][1] * mat[1][0]) * inv_det,
-            ],
-        ]
-
-        return inv_mat
-
     def distance_to(self, other: Vec3) -> float:
         other = vectorize_arg(other)
         return math.sqrt(
@@ -265,13 +219,10 @@ class Vec3:
         # calculate the mirror image of the point
         self += 2 * (projection - self)
 
-    def rotate_by_mat(self, rot_mat: mat_type) -> None:
-        if not is_mat_type(rot_mat):
-            raise ValueError("rotation matrix must be 3x3 list of int or float")
-
-        x_rot = rot_mat[0][0] * self.x + rot_mat[0][1] * self.y + rot_mat[0][2] * self.z
-        y_rot = rot_mat[1][0] * self.x + rot_mat[1][1] * self.y + rot_mat[1][2] * self.z
-        z_rot = rot_mat[2][0] * self.x + rot_mat[2][1] * self.y + rot_mat[2][2] * self.z
+    def matmul(self, mat: mat_type) -> None:
+        x_rot = mat[0][0] * self.x + mat[0][1] * self.y + mat[0][2] * self.z
+        y_rot = mat[1][0] * self.x + mat[1][1] * self.y + mat[1][2] * self.z
+        z_rot = mat[2][0] * self.x + mat[2][1] * self.y + mat[2][2] * self.z
 
         self.x = x_rot
         self.y = y_rot
@@ -393,12 +344,17 @@ def other_class_check_for_operand(self, other, operand: str) -> None:
         )
 
 
-def is_mat_type(mat: mat_type) -> bool:
+def is_vec_type(vec: list[float]) -> bool:
     return (
+        isinstance(vec, list)
+        and len(vec) == 3
+        and all(isinstance(i, (int, float)) for i in [*vec])
+    )
+
+
+def is_mat_type(mat: list[list[float]] | Mat3) -> bool:
+    return isinstance(mat, Mat3) or (
         isinstance(mat, list)
         and len(mat) == 3
-        and all(len(row) == 3 for row in mat)
-        and all(
-            isinstance(i, (int, float)) for row in mat for i in [*row]
-        )  # True if row is a list or Vec3
+        and all(is_vec_type(vec) for vec in mat if isinstance(vec, list))
     )

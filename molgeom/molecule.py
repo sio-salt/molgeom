@@ -8,6 +8,7 @@ import networkx as nx
 
 from molgeom.utils.fancy_indexing_list import FancyIndexingList
 from molgeom.utils.vec3 import Vec3, mat_type
+from molgeom.utils.mat3 import Mat3, is_mat_type
 from molgeom.atom import Atom
 from molgeom.data.consts import ANGST2BOHR_GAU16, ATOMIC_NUMBER
 from molgeom.utils.decorators import args_to_list, args_to_set
@@ -36,18 +37,15 @@ class Molecule:
         if lattice_vecs is None:
             self._lattice_vecs = None
             return
-        elif len(lattice_vecs) != 3:
-            raise ValueError("lattice_vecs must be a list of 3 vectors")
-        elif not all(isinstance(vec, (Vec3, list)) for vec in lattice_vecs):
-            raise TypeError(
-                "All elements must be Vec3 objects or list of 3 floats or ints"
-            )
-        elif not all(len(vec) == 3 for vec in lattice_vecs):
-            raise ValueError("All lattice vectors must be of length 3")
 
-        self._lattice_vecs = [
-            Vec3(*vec) if isinstance(vec, list) else vec for vec in lattice_vecs
-        ]
+        lat_vecs = Mat3(lattice_vecs)
+        lat_det = Mat3.det(lat_vecs)
+        if lat_det == 0:
+            raise ValueError("lattice vectors must not be linearly dependent")
+        if lat_det < 0:
+            raise ValueError("lattice vectors must form a right-handed basis")
+
+        self._lattice_vecs = lat_vecs
 
     def __len__(self) -> int:
         return len(self.atoms)
@@ -158,9 +156,6 @@ class Molecule:
     def get_symbols(self) -> list[str]:
         return tuple(atom.symbol for atom in self)
 
-    def get_coords(self) -> list[Vec3]:
-        return [[a.x, a.y, a.z] for a in self]
-
     def get_formula(self) -> str:
         symbol_count = dict()
         for atom in self:
@@ -173,6 +168,29 @@ class Molecule:
             )
         )
         return formula
+
+    def get_cart_coords(self) -> list[Vec3]:
+        return [[atom.x, atom.y, atom.z] for atom in self]
+
+    def get_frac_coords(self) -> list[Vec3]:
+        """
+        let v = u1*a1 + u2*a2 + u3*a3, where a1, a2, a3 are lattice vectors
+        mat = [a2×a3, a3×a1, a1×a2]
+        frac_coords = [u1, u2, u3] = 1/V * mat * v
+        """
+
+        if self.lattice_vecs is None:
+            raise ValueError("Lattice vectors must be set to bound the molecule.")
+
+        cell_volume = self.lattice_vecs.det()
+        mat = Mat3(
+            [
+                self.lattice_vecs[1].cross(self.lattice_vecs[2]) / cell_volume,
+                self.lattice_vecs[2].cross(self.lattice_vecs[0]) / cell_volume,
+                self.lattice_vecs[0].cross(self.lattice_vecs[1]) / cell_volume,
+            ]
+        )
+        return [mat @ atom.to_Vec3() for atom in self]
 
     def get_bonds(
         self,
@@ -279,13 +297,15 @@ class Molecule:
         for atom in self.atoms:
             atom.mirror_by_plane(p1, p2, p3)
 
-    def rotate_by_mat(self, rot_mat: mat_type, with_lattice_vecs: bool = True) -> None:
+    def matmul(self, mat: mat_type, with_lattice_vecs: bool = True) -> None:
+        if not is_mat_type(mat):
+            raise TypeError("mat must be a 3x3 matrix")
+
         for atom in self.atoms:
-            atom.rotate_by_mat(rot_mat)
+            atom.matmul(mat)
 
         if with_lattice_vecs and self.lattice_vecs is not None:
-            for vec in self.lattice_vecs:
-                vec.rotate_by_mat(rot_mat)
+            self.lattice_vecs = self.lattice_vecs @ mat
 
     def rotate_by_axis(
         self,
@@ -349,17 +369,17 @@ class Molecule:
 
         self.lattice_vecs = tmp_mol.lattice_vecs
 
-    def is_inside_cell(self, atom_idx: int) -> bool:
-        if self.lattice_vecs is None:
-            raise ValueError("Lattice vectors must be set to bound the molecule.")
+    def is_inside_cell(self, atom: Atom | Vec3) -> bool:
+        """
+        Check if the atom is inside the parallelepiped defined by the lattice vectors.
 
-        lat_params = [vec.norm() for vec in self.lattice_vecs]
-        atom = self[atom_idx]
-        lat_coords = atom.to_Vec3().matmul(Vec3.inv_mat(self.lattice_vecs))
-        for i in range(3):
-            if lat_coords[i] < 0 or lat_coords[i] >= lat_params[i]:
-                return False
-        return True
+        let v = u1*a1 + u2*a2 + u3*a3, where a1, a2, a3 are lattice vectors
+        mat = [a2×a3, a3×a1, a1×a2]
+        to check if v is inside the cell, we need to check if 0 <= u1, u2, u3 < 1
+        U = [u1, u2, u3] = 1/V * mat * v
+        """
+        U = atom.get_frac_coords(self.lattice_vecs)
+        return all(0 <= u < 1 for u in U)
 
     def bound_to_cell(self) -> None:
         if self.lattice_vecs is None:
@@ -423,12 +443,9 @@ class Molecule:
                 trans_vec_fract[i] = factor * num
 
         new_mol = self.copy()
-        print(f"rot_mat: {rot_mat}")
-        print(f"new_mol: {new_mol}")
-        new_mol.rotate_by_mat(rot_mat)
-        trans_vec_fract.rotate_by_mat(self.lattice_vecs)
+        new_mol.matmul(rot_mat)
+        trans_vec_fract.matmul(self.lattice_vecs)
         trans_vec_cart = trans_vec_fract
-        print(f"trans_vec_cart: {trans_vec_cart}")
         new_mol.translate(trans_vec_cart)
 
         if bound_to_cell:

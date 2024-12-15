@@ -2,7 +2,7 @@ import importlib.util
 import os
 import sys
 
-from molgeom import parse_file
+from molgeom import read_file
 
 if importlib.util.find_spec("readline"):
     import readline  # noqa
@@ -41,7 +41,7 @@ def main():
     for filepath in filepaths:
         print(filepath)
         output = []
-        mole = parse_file(filepath)
+        mole = read_file(filepath)
         bonds = mole.get_bonds(tolerance)
         output.append(f"Number of bonds: {len(bonds)}")
         output.append(f"bond tolerance: {tolerance}")

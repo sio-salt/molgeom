@@ -1,4 +1,4 @@
-from .utils import FancyIndexingList, Vec3, vec_type, mat_type
+from .utils import FancyIndexingList, Vec3, vec_type, mat_type, Mat3
 from .data import consts
 from .atom import Atom
 from .molecule import Molecule
@@ -21,8 +21,9 @@ __all__ = [
     "cif_parser",
     "poscar_parser",
     "read_file",
+    "FancyIndexingList",
     "Vec3",
     "vec_type",
     "mat_type",
-    "FancyIndexingList",
+    "Mat3",
 ]
