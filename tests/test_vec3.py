@@ -113,21 +113,28 @@ def test_vec3_types():
 
 
 def test_mat3_matmul():
-    v1 = Vec3(1, 2, 3)
     mat1 = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
     mat2 = Mat3([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
     mat3 = [Vec3(1, 2, 3), Vec3(4, 5, 6), Vec3(7, 8, 9)]
     mat4 = Mat3([Vec3(1, 2, 3), Vec3(4, 5, 6), Vec3(7, 8, 9)])
 
-    assert v1.matmul(mat1) == Vec3(
+    v1 = Vec3(1, 2, 3)
+    v1.matmul(mat1)
+    assert v1 == Vec3(
         1 * 1 + 2 * 2 + 3 * 3, 1 * 4 + 2 * 5 + 3 * 6, 1 * 7 + 2 * 8 + 3 * 9
     )
-    assert v1.matmul(mat2) == Vec3(
+    v1 = Vec3(1, 2, 3)
+    v1.matmul(mat2)
+    assert v1 == Vec3(
         1 * 1 + 2 * 2 + 3 * 3, 1 * 4 + 2 * 5 + 3 * 6, 1 * 7 + 2 * 8 + 3 * 9
     )
-    assert v1.matmul(mat3) == Vec3(
+    v1 = Vec3(1, 2, 3)
+    v1.matmul(mat3)
+    assert v1 == Vec3(
         1 * 1 + 2 * 2 + 3 * 3, 1 * 4 + 2 * 5 + 3 * 6, 1 * 7 + 2 * 8 + 3 * 9
     )
-    assert v1.matmul(mat4) == Vec3(
+    v1 = Vec3(1, 2, 3)
+    v1.matmul(mat4)
+    assert v1 == Vec3(
         1 * 1 + 2 * 2 + 3 * 3, 1 * 4 + 2 * 5 + 3 * 6, 1 * 7 + 2 * 8 + 3 * 9
     )

@@ -6,12 +6,13 @@ from collections.abc import Iterable
 
 import networkx as nx
 
+from molgeom.data.consts import ANGST2BOHR_GAU16, ATOMIC_NUMBER
 from molgeom.utils.fancy_indexing_list import FancyIndexingList
 from molgeom.utils.vec3 import Vec3, mat_type
 from molgeom.utils.mat3 import Mat3, is_mat_type
-from molgeom.atom import Atom
-from molgeom.data.consts import ANGST2BOHR_GAU16, ATOMIC_NUMBER
 from molgeom.utils.decorators import args_to_list, args_to_set
+from molgeom.utils.lattice_utils import cart2frac, frac2cart
+from molgeom.atom import Atom
 
 
 class Molecule:
@@ -94,25 +95,28 @@ class Molecule:
         return f"Molecule({formula})"
 
     @classmethod
-    def sorted(cls, mols: Molecule | Iterable[Molecule], key=None) -> Molecule:
+    def sorted(cls, atoms: Molecule | Iterable[Atom], key: callable = None) -> Molecule:
         """
         Create a new molecule by sorting the atoms of the input molecule(s).
         """
-        if not all(isinstance(mol, Molecule) for mol in mols):
+        if isinstance(atoms, Molecule):
+            atoms = atoms.atoms
+        if not all(isinstance(atoms, Atom) for atoms in atoms):
             raise TypeError("All elements must be Molecule objects")
-        sorted_mols = cls()
-        for mol in mols:
-            mol.sort(key=key)
-            sorted_mols.add_atoms_from(mol)
+        atoms.sort(key=key)
+        mol = cls()
+        mol.add_atoms_from(atoms)
 
-        return sorted_mols
+        return mol
 
     def sort(self, key=None) -> None:
         """
         Sort the atoms of the molecule.
         """
         if key is None:
-            self.atoms.sort(key=lambda atom: ATOMIC_NUMBER[atom.symbol])
+            self.atoms.sort(
+                key=lambda atom: ATOMIC_NUMBER[atom.symbol, atom.x, atom.y, atom.z]
+            )
         else:
             self.atoms.sort(key=key)
 
@@ -121,6 +125,19 @@ class Molecule:
 
     def copy(self) -> Molecule:
         return copy.deepcopy(self)
+
+    def is_same_geom(
+        self, other: Molecule, rel_tol: float = 1e-5, abs_tol: float = 0.0
+    ) -> bool:
+        sorted_self = Molecule.sorted(self)
+        sorted_other = Molecule.sorted(other)
+        return len(self) == len(other) and all(
+            atom1.isclose(atom2, rel_tol=rel_tol, abs_tol=abs_tol)
+            for atom1, atom2 in zip(
+                sorted_self,
+                sorted_other,
+            )
+        )
 
     @args_to_set
     def filtered_by_symbols(self, symbols: str | Iterable[str]) -> Molecule:
@@ -172,25 +189,13 @@ class Molecule:
     def get_cart_coords(self) -> list[Vec3]:
         return [[atom.x, atom.y, atom.z] for atom in self]
 
-    def get_frac_coords(self) -> list[Vec3]:
-        """
-        let v = u1*a1 + u2*a2 + u3*a3, where a1, a2, a3 are lattice vectors
-        mat = [a2×a3, a3×a1, a1×a2]
-        frac_coords = [u1, u2, u3] = 1/V * mat * v
-        """
-
+    def get_frac_coords(self, wrap=False) -> list[Vec3]:
         if self.lattice_vecs is None:
             raise ValueError("Lattice vectors must be set to bound the molecule.")
 
-        cell_volume = self.lattice_vecs.det()
-        mat = Mat3(
-            [
-                self.lattice_vecs[1].cross(self.lattice_vecs[2]) / cell_volume,
-                self.lattice_vecs[2].cross(self.lattice_vecs[0]) / cell_volume,
-                self.lattice_vecs[0].cross(self.lattice_vecs[1]) / cell_volume,
-            ]
-        )
-        return [mat @ atom.to_Vec3() for atom in self]
+        return [
+            cart2frac(atom.to_Vec3(), self.lattice_vecs, wrap=wrap) for atom in self
+        ]
 
     def get_bonds(
         self,
@@ -369,7 +374,7 @@ class Molecule:
 
         self.lattice_vecs = tmp_mol.lattice_vecs
 
-    def is_inside_cell(self, atom: Atom | Vec3) -> bool:
+    def is_inside_cell(self, atom: Atom) -> bool:
         """
         Check if the atom is inside the parallelepiped defined by the lattice vectors.
 
@@ -378,30 +383,22 @@ class Molecule:
         to check if v is inside the cell, we need to check if 0 <= u1, u2, u3 < 1
         U = [u1, u2, u3] = 1/V * mat * v
         """
+        if not isinstance(atom, Atom):
+            raise TypeError(f"Expected Atom, got {type(atom).__name__}")
+
         U = atom.get_frac_coords(self.lattice_vecs)
         return all(0 <= u < 1 for u in U)
 
-    def bound_to_cell(self) -> None:
+    def wrap_to_cell(self) -> None:
         if self.lattice_vecs is None:
             raise ValueError("Lattice vectors must be set to bound the molecule.")
 
-        # matrix to convert primitive basis to lattice_vecs basis
-        prim2lat_mat = Vec3.inv_mat(mat=self.lattice_vecs)
-        lat_params = [vec.norm() for vec in self.lattice_vecs]
-        for atom in self:
-            lat_coords = atom.to_Vec3().matmul(prim2lat_mat)
-            for i in range(3):
-                while lat_coords[i] < 0:
-                    lat_coords[i] += lat_params[i]
-                while lat_coords[i] >= lat_params[i]:
-                    lat_coords[i] -= lat_params[i]
-
-            cart_coords = lat_coords.matmul(self.lattice_vecs)
+        frac_coords = self.get_frac_coords(wrap=True)
+        for atom, frac_coord in zip(self, frac_coords):
+            cart_coords = frac2cart(frac_coord, self.lattice_vecs)
             atom.x, atom.y, atom.z = cart_coords
 
-    def replicated_from_xyz_str(
-        self, xyz_str: str, bound_to_cell: bool = True
-    ) -> Molecule:
+    def replicated_from_xyz_str(self, xyz_str: str, wrap: bool = True) -> Molecule:
         """
         Replicate the molecule from an xyz string in cif format.
         e.g.   ‘x, y, z’, ‘-x, -y, z’, '-x, y + 1/2, -z + 1/2', ‘-2y+1/2, 3x+1/2, z-y+1/2’,
@@ -414,8 +411,8 @@ class Molecule:
         re_rot = re.compile(r"([+-]?)([\d\.]*)/?([\d\.]*)([x-z])")
         re_trans = re.compile(r"([+-]?)([\d\.]+)/?([\d\.]*)(?![x-z])")
 
-        rot_mat = [[0.0] * 3 for _ in range(3)]
-        trans_vec_fract = Vec3(0, 0, 0)
+        rot_mat = Mat3([[0.0] * 3 for _ in range(3)])
+        trans_vec_frac = Vec3(0, 0, 0)
         for i, op in enumerate(ops):
 
             # make rot mat
@@ -440,16 +437,16 @@ class Molecule:
                     if match[3] != ""
                     else float(match[2])
                 )
-                trans_vec_fract[i] = factor * num
+                trans_vec_frac[i] = factor * num
 
+        print(f"rot_mat = {rot_mat}")
+        print(f"{trans_vec_frac=}")
         new_mol = self.copy()
-        new_mol.matmul(rot_mat)
-        trans_vec_fract.matmul(self.lattice_vecs)
-        trans_vec_cart = trans_vec_fract
-        new_mol.translate(trans_vec_cart)
+        new_mol.matmul(rot_mat, with_lattice_vecs=False)
+        new_mol.translate(frac2cart(trans_vec_frac, self.lattice_vecs))
 
-        if bound_to_cell:
-            new_mol.bound_to_cell()
+        if wrap:
+            new_mol.wrap_to_cell()
 
         return new_mol
 

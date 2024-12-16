@@ -1,11 +1,18 @@
 import math
 
+import pytest
+
 from molgeom import Vec3
 from molgeom import Mat3
+from molgeom.utils.mat3 import is_mat_type
 
 
 def test_mat3_init():
     mat1 = Mat3([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+
+    assert is_mat_type(mat1)
+    assert isinstance(mat1, Mat3)
+
     assert (
         mat1[0] == Vec3(1, 2, 3)
         and mat1[1] == Vec3(4, 5, 6)
@@ -16,97 +23,95 @@ def test_mat3_init():
     assert mat1[0] == Vec3(2, 0, -1)
     mat1[0] = [1, 2, 3]
     assert mat1[0] == Vec3(1, 2, 3)
-    try:
-        mat1[0] = [1, 2, 3, 4]
-    except ValueError as e:
-        assert str(e) == "Invalid vector type"
 
-    try:
-        mat2 = Mat3([1, 2, 3], [4, 5, 6], [7, 8])
-    except ValueError as e:
-        assert str(e) == "Matrix must be 3x3"
-    try:
-        mat3 = Mat3([1, 2, 3], [4, 5, 6], [7, 8, 9, 10])
-    except ValueError as e:
-        assert str(e) == "Matrix must be 3x3"
-    try:
-        mat4 = Mat3([1, 2, 3], [4, 5, 6])
-    except ValueError as e:
-        assert str(e) == "Matrix must be 3x3"
+    with pytest.raises(TypeError):
+        mat1[0] = [1, 2, 3, 4]
+    with pytest.raises(TypeError):
+        mat1[0] = 1
+    with pytest.raises(TypeError):
+        mat1[0] = "a"
+    with pytest.raises(TypeError):
+        mat2 = Mat3([[1, 2, 3], [4, 5, 6], [7, 8]])
+    with pytest.raises(TypeError):
+        mat3 = Mat3([[1, 2, 3], [4, 5, 6], [7, 8, 9, 10]])
+    with pytest.raises(TypeError):
+        mat4 = Mat3([[1, 2, 3], [4, 5, 6]])
 
 
 def test_mat3_str_repr():
-    mat1 = Mat3([1, 2, 3], [4, 5, 6], [7, 8, 9])
-    assert str(mat1) == "[[1, 2, 3], [4, 5, 6], [7, 8, 9]]"
-    assert repr(mat1) == "Mat3([[1, 2, 3], [4, 5, 6], [7, 8, 9]])"
+    mat1 = Mat3([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+    assert str(mat1) == "[Vec3(1.000000000000, 2.000000000000, 3.000000000000), Vec3(4.000000000000, 5.000000000000, 6.000000000000), Vec3(7.000000000000, 8.000000000000, 9.000000000000)]"
+    assert repr(mat1) == "Mat3([Vec3(1.000000000000, 2.000000000000, 3.000000000000), Vec3(4.000000000000, 5.000000000000, 6.000000000000), Vec3(7.000000000000, 8.000000000000, 9.000000000000)])"
 
 
 def test_mat3_eq():
-    mat1 = Mat3([1, 2, 3], [4, 5, 6], [7, 8, 9])
-    mat2 = Mat3([1, 2, 3], [4, 5, 6], [7, 8, 9])
-    mat3 = Mat3([1, 2, 3], [4, 5, 6], [7, 8, 10])
+    mat1 = Mat3([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+    mat2 = Mat3([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+    mat3 = Mat3([[1, 2, 3], [4, 5, 6], [7, 8, 10]])
     assert mat1 == mat2 and mat1 != mat3
 
 
 def test_mat3_add_sub():
-    mat1 = Mat3([1, 2, 3], [4, 5, 6], [7, 8, 9])
-    mat2 = Mat3([1, 2, 3], [4, 5, 6], [7, 8, 9])
-    mat3 = Mat3([1, 2, 3], [4, 5, 6], [7, 8, 10])
+    mat1 = Mat3([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+    mat2 = Mat3([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+    mat3 = Mat3([[1, 2, 3], [4, 5, 6], [7, 8, 10]])
 
-    assert mat1 + mat2 == Mat3([2, 4, 6], [8, 10, 12], [14, 16, 18])
-    assert mat1 - mat2 == Mat3([0, 0, 0], [0, 0, 0], [0, 0, 0])
-    assert mat1 + mat3 == Mat3([2, 4, 6], [8, 10, 12], [14, 16, 19])
-    assert mat1 - mat3 == Mat3([0, 0, 0], [0, 0, 0], [0, 0, -1])
+    assert mat1 + mat2 == mat2 + mat1 == Mat3([[2, 4, 6], [8, 10, 12], [14, 16, 18]])
+    assert mat1 - mat2 == -(mat2 - mat1) == Mat3([[0, 0, 0], [0, 0, 0], [0, 0, 0]])
+    assert mat1 + mat3 == mat3 + mat1 == Mat3([[2, 4, 6], [8, 10, 12], [14, 16, 19]])
+    assert mat1 - mat3 == -(mat3 - mat1) == Mat3([[0, 0, 0], [0, 0, 0], [0, 0, -1]])
 
     mat1 += mat2
-    assert mat1 == Mat3([2, 4, 6], [8, 10, 12], [14, 16, 18])
+    mat_double = Mat3([[2, 4, 6], [8, 10, 12], [14, 16, 18]])
+    print(f"types: {type(mat1)}, {type(mat_double)}")
+    for i in range(3):
+        print(mat1[i], mat_double[i])
+    assert mat1 == mat_double
     mat1 -= mat2
-    assert mat1 == Mat3([1, 2, 3], [4, 5, 6], [7, 8, 9])
+    assert mat1 == Mat3([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
 
-    try:
+    with pytest.raises(TypeError):
         mat1 + 1
-    except ValueError as e:
-        assert str(e) == "Invalid matrix type"
-    try:
+    with pytest.raises(TypeError):
+        1 + mat1
+    with pytest.raises(TypeError):
         mat1 - 1
-    except ValueError as e:
-        assert str(e) == "Invalid matrix type"
+    with pytest.raises(TypeError):
+        1 - mat1
 
 
 def test_mat3_mul_div():
-    mat1 = Mat3([1, 2, 3], [4, 5, 6], [7, 8, 9])
+    mat1 = Mat3([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
 
-    assert mat1 * 2 == Mat3([2, 4, 6], [8, 10, 12], [14, 16, 18])
-    assert mat1 / 2 == Mat3([0.5, 1, 1.5], [2, 2.5, 3], [3.5, 4, 4.5])
+    assert mat1 * 2 == 2 * mat1 == Mat3([[2, 4, 6], [8, 10, 12], [14, 16, 18]])
+    assert mat1 / 2 == Mat3([[0.5, 1, 1.5], [2, 2.5, 3], [3.5, 4, 4.5]])
 
     mat1 *= 2
-    assert mat1 == Mat3([2, 4, 6], [8, 10, 12], [14, 16, 18])
+    assert mat1 == Mat3([[2, 4, 6], [8, 10, 12], [14, 16, 18]])
     mat1 /= 2
-    assert mat1 == Mat3([1, 2, 3], [4, 5, 6], [7, 8, 9])
+    assert mat1 == Mat3([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
 
-    try:
+    with pytest.raises(TypeError):
         mat1 * "a"
-    except ValueError as e:
-        assert str(e) == "Invalid matrix type"
-    try:
+    with pytest.raises(TypeError):
+        mat1 * Vec3(1, 2, 3)
+    with pytest.raises(TypeError):
         mat1 / "a"
-    except ValueError as e:
-        assert str(e) == "Invalid matrix type"
+    with pytest.raises(TypeError):
+        mat1 / Vec3(1, 2, 3)
 
 
 def test_mat3_pow():
-    mat1 = Mat3([1, 2, 3], [4, 5, 6], [7, 8, 9])
-    assert mat1**2 == Mat3([1, 4, 9], [16, 25, 36], [49, 64, 81])
-    assert mat1**0 == Mat3([[0, 0, 0], [0, 0, 0], [0, 0, 0]])
+    mat1 = Mat3([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+    assert mat1**2 == Mat3([[1, 4, 9], [16, 25, 36], [49, 64, 81]])
+    assert mat1**0 == Mat3([[1, 1, 1], [1, 1, 1], [1, 1, 1]])
     assert mat1**1 == mat1
 
     mat1 **= 2
     assert mat1 == Mat3([[1, 4, 9], [16, 25, 36], [49, 64, 81]])
 
-    try:
+    with pytest.raises(TypeError):
         mat1 ** "a"
-    except ValueError as e:
-        assert str(e) == "Invalid matrix type"
 
 
 def test_mat3_iter():
@@ -200,11 +205,13 @@ def test_mat3_inv_mat():
     assert identity.inv() == identity
 
     mat1 = Mat3([[2, -1, 0], [-1, 2, -1], [0, -1, 2]])
-    assert mat1.inv() == [
-        [3 / 4, 2 / 4, 1 / 4],
-        [2 / 4, 4 / 4, 2 / 4],
-        [1 / 4, 2 / 4, 3 / 4],
-    ]
+    assert mat1.inv() == Mat3(
+        [
+            [3 / 4, 2 / 4, 1 / 4],
+            [2 / 4, 4 / 4, 2 / 4],
+            [1 / 4, 2 / 4, 3 / 4],
+        ]
+    )
 
     # use sin cos
     mat2 = Mat3(
@@ -228,5 +235,5 @@ def test_mat3_inv_mat():
     )
     assert mat3.inv() == mat3_inv
     assert mat3_inv.inv() == mat3
-    assert mat3.det() == 1
-    assert mat3.det() == 1
+    assert mat3.det() == -1
+    assert mat3_inv.det() == -1

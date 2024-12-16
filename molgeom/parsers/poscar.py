@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import os
 
-from molgeom import Vec3
+from molgeom.utils.vec3 import Vec3
+from molgeom.utils.mat3 import Mat3
+from molgeom.utils.lattice_utils import frac2cart
 from molgeom.atom import Atom
 from molgeom.data.consts import ATOMIC_MASSES
 from molgeom.molecule import Molecule
@@ -36,25 +38,17 @@ def poscar_parser(filepath: str) -> Molecule:
         lattice_vec_a = Vec3(*map(float, file.readline().split()[:3]))
         lattice_vec_b = Vec3(*map(float, file.readline().split()[:3]))
         lattice_vec_c = Vec3(*map(float, file.readline().split()[:3]))
-        mole.lattice_vecs = [lattice_vec_a, lattice_vec_b, lattice_vec_c]
-        lattice_vecs = [lattice_vec_a, lattice_vec_b, lattice_vec_c]
+        lattice_vecs = Mat3([lattice_vec_a, lattice_vec_b, lattice_vec_c])
+        mole.lattice_vecs = lattice_vecs
 
         if len(scale) == 1:
             # Negative scaling factor corresponds to the cell volume.
             scale = scale[0]
             if scale < 0.0:
-                lattice_vecs_det = sum(
-                    lattice_vecs[0][i]
-                    * (
-                        lattice_vecs[1][(i + 1) % 3] * lattice_vecs[2][(i + 2) % 3]
-                        - lattice_vecs[1][(i + 2) % 3] * lattice_vecs[2][(i + 1) % 3]
-                    )
-                    for i in range(3)
-                )
-                scale = (-1.0 * scale / lattice_vecs_det) ** (1 / 3)
-            lattice_vecs = [scale * vec for vec in lattice_vecs]
+                scale = (-1.0 * scale / lattice_vecs.det()) ** (1 / 3)
+            lattice_vecs = Mat3([scale * vec for vec in lattice_vecs])
         else:
-            lattice_vecs = [scale[i] * vec for i, vec in enumerate(lattice_vecs)]
+            lattice_vecs = Mat3([scale[i] * vec for i, vec in enumerate(lattice_vecs)])
 
         # Atom symbols and number of atoms per symbol
         atom_symbols = file.readline().split()
@@ -80,10 +74,7 @@ def poscar_parser(filepath: str) -> Molecule:
             for i in range(len(atom_symbols)):
                 for _ in range(num_atoms_per_symbol[i]):
                     frac_coords = list(map(float, file.readline().split()[:3]))
-                    cart_coords = [
-                        sum([frac_coords[j] * lattice_vecs[j][i] for j in range(3)])
-                        for i in range(3)
-                    ]
+                    cart_coords = frac2cart(frac_coords, lattice_vecs)
                     atom = Atom(
                         symbol=atom_symbols[i],
                         x=cart_coords[0],
@@ -103,6 +94,6 @@ def poscar_parser(filepath: str) -> Molecule:
                     )
                     mole.add_atom(atom)
         else:
-            raise ValueError(f"Unknown coordinate type {coord_type=}")
+            raise ValueError(f"Expected 'Direct' or 'Cartesian', got {coord_type=}")
 
     return mole

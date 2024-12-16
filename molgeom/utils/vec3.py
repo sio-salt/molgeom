@@ -95,6 +95,9 @@ class Vec3:
         other_class_check_for_operand(self, other, "+")
         return self.__class__(self.x + other.x, self.y + other.y, self.z + other.z)
 
+    def __radd__(self, other: Vec3) -> Vec3:
+        return self.__add__(other)
+
     def __iadd__(self, other: Vec3) -> Vec3:
         self.x += other.x
         self.y += other.y
@@ -105,53 +108,101 @@ class Vec3:
         other_class_check_for_operand(self, other, "-")
         return self.__class__(self.x - other.x, self.y - other.y, self.z - other.z)
 
+    def __rsub__(self, other: Vec3) -> Vec3:
+        return self.__class__(other.x - self.x, other.y - self.y, other.z - self.z)
+
     def __isub__(self, other: Vec3) -> Vec3:
         self.x -= other.x
         self.y -= other.y
         self.z -= other.z
         return self
 
-    def __mul__(self, scalar) -> Vec3:
-        if not isinstance(scalar, (int, float)):
-            raise TypeError("scalar must be an int or float")
-        return Vec3(self.x * scalar, self.y * scalar, self.z * scalar)
+    def __mul__(self, value: int | float | Vec3) -> Vec3:
+        if not isinstance(value, (int, float, Vec3)):
+            raise TypeError("value must be an int, float or Vec3")
+        if isinstance(value, (int, float)):
+            return Vec3(self.x * value, self.y * value, self.z * value)
 
-    def __rmul__(self, scalar) -> Vec3:
-        if not isinstance(scalar, (int, float)):
-            raise TypeError("scalar must be an int or float")
-        return self * scalar
+        return Vec3(self.x * value.x, self.y * value.y, self.z * value.z)
 
-    def __imul__(self, scalar: float) -> Vec3:
-        self.x *= scalar
-        self.y *= scalar
-        self.z *= scalar
-        return self
+    def __rmul__(self, value: int | float | Vec3) -> Vec3:
+        return self.__mul__(value)
 
-    def __truediv__(self, scalar: float) -> Vec3:
-        if not isinstance(scalar, (int, float)):
-            raise TypeError("scalar must be an int or float")
-        return Vec3(self.x / scalar, self.y / scalar, self.z / scalar)
+    def __imul__(self, value: int | float | Vec3) -> Vec3:
+        if isinstance(value, (int, float)):
+            self.x *= value
+            self.y *= value
+            self.z *= value
+            return self
+        if isinstance(value, Vec3):
+            self.x *= value.x
+            self.y *= value.y
+            self.z *= value.z
+            return self
+        raise TypeError("value must be an int, float or Vec3")
 
-    def __itruediv__(self, scalar: float) -> Vec3:
-        if not isinstance(scalar, (int, float)):
-            raise TypeError("scalar must be an int or float")
-        self.x /= scalar
-        self.y /= scalar
-        self.z /= scalar
-        return self
+    def __truediv__(self, value: int | float | Vec3) -> Vec3:
+        if not isinstance(value, (int, float, Vec3)):
+            raise TypeError("value must be an int, float or Vec3")
+        if isinstance(value, (int, float)):
+            return Vec3(self.x / value, self.y / value, self.z / value)
 
-    def __floordiv__(self, scalar: float) -> Vec3:
-        if not isinstance(scalar, (int, float)):
-            raise TypeError("scalar must be an int or float")
-        return Vec3(self.x // scalar, self.y // scalar, self.z // scalar)
+        return Vec3(self.x / value.x, self.y / value.y, self.z / value.z)
 
-    def __ifloordiv__(self, scalar: float) -> Vec3:
-        if not isinstance(scalar, (int, float)):
-            raise TypeError("scalar must be an int or float")
-        self.x //= scalar
-        self.y //= scalar
-        self.z //= scalar
-        return self
+    def __itruediv__(self, value: int | float | Vec3) -> Vec3:
+        if isinstance(value, (int, float)):
+            self.x /= value
+            self.y /= value
+            self.z /= value
+            return self
+        if isinstance(value, Vec3):
+            self.x /= value.x
+            self.y /= value.y
+            self.z /= value.z
+            return self
+        raise TypeError("value must be an int, float or Vec3")
+
+    def __floordiv__(self, value: int | float | Vec3) -> Vec3:
+        if not isinstance(value, (int, float, Vec3)):
+            raise TypeError("value must be an int, float or Vec3")
+        if isinstance(value, (int, float)):
+            return Vec3(self.x // value, self.y // value, self.z // value)
+
+        return Vec3(self.x // value.x, self.y // value.y, self.z // value.z)
+
+    def __ifloordiv__(self, value: int | float | Vec3) -> Vec3:
+        if isinstance(value, (int, float)):
+            self.x //= value
+            self.y //= value
+            self.z //= value
+            return self
+        if isinstance(value, Vec3):
+            self.x //= value.x
+            self.y //= value.y
+            self.z //= value.z
+            return self
+        raise TypeError("value must be an int, float or Vec3")
+
+    def __mod__(self, value: int | float | Vec3) -> Vec3:
+        if not isinstance(value, (int, float, Vec3)):
+            raise TypeError("value must be an int, float or Vec3")
+        if isinstance(value, (int, float)):
+            return Vec3(self.x % value, self.y % value, self.z % value)
+
+        return Vec3(self.x % value.x, self.y % value.y, self.z % value.z)
+
+    def __imod__(self, value: int | float | Vec3) -> Vec3:
+        if isinstance(value, (int, float)):
+            self.x %= value
+            self.y %= value
+            self.z %= value
+            return self
+        if isinstance(value, Vec3):
+            self.x %= value.x
+            self.y %= value.y
+            self.z %= value.z
+            return self
+        raise TypeError("value must be an int, float or Vec3")
 
     def __len__(self) -> int:
         return 3
@@ -176,6 +227,20 @@ class Vec3:
             (self.x - other.x) ** 2 + (self.y - other.y) ** 2 + (self.z - other.z) ** 2
         )
 
+    def isclose(self, other: Vec3, rel_tol: float = 1e-5, abs_tol: float = 0.0) -> bool:
+        other = vectorize_arg(other)
+        self_coords = [self.x, self.y, self.z]
+        other_coords = [other.x, other.y, other.z]
+        return all(
+            math.isclose(
+                self_coords[i],
+                other_coords[i],
+                rel_tol=rel_tol,
+                abs_tol=abs_tol,
+            )
+            for i in range(3)
+        )
+
     def norm(self) -> float:
         return math.sqrt(self.x**2 + self.y**2 + self.z**2)
 
@@ -184,6 +249,14 @@ class Vec3:
 
     def normalize(self) -> None:
         self /= self.norm()
+
+    def angle(self, other: Vec3) -> float:
+        if not isinstance(other, Vec3):
+            raise TypeError(f"Expected Vec3, got {type(other)}")
+        other = vectorize_arg(other)
+        dot = self.dot(other)
+        cos_theta = dot / (self.norm() * other.norm())
+        return math.acos(cos_theta)
 
     def mid_point(self, other: Vec3) -> Vec3:
         return (self + other) / 2

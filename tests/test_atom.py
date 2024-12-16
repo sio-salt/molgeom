@@ -45,13 +45,17 @@ def test_copy():
 def test_get_frac_coords():
     atom = Atom("C", 0.3, 1.1, -0.2)
     lattice_vec = Mat3([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
-    frac_coords = atom.get_frac_coords(lattice_vec)
-    assert frac_coords == Vec3(0.3, 1.1, -0.2)
+    frac_coords = atom.get_frac_coords(lattice_vec, wrap=False)
+    assert frac_coords.isclose(Vec3(0.3, 1.1, -0.2))
+    frac_coords = atom.get_frac_coords(lattice_vec, wrap=True)
+    assert frac_coords.isclose(Vec3(0.3, 0.1, 0.8))
 
     lattice_vec = Mat3([[2, 0, 0], [0, 2, 0], [0, 0, 2]])
     frac_coords = atom.get_frac_coords(lattice_vec)
-    assert frac_coords == Vec3(0.15, 0.55, -0.1)
+    assert frac_coords.isclose(Vec3(0.15, 0.55, -0.1))
+    frac_coords = atom.get_frac_coords(lattice_vec, wrap=True)
+    assert frac_coords.isclose(Vec3(0.15, 0.55, 0.9))
 
     lattice_vec = Mat3([[1, 0, 0], [0, 2, 0], [0, 0, 2]])
     frac_coords = atom.get_frac_coords(lattice_vec)
-    assert frac_coords == Vec3(0.3, 0.55, -0.1)
+    assert frac_coords.isclose(Vec3(0.3, 0.55, -0.1))

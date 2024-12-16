@@ -110,6 +110,30 @@ def test_copy():
     assert mol is not mol_copied_from_copy
 
 
+def test_is_same_geom():
+    mol1 = Molecule()
+    a1 = Atom("C", 0, 1.1, 0.2)
+    a2 = Atom("H", 0, 1.2, 0.3)
+    a3 = Atom("H", 0, 1.3, 0.4)
+    mol1.add_atoms_from([a1, a2, a3])
+
+    mol2 = Molecule()
+    a2 = Atom("H", 0, 1.2, 0.3)
+    a3 = Atom("H", 0, 1.3, 0.4)
+    a1 = Atom("C", 0, 1.1, 0.2)
+    mol2.add_atoms_from([a1, a2, a3])
+
+    assert mol1.is_same_geom(mol2)
+
+    mol2 = Molecule()
+    a1 = Atom("C", 0, 1.1, 0.2)
+    a2 = Atom("H", 0, 1.2, 0.3)
+    a3 = Atom("H", 0, 1.3, 0.5)
+    mol2.add_atoms_from([a1, a2, a3])
+
+    assert not mol1.is_same_geom(mol2)
+
+
 def test_replicate():
     a1 = Atom("O", 0, 0, 0)
     a2 = Atom("H", 1, 0, 0)
@@ -197,15 +221,15 @@ def test_is_inside_cell():
         - 1.2 * mol.lattice_vecs[1]
         - 1.3 * mol.lattice_vecs[2]
     )
-    assert mol.is_inside_cell(inside_vec)
-    assert not mol.is_inside_cell(outside_vec_1)
-    assert not mol.is_inside_cell(outside_vec_2)
-    assert not mol.is_inside_cell(outside_vec_3)
-    assert not mol.is_inside_cell(outside_vec_4)
-    assert not mol.is_inside_cell(outside_vec_5)
-    assert not mol.is_inside_cell(outside_vec_6)
-    assert not mol.is_inside_cell(outside_vec_7)
-    assert not mol.is_inside_cell(outside_vec_8)
+    assert mol.is_inside_cell(Atom.from_vec("H", inside_vec))
+    assert not mol.is_inside_cell(Atom.from_vec("H", outside_vec_1))
+    assert not mol.is_inside_cell(Atom.from_vec("H", outside_vec_2))
+    assert not mol.is_inside_cell(Atom.from_vec("H", outside_vec_3))
+    assert not mol.is_inside_cell(Atom.from_vec("H", outside_vec_4))
+    assert not mol.is_inside_cell(Atom.from_vec("H", outside_vec_5))
+    assert not mol.is_inside_cell(Atom.from_vec("H", outside_vec_6))
+    assert not mol.is_inside_cell(Atom.from_vec("H", outside_vec_7))
+    assert not mol.is_inside_cell(Atom.from_vec("H", outside_vec_8))
 
 
 def test_bound_to_cell():
@@ -216,7 +240,7 @@ def test_bound_to_cell():
     mol = Molecule(a1, a2, a3, a4)
     mol.lattice_vecs = [[2, 0, 0], [0, 2, 0], [0, 0, 2]]
 
-    mol.bound_to_cell()
+    mol.wrap_to_cell()
     for atom in mol:
         assert mol.is_inside_cell(atom)
     assert mol[0] == Atom("N", 1, 1, 1)
@@ -235,23 +259,23 @@ def test_replicated_from_xyz_str():
     assert mol == mol_replicated
     assert mol.lattice_vecs == mol_replicated.lattice_vecs
 
+    mol = Molecule(Atom("O", 0.6, 1.1, 1.8))
+    mol.lattice_vecs = [[2, 0, 0], [0, 2, 0], [0, 0, 2]]
     xyz_str_2 = "y, -x, z"
     mol_replicated = mol.replicated_from_xyz_str(xyz_str_2)
-    tmp_mol = Molecule(Atom("O", 1, -1, 1), Atom("H", 0, -1, 0), Atom("H", 1, 0, 0))
-    print(mol_replicated.atoms)
-    print(tmp_mol.atoms)
+    tmp_mol = Molecule(Atom("O", 1.1, 1.4, 1.8))
     assert mol_replicated == tmp_mol
-    assert mol_replicated.lattice_vecs == [
-        Vec3(*[0, -2, 0]),
-        Vec3(*[2, 0, 0]),
-        Vec3(*[0, 0, 2]),
-    ]
 
     xyz_str_3 = "-x, y + 1/2, -z + 1/2"
     mol_replicated = mol.replicated_from_xyz_str(xyz_str_3)
-    tmp_mol = Molecule(Atom("O", -1, 2, 0), Atom("H", -1, 1, 1), Atom("H", 0, 2, 1))
-    assert mol_replicated == tmp_mol
+    tmp_mol = Molecule(
+        Atom("O", 1.4, 0.1, 1.2),
+    )
+    assert mol_replicated.is_same_geom(tmp_mol)
 
     xyz_str_4 = "-2y+1/2, 3x+1/2, z-y+1/2"
     mol_replicated = mol.replicated_from_xyz_str(xyz_str_4)
-    tmp_mol = Molecule(Atom("O", -1, 4, 1), Atom("H", 1, 4, 1), Atom("H", -1, 1, 0))
+    tmp_mol = Molecule(Atom("O", 0.1, 1.6, 1.7))
+    print(mol_replicated.atoms)
+    print(tmp_mol.atoms)
+    assert mol_replicated.is_same_geom(tmp_mol)

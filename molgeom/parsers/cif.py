@@ -1,9 +1,9 @@
 import os
-import math
 from collections import deque
 
-from molgeom import Vec3, Atom, Molecule
+from molgeom import Vec3, Atom, Molecule, Mat3
 from molgeom.parsers.parser_tools import remove_trailing_empty_lines
+from molgeom.utils.lattice_utils import lat_params_to_lat_vecs
 
 # CIF format specification:
 # http://www.physics.gov.az/book_I/S_R_Hall.pdf
@@ -130,56 +130,25 @@ def cif_tag_parser(filepath: str) -> dict:
     return cif_tags
 
 
-def get_fract_to_cart_mat(
-    len_a, len_b, len_c, alpha, beta, gamma, angle_in_degrees=True
-) -> list[list[float]]:
-    # rewrite this function and don't use numpy
-    if angle_in_degrees:
-        alpha = math.radians(alpha)
-        beta = math.radians(beta)
-        gamma = math.radians(gamma)
-
-    cosa = math.cos(alpha)
-    cosb = math.cos(beta)
-    cosg = math.cos(gamma)
-    sing = math.sin(gamma)
-    volume = math.sqrt(
-        1.0 - cosa**2.0 - cosb**2.0 - cosg**2.0 + 2.0 * cosa * cosb * cosg
-    )
-
-    mat = [
-        [len_a, len_b * cosg, len_c * cosb],
-        [0, len_b * sing, len_c * (cosa - cosb * cosg) / sing],
-        [0, 0, len_c * volume / sing],
-    ]
-
-    return mat
-
-
 def ciftag2mol(cif_tags: dict) -> Molecule:
-    frac_to_cart_mat = get_fract_to_cart_mat(
+    frac_to_cart_mat: Mat3 = lat_params_to_lat_vecs(
         cif_tags["cell_length_a"],
         cif_tags["cell_length_b"],
         cif_tags["cell_length_c"],
         cif_tags["cell_angle_alpha"],
         cif_tags["cell_angle_beta"],
         cif_tags["cell_angle_gamma"],
+        angle_in_degrees=True,
     )
     mol = Molecule()
     for atom in cif_tags["atoms"]:
         fract_vec = Vec3(atom["fract_x"], atom["fract_y"], atom["fract_z"])
-        cart_vec = fract_vec.matmul(frac_to_cart_mat)
+        cart_vec = frac_to_cart_mat @ fract_vec
         symbol = atom["symbol"]
         atom = Atom.from_vec(symbol, cart_vec)
         mol.add_atom(atom)
 
-    lattice_vecs = []
-    for i in range(3):
-        vec = []
-        for j in range(3):
-            vec.append(frac_to_cart_mat[j][i])
-        lattice_vecs.append(Vec3(*vec))
-    mol.lattice_vecs = lattice_vecs
+    mol.lattice_vecs = frac_to_cart_mat
 
     return mol
 
