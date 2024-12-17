@@ -1,12 +1,23 @@
 from __future__ import annotations
+
 import copy
-import networkx as nx
 from collections.abc import Iterable
-from easyvec import Vec3
-from molgeom.utils.fancy_indexing_list import FancyIndexingList
+
+from cachetools import cachedmethod, LRUCache
+from cachetools.keys import hashkey
+import networkx as nx
+
 from molgeom.data.consts import ANGST2BOHR_GAU16, ATOMIC_NUMBER
+from molgeom.utils.fancy_indexing_list import FancyIndexingList
+from molgeom.utils.vec3 import Vec3, mat_type
+from molgeom.utils.mat3 import Mat3, is_mat_type
+from molgeom.utils.decorators import args_to_list, args_to_set
+from molgeom.utils.lattice_utils import cart2frac, frac2cart
+from molgeom.utils.symmetry_utils import symmop_from_xyz_str
 from molgeom.atom import Atom
-from molgeom.utils.decorators import args_to_set, args_to_list
+
+
+default_tol = 0.15
 
 
 class Molecule:
@@ -14,35 +25,32 @@ class Molecule:
     A class to represent a molecule.
     """
 
-    def __init__(
-        self, *atoms: Atom, lattice_vecs: list[Vec3 | list[float | int]] | None = None
-    ):
+    def __init__(self, *atoms: Atom, lattice_vecs: mat_type | None = None):
         self.atoms: FancyIndexingList[Atom] = FancyIndexingList()
         if atoms:
             self.add_atoms_from(atoms)
         self._lattice_vecs: list[Vec3] | None = None
         self.lattice_vecs = lattice_vecs
-        self._bonds: list[tuple[int, int]] | None = None
-        self._cycles: list[Molecule] | None = None
+        self._cache = LRUCache(maxsize=10)
 
     @property
     def lattice_vecs(self) -> list[Vec3] | None:
         return self._lattice_vecs
 
     @lattice_vecs.setter
-    def lattice_vecs(self, lattice_vecs: list[Vec3 | list[float | int]] | None) -> None:
+    def lattice_vecs(self, lattice_vecs: mat_type | None) -> None:
         if lattice_vecs is None:
             self._lattice_vecs = None
-        elif not all(isinstance(vec, (Vec3, list)) for vec in lattice_vecs):
-            raise TypeError(
-                "All elements must be Vec3 objects or list of 3 floats or ints"
-            )
-        elif not all(len(vec) == 3 for vec in lattice_vecs):
-            raise ValueError("All lattice vectors must be of length 3")
-        else:
-            self._lattice_vecs = [
-                Vec3(*vec) if isinstance(vec, list) else vec for vec in lattice_vecs
-            ]
+            return
+
+        lat_vecs = Mat3(lattice_vecs)
+        lat_det = Mat3.det(lat_vecs)
+        if lat_det == 0:
+            raise ValueError("lattice vectors must not be linearly dependent")
+        if lat_det < 0:
+            raise ValueError("lattice vectors must form a right-handed basis")
+
+        self._lattice_vecs = lat_vecs
 
     def __len__(self) -> int:
         return len(self.atoms)
@@ -54,6 +62,8 @@ class Molecule:
         return not self == other
 
     def __contains__(self, atom: Atom) -> bool:
+        if not isinstance(atom, Atom):
+            raise TypeError("atom must be an Atom object")
         return atom in self.atoms
 
     def __getitem__(self, index: int | slice | Iterable) -> Atom | Molecule:
@@ -75,7 +85,8 @@ class Molecule:
         for atom in self.atoms:
             if not isinstance(atom, Atom):
                 raise TypeError(
-                    "Invalid element type: atom must be Atom object" + f"{type(atom)=}"
+                    "Invalid element type: atom must be Atom object\n"
+                    + f"{type(atom)=}"
                 )
             yield atom
 
@@ -88,25 +99,28 @@ class Molecule:
         return f"Molecule({formula})"
 
     @classmethod
-    def sorted(cls, mols: Molecule | Iterable[Molecule], key=None) -> Molecule:
+    def sorted(cls, atoms: Molecule | Iterable[Atom], key: callable = None) -> Molecule:
         """
         Create a new molecule by sorting the atoms of the input molecule(s).
         """
-        if not all(isinstance(mol, Molecule) for mol in mols):
+        if isinstance(atoms, Molecule):
+            atoms = atoms.atoms
+        if not all(isinstance(atoms, Atom) for atoms in atoms):
             raise TypeError("All elements must be Molecule objects")
-        sorted_mols = cls()
-        for mol in mols:
-            mol.sort(key=key)
-            sorted_mols.add_atoms_from(mol)
+        atoms.sort(key=key)
+        mol = cls()
+        mol.add_atoms_from(atoms)
 
-        return sorted_mols
+        return mol
 
     def sort(self, key=None) -> None:
         """
         Sort the atoms of the molecule.
         """
         if key is None:
-            self.atoms.sort(key=lambda atom: ATOMIC_NUMBER[atom.symbol])
+            self.atoms.sort(
+                key=lambda atom: ATOMIC_NUMBER[atom.symbol, atom.x, atom.y, atom.z]
+            )
         else:
             self.atoms.sort(key=key)
 
@@ -116,8 +130,21 @@ class Molecule:
     def copy(self) -> Molecule:
         return copy.deepcopy(self)
 
+    def is_same_geom(
+        self, other: Molecule, rel_tol: float = 1e-5, abs_tol: float = 0.0
+    ) -> bool:
+        sorted_self = Molecule.sorted(self)
+        sorted_other = Molecule.sorted(other)
+        return len(self) == len(other) and all(
+            atom1.isclose(atom2, rel_tol=rel_tol, abs_tol=abs_tol)
+            for atom1, atom2 in zip(
+                sorted_self,
+                sorted_other,
+            )
+        )
+
     @args_to_set
-    def filter_by_symbols(self, symbols: str | Iterable[str]) -> Molecule:
+    def filtered_by_symbols(self, symbols: str | Iterable[str]) -> Molecule:
         return Molecule(*[atom for atom in self if atom.symbol in symbols])
 
     @classmethod
@@ -147,6 +174,9 @@ class Molecule:
             )
         self.atoms.extend(atoms)
 
+    def _get_geom_hash(self):
+        return hash(tuple((atom.symbol, atom.x, atom.y, atom.z) for atom in self))
+
     def get_symbols(self) -> list[str]:
         return tuple(atom.symbol for atom in self)
 
@@ -163,43 +193,59 @@ class Molecule:
         )
         return formula
 
+    def get_cart_coords(self) -> list[Vec3]:
+        return [[atom.x, atom.y, atom.z] for atom in self]
+
+    def get_frac_coords(self, wrap=False) -> list[Vec3]:
+        if self.lattice_vecs is None:
+            raise ValueError("Lattice vectors must be set to bound the molecule.")
+
+        return [
+            cart2frac(atom.to_Vec3(), self.lattice_vecs, wrap=wrap) for atom in self
+        ]
+
+    @cachedmethod(
+        lambda self: self._cache,
+        key=lambda self, tol=0.15: hashkey(self._get_geom_hash(), tol),
+    )
     def get_bonds(
         self,
-        tol: float = 0.15,
-    ) -> list[tuple[int, int]]:
-
-        if self._bonds is not None and getattr(self, "_bonds_tol", None) == tol:
-            return self._bonds
+        tol: float = default_tol,
+    ) -> list[dict[tuple[int, int], float]]:
 
         bonds = list()
         num_atoms = len(self)
-
         for i in range(num_atoms):
             ai = self[i]
             for j in range(i + 1, num_atoms):
                 aj = self[j]
-                if ai.is_bonded_to(aj, tol):
-                    bonds.append((i, j))
-        self._bonds = bonds
+                length = ai.get_bond_length(aj, tol)
+                if length is not None:
+                    bonds.append({"pair": (i, j), "length": length})
 
-        self._bonds_tol = tol
         return bonds
 
-    def get_clusters(self, tol: int = 0.15) -> list[Molecule]:
+    def get_clusters(self, tol: float = default_tol) -> list[Molecule]:
         G = nx.Graph()
         G.add_nodes_from(range(len(self)))
-        G.add_edges_from(self.get_bonds(tol))
+        G.add_edges_from(bond["pair"] for bond in self.get_bonds(tol))
         copied_mol = self.copy()
         return [copied_mol[list(cluster)] for cluster in nx.connected_components(G)]
 
-    def get_cycles(self, length_bound: int = None, tol: float = 0.15) -> list[Molecule]:
-        if self._cycles is not None:
-            return self._cycles
+    def get_cycles(
+        self, length_bound: int | None = None, tol: float = default_tol
+    ) -> list[Molecule]:
         G = nx.Graph()
-        G.add_edges_from(self.get_bonds(tol))
+        G.add_edges_from(bond["pair"] for bond in self.get_bonds(tol))
         cycles = nx.simple_cycles(G, length_bound=length_bound)
-        self._cycles = [self[list(cycle)] for cycle in cycles]
-        return self._cycles
+        return [self[list(cycle)] for cycle in cycles]
+
+    def get_connected_cluster(
+        self, atom_idx: int, tol: float = default_tol
+    ) -> Molecule:
+        G = nx.Graph()
+        G.add_edges_from(bond["pair"] for bond in self.get_bonds(tol))
+        return self[list(nx.node_connected_component(G, atom_idx))]
 
     @classmethod
     @args_to_list
@@ -213,6 +259,7 @@ class Molecule:
         merged = cls()
         for mol in mols:
             merged.add_atoms_from(mol)
+
         return merged
 
     @args_to_list
@@ -231,8 +278,6 @@ class Molecule:
             self.add_atoms_from(mol)
 
         self._lattice_vecs = None
-        self._bonds = None
-        self._cycles = None
 
     def translate(
         self, trans_vec: Vec3 | list[float | int], with_lattice_vecs: bool = False
@@ -261,8 +306,22 @@ class Molecule:
         for atom in self.atoms:
             atom.mirror_by_plane(p1, p2, p3)
 
+    def matmul(self, mat: mat_type, with_lattice_vecs: bool = True) -> None:
+        if not is_mat_type(mat):
+            raise TypeError("mat must be a 3x3 matrix")
+
+        for atom in self.atoms:
+            atom.matmul(mat)
+
+        if with_lattice_vecs and self.lattice_vecs is not None:
+            self.lattice_vecs = self.lattice_vecs @ mat
+
     def rotate_by_axis(
-        self, axis_point1: Vec3, axis_point2: Vec3, angle_degrees: float
+        self,
+        axis_point1: Vec3,
+        axis_point2: Vec3,
+        deg: float,
+        with_lattice_vecs: bool = True,
     ) -> None:
         """
         :param axis_point1: One point on the rotation axis
@@ -271,7 +330,11 @@ class Molecule:
         """
 
         for atom in self.atoms:
-            atom.rotate_by_axis(axis_point1, axis_point2, angle_degrees)
+            atom.rotate_by_axis(axis_point1, axis_point2, deg)
+
+        if with_lattice_vecs and self.lattice_vecs is not None:
+            for vec in self.lattice_vecs:
+                vec.rotate_by_axis(axis_point1, axis_point2, deg)
 
     def replicate(self, rep_a: list[int], rep_b: list[int], rep_c: list[int]) -> None:
         """
@@ -314,6 +377,67 @@ class Molecule:
                     self.merge(mol_copied)
 
         self.lattice_vecs = tmp_mol.lattice_vecs
+
+    def is_inside_cell(self, atom: Atom) -> bool:
+        """
+        Check if the atom is inside the parallelepiped defined by the lattice vectors.
+
+        let v = u1*a1 + u2*a2 + u3*a3, where a1, a2, a3 are lattice vectors
+        mat = [a2×a3, a3×a1, a1×a2]
+        to check if v is inside the cell, we need to check if 0 <= u1, u2, u3 < 1
+        U = [u1, u2, u3] = 1/V * mat * v
+        """
+        if not isinstance(atom, Atom):
+            raise TypeError(f"Expected Atom, got {type(atom).__name__}")
+
+        U = atom.get_frac_coords(self.lattice_vecs)
+        return all(0 <= u < 1 for u in U)
+
+    def remove_duplicates(self, tol: float = default_tol) -> None:
+        """
+        Remove duplicate atoms (close atoms) from the molecule.
+        finds too close clusters of same elements
+        and combines them into one atom at the center of mass
+        """
+        clusters = self.get_clusters(tol)
+        for cluster in clusters:
+            if len(cluster) > 1:
+                com = cluster.center_of_mass()
+                cluster[:] = [Atom("C", com.x, com.y, com.z)]
+
+    def wrap_to_cell(self) -> None:
+        """
+        Wrap the molecule to the cell defined by the lattice vectors.
+        """
+        if self.lattice_vecs is None:
+            raise ValueError("Lattice vectors must be set to bound the molecule.")
+
+        frac_coords = self.get_frac_coords(wrap=True)
+        for atom, frac_coord in zip(self, frac_coords):
+            cart_coords = frac2cart(frac_coord, self.lattice_vecs)
+            atom.x, atom.y, atom.z = cart_coords
+
+    def replicated_from_xyz_str(self, xyz_str: str, wrap: bool = True) -> Molecule:
+        """
+        Replicate the molecule from an xyz string in cif format.
+        args:
+            xyz_str (str): xyz string of symmetry operation. e.g. 'x, y, z', '-y, -x+3/4, z+1/2',
+            wrap (bool): wrap the molecule to the cell after replication
+        """
+
+        if self.lattice_vecs is None:
+            raise ValueError("Lattice vectors must be set to replicate the molecule.")
+
+        rot_mat, trans_vec_frac = symmop_from_xyz_str(xyz_str)
+
+        new_mol = self.copy()
+        new_mol.matmul(rot_mat, with_lattice_vecs=False)
+        new_mol.translate(frac2cart(trans_vec_frac, self.lattice_vecs))
+
+        if wrap:
+            new_mol.wrap_to_cell()
+
+        return new_mol
 
     def total_mass(self) -> float:
         return sum(atom.mass for atom in self)
@@ -376,4 +500,17 @@ class Molecule:
             f.write(f"{len(self)}\n")
             f.write(self.get_formula() + "\n")
             f.write(self.to_xyz())
+        print(f"File written to {filepath}")
+
+    def write_to_gaussian_input(self, filepath: str) -> None:
+        with open(filepath, "w") as f:
+            f.write("#p B3LYP\n")
+            f.write("\n")
+            f.write(f"{self.get_formula()}\n")
+            f.write("\n")
+            f.write("0 1\n")
+            f.write(self.to_xyz() + "\n")
+            if self.lattice_vecs is not None:
+                for vec in self.lattice_vecs:
+                    f.write(f"{'Tv':2s} {vec.x:19.12f} {vec.y:19.12f} {vec.z:19.12f}\n")
         print(f"File written to {filepath}")

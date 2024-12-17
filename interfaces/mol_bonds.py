@@ -1,7 +1,8 @@
+import importlib.util
 import os
 import sys
-import importlib.util
-from molgeom import parse_file
+
+from molgeom import read_file
 
 if importlib.util.find_spec("readline"):
     import readline  # noqa
@@ -40,7 +41,7 @@ def main():
     for filepath in filepaths:
         print(filepath)
         output = []
-        mole = parse_file(filepath)
+        mole = read_file(filepath)
         bonds = mole.get_bonds(tolerance)
         output.append(f"Number of bonds: {len(bonds)}")
         output.append(f"bond tolerance: {tolerance}")
@@ -48,7 +49,8 @@ def main():
             "label   bond length (Angstrom)       "
             + "atom1                                                                          -     atom2"
         )
-        for label, (i, j) in enumerate(bonds):
+        for label, bond_dict in enumerate(bonds):
+            i, j = bond_dict["pair"]
             ai, aj = mole[(i, j)]
             dist_angst = ai.distance_to(aj)
             output.append(

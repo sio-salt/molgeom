@@ -1,8 +1,8 @@
-import sys
 import importlib
-from easyvec import Vec3
+import sys
+
 import molgeom
-from molgeom import parse_file
+from molgeom import Vec3, read_file
 
 importlib.reload(molgeom)
 if importlib.util.find_spec("readline"):
@@ -143,7 +143,7 @@ def main():
 
     filepath = sys.argv[1]
     print(f"\n{filepath}\n")
-    mole = parse_file(filepath)
+    mole = read_file(filepath)
 
     operation_order = get_operation_order()
     print()

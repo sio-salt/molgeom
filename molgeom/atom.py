@@ -1,13 +1,17 @@
 from __future__ import annotations
+
 import copy
 import json
-import yaml
 import threading
 from importlib.resources import files
 from typing import Any
-from easyvec import Vec3
-from molgeom.data import consts
 
+import yaml
+
+from molgeom.utils.vec3 import Vec3, mat_type
+from molgeom.utils.mat3 import Mat3, is_mat_type
+from molgeom.utils.lattice_utils import cart2frac
+from molgeom.data.consts import ATOMIC_NUMBER
 
 _pt_data = None
 _bond_pair_data = None
@@ -52,7 +56,7 @@ def _load_bond_pair_data():
 class Atom(Vec3):
     def __init__(self, symbol: str, x: float, y: float, z: float) -> None:
         super().__init__(x, y, z)
-        if symbol not in consts.ATOMIC_NUMBER:
+        if symbol not in ATOMIC_NUMBER:
             raise ValueError(f"Invalid atomic symbol: {symbol}")
         self.symbol: str = symbol
         self._atomic_data, self._std_bond_rad = self.get_atomic_data(self.symbol)
@@ -104,6 +108,17 @@ class Atom(Vec3):
     def copy(self) -> Atom:
         return copy.deepcopy(self)
 
+    def get_frac_coords(self, lattice_vecs: mat_type, wrap=False) -> Vec3:
+        if not is_mat_type(lattice_vecs):
+            raise ValueError("Invalid lattice vector type")
+        if not isinstance(lattice_vecs, Mat3):
+            lattice_vecs = Mat3(lattice_vecs)
+
+        return cart2frac(self.to_Vec3(), lattice_vecs, wrap=wrap)
+
+    def to_Vec3(self) -> Vec3:
+        return Vec3(self.x, self.y, self.z)
+
     def to_xyz(self) -> str:
         return f"{self.symbol:2s} {self.x:19.12f} {self.y:19.12f} {self.z:19.12f}"
 
@@ -119,7 +134,14 @@ class Atom(Vec3):
         }
 
     # def is_bonded_to(self, other, tol=0.12, lower_bound=None, upper_bound=None) -> bool:
-    def is_bonded_to(self, other, tol=0.15) -> bool:
+    # def is_bonded_to(self, other, tol=0.15) -> bool:
+    def get_bond_length(self, other, tol=0.15) -> float | None:
+        """
+        Returns the bond length between two atoms if they are bonded, else None
+        args:
+            other: Atom
+            tol: float
+        """
         dist_angst = self.distance_to(other)
         _bond_pair_data = _load_bond_pair_data()
         estimated_bond_len = self._std_bond_rad + other._std_bond_rad
@@ -131,10 +153,17 @@ class Atom(Vec3):
         #     for std_bond_len in std_bond_lens:
         #         if lower_bound <= std_bond_len <= upper_bound:
         #             return True
+
+        # for std_bond_len in std_bond_lens:
+        #     if dist_angst <= std_bond_len + tol:
+        #         return True
+        # return False
+
         for std_bond_len in std_bond_lens:
             if dist_angst <= std_bond_len + tol:
-                return True
-        return False
+                return dist_angst
+
+        return None
 
     def closest_atom(self, mole, symbol=None) -> Atom:
         closest = mole.atoms[0]

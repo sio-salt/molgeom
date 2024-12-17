@@ -10,5 +10,9 @@ exclude_git/
 # Virtual environments
 .venv
 
+.pytest_cache
+.ruff_cache
+.mypy_cache
+
 .git-credentials
 
