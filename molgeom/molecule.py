@@ -210,19 +210,32 @@ class Molecule:
     )
     def get_bonds(
         self,
+<<<<<<< Updated upstream
         tol: float = default_tol,
     ) -> list[dict[tuple[int, int], float]]:
+=======
+        tol: float = 0.15,
+    ) -> list[tuple[int, int]]:
+        if self._bonds is not None and getattr(self, "_bonds_tol", None) == tol:
+            return self._bonds
+>>>>>>> Stashed changes
 
         bonds = list()
         num_atoms = len(self)
-
         for i in range(num_atoms):
             ai = self[i]
             for j in range(i + 1, num_atoms):
                 aj = self[j]
+<<<<<<< Updated upstream
                 length = ai.get_bond_length(aj, tol)
                 if length is not None:
                     bonds.append({"pair": (i, j), "length": length})
+=======
+                if ai.is_bonded_to(aj, tol):
+                    bonds.append((i, j))
+        self._bonds = bonds
+        self._bonds_tol = tol
+>>>>>>> Stashed changes
 
         return bonds
 
@@ -260,6 +273,7 @@ class Molecule:
         merged = cls()
         for mol in mols:
             merged.add_atoms_from(mol)
+
         return merged
 
     @args_to_list
