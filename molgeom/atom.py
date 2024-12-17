@@ -134,7 +134,14 @@ class Atom(Vec3):
         }
 
     # def is_bonded_to(self, other, tol=0.12, lower_bound=None, upper_bound=None) -> bool:
-    def is_bonded_to(self, other, tol=0.15) -> bool:
+    # def is_bonded_to(self, other, tol=0.15) -> bool:
+    def get_bond_length(self, other, tol=0.15) -> float | None:
+        """
+        Returns the bond length between two atoms if they are bonded, else None
+        args:
+            other: Atom
+            tol: float
+        """
         dist_angst = self.distance_to(other)
         _bond_pair_data = _load_bond_pair_data()
         estimated_bond_len = self._std_bond_rad + other._std_bond_rad
@@ -146,10 +153,17 @@ class Atom(Vec3):
         #     for std_bond_len in std_bond_lens:
         #         if lower_bound <= std_bond_len <= upper_bound:
         #             return True
+
+        # for std_bond_len in std_bond_lens:
+        #     if dist_angst <= std_bond_len + tol:
+        #         return True
+        # return False
+
         for std_bond_len in std_bond_lens:
             if dist_angst <= std_bond_len + tol:
-                return True
-        return False
+                return dist_angst
+
+        return None
 
     def closest_atom(self, mole, symbol=None) -> Atom:
         closest = mole.atoms[0]

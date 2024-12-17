@@ -275,7 +275,7 @@ def test_replicated_from_xyz_str():
 
     xyz_str_4 = "-2y+1/2, 3x+1/2, z-y+1/2"
     mol_replicated = mol.replicated_from_xyz_str(xyz_str_4)
-    tmp_mol = Molecule(Atom("O", 0.1, 1.6, 1.7))
+    tmp_mol = Molecule(Atom("O", 0.8, 0.8, 1.7))
     print(mol_replicated.atoms)
     print(tmp_mol.atoms)
     assert mol_replicated.is_same_geom(tmp_mol)

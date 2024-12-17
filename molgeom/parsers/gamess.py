@@ -1,10 +1,13 @@
 import sys
+import re
 from collections import deque
 
 from molgeom.atom import Atom
 from molgeom.molecule import Molecule
-from molgeom.parsers.parser_tools import (is_valid_gms_xyz_line,
-                                          remove_trailing_empty_lines)
+from molgeom.parsers.parser_tools import (
+    is_valid_gms_xyz_line,
+    remove_trailing_empty_lines,
+)
 
 
 # GAMESS input file parser
@@ -13,6 +16,10 @@ def gms_inp_parser(filepath: str) -> Molecule:
 
     with open(filepath, "r") as file:
         lines = deque(remove_trailing_empty_lines(file.readlines()))
+
+        # replace tabs, non-breaking spaces, and multiple spaces with single space
+        for i in range(len(lines)):
+            lines[i] = re.sub(r"[\s\t\xa0]+", " ", lines[i])
 
         # input description section
         input_descriptions = []

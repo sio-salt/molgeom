@@ -1,4 +1,5 @@
 import sys
+import re
 from collections import deque
 
 from molgeom import Vec3
@@ -14,6 +15,10 @@ def gau_inp_parser(filepath: str) -> Molecule:
     with open(filepath, "r") as file:
         # remove trailing empty lines and create a deque to pop from left
         lines = deque(remove_trailing_empty_lines(file.readlines()))
+
+        # replace tabs, non-breaking spaces, and multiple spaces with single space
+        for i in range(len(lines)):
+            lines[i] = re.sub(r"[\s\t\xa0]+", " ", lines[i])
 
         # link0 section
         link0 = []

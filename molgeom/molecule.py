@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 import copy
-import re
 from collections.abc import Iterable
 
+from cachetools import cachedmethod, LRUCache
+from cachetools.keys import hashkey
 import networkx as nx
 
 from molgeom.data.consts import ANGST2BOHR_GAU16, ATOMIC_NUMBER
@@ -12,7 +13,11 @@ from molgeom.utils.vec3 import Vec3, mat_type
 from molgeom.utils.mat3 import Mat3, is_mat_type
 from molgeom.utils.decorators import args_to_list, args_to_set
 from molgeom.utils.lattice_utils import cart2frac, frac2cart
+from molgeom.utils.symmetry_utils import symmop_from_xyz_str
 from molgeom.atom import Atom
+
+
+default_tol = 0.15
 
 
 class Molecule:
@@ -26,8 +31,7 @@ class Molecule:
             self.add_atoms_from(atoms)
         self._lattice_vecs: list[Vec3] | None = None
         self.lattice_vecs = lattice_vecs
-        self._bonds: list[tuple[int, int]] | None = None
-        self._cycles: list[Molecule] | None = None
+        self._cache = LRUCache(maxsize=10)
 
     @property
     def lattice_vecs(self) -> list[Vec3] | None:
@@ -170,6 +174,9 @@ class Molecule:
             )
         self.atoms.extend(atoms)
 
+    def _get_geom_hash(self):
+        return hash(tuple((atom.symbol, atom.x, atom.y, atom.z) for atom in self))
+
     def get_symbols(self) -> list[str]:
         return tuple(atom.symbol for atom in self)
 
@@ -197,13 +204,14 @@ class Molecule:
             cart2frac(atom.to_Vec3(), self.lattice_vecs, wrap=wrap) for atom in self
         ]
 
+    @cachedmethod(
+        lambda self: self._cache,
+        key=lambda self, tol=0.15: hashkey(self._get_geom_hash(), tol),
+    )
     def get_bonds(
         self,
-        tol: float = 0.15,
-    ) -> list[tuple[int, int]]:
-
-        if self._bonds is not None and getattr(self, "_bonds_tol", None) == tol:
-            return self._bonds
+        tol: float = default_tol,
+    ) -> list[dict[tuple[int, int], float]]:
 
         bonds = list()
         num_atoms = len(self)
@@ -212,34 +220,32 @@ class Molecule:
             ai = self[i]
             for j in range(i + 1, num_atoms):
                 aj = self[j]
-                if ai.is_bonded_to(aj, tol):
-                    bonds.append((i, j))
-        self._bonds = bonds
+                length = ai.get_bond_length(aj, tol)
+                if length is not None:
+                    bonds.append({"pair": (i, j), "length": length})
 
-        self._bonds_tol = tol
         return bonds
 
-    def get_clusters(self, tol: float = 0.15) -> list[Molecule]:
+    def get_clusters(self, tol: float = default_tol) -> list[Molecule]:
         G = nx.Graph()
         G.add_nodes_from(range(len(self)))
-        G.add_edges_from(self.get_bonds(tol))
+        G.add_edges_from(bond["pair"] for bond in self.get_bonds(tol))
         copied_mol = self.copy()
         return [copied_mol[list(cluster)] for cluster in nx.connected_components(G)]
 
     def get_cycles(
-        self, length_bound: int | None = None, tol: float = 0.15
+        self, length_bound: int | None = None, tol: float = default_tol
     ) -> list[Molecule]:
-        if self._cycles is not None:
-            return self._cycles
         G = nx.Graph()
-        G.add_edges_from(self.get_bonds(tol))
+        G.add_edges_from(bond["pair"] for bond in self.get_bonds(tol))
         cycles = nx.simple_cycles(G, length_bound=length_bound)
-        self._cycles = [self[list(cycle)] for cycle in cycles]
-        return self._cycles
+        return [self[list(cycle)] for cycle in cycles]
 
-    def get_connected_cluster(self, atom_idx: int, tol: float = 0.15) -> Molecule:
+    def get_connected_cluster(
+        self, atom_idx: int, tol: float = default_tol
+    ) -> Molecule:
         G = nx.Graph()
-        G.add_edges_from(self.get_bonds(tol))
+        G.add_edges_from(bond["pair"] for bond in self.get_bonds(tol))
         return self[list(nx.node_connected_component(G, atom_idx))]
 
     @classmethod
@@ -272,8 +278,6 @@ class Molecule:
             self.add_atoms_from(mol)
 
         self._lattice_vecs = None
-        self._bonds = None
-        self._cycles = None
 
     def translate(
         self, trans_vec: Vec3 | list[float | int], with_lattice_vecs: bool = False
@@ -389,7 +393,22 @@ class Molecule:
         U = atom.get_frac_coords(self.lattice_vecs)
         return all(0 <= u < 1 for u in U)
 
+    def remove_duplicates(self, tol: float = default_tol) -> None:
+        """
+        Remove duplicate atoms (close atoms) from the molecule.
+        finds too close clusters of same elements
+        and combines them into one atom at the center of mass
+        """
+        clusters = self.get_clusters(tol)
+        for cluster in clusters:
+            if len(cluster) > 1:
+                com = cluster.center_of_mass()
+                cluster[:] = [Atom("C", com.x, com.y, com.z)]
+
     def wrap_to_cell(self) -> None:
+        """
+        Wrap the molecule to the cell defined by the lattice vectors.
+        """
         if self.lattice_vecs is None:
             raise ValueError("Lattice vectors must be set to bound the molecule.")
 
@@ -401,46 +420,16 @@ class Molecule:
     def replicated_from_xyz_str(self, xyz_str: str, wrap: bool = True) -> Molecule:
         """
         Replicate the molecule from an xyz string in cif format.
-        e.g.   ‘x, y, z’, ‘-x, -y, z’, '-x, y + 1/2, -z + 1/2', ‘-2y+1/2, 3x+1/2, z-y+1/2’,
+        args:
+            xyz_str (str): xyz string of symmetry operation. e.g. 'x, y, z', '-y, -x+3/4, z+1/2',
+            wrap (bool): wrap the molecule to the cell after replication
         """
 
         if self.lattice_vecs is None:
             raise ValueError("Lattice vectors must be set to replicate the molecule.")
 
-        ops = xyz_str.strip().lower().replace(" ", "").split(",")
-        re_rot = re.compile(r"([+-]?)([\d\.]*)/?([\d\.]*)([x-z])")
-        re_trans = re.compile(r"([+-]?)([\d\.]+)/?([\d\.]*)(?![x-z])")
+        rot_mat, trans_vec_frac = symmop_from_xyz_str(xyz_str)
 
-        rot_mat = Mat3([[0.0] * 3 for _ in range(3)])
-        trans_vec_frac = Vec3(0, 0, 0)
-        for i, op in enumerate(ops):
-
-            # make rot mat
-            for match in re_rot.finditer(op):
-                # match[0] contains the whole match
-                # match[n] (n > 0) contains the n-th group surrounded by ()
-                factor = -1.0 if match[1] == "-" else 1.0
-                if match[2] != "":
-                    factor *= (
-                        float(match[2]) / float(match[3])
-                        if match[3] != ""
-                        else float(match[2])
-                    )
-                j = ord(match[4]) - 120
-                rot_mat[i][j] = factor
-
-            # make trans vec
-            for match in re_trans.finditer(op):
-                factor = -1 if match[1] == "-" else 1
-                num = (
-                    float(match[2]) / float(match[3])
-                    if match[3] != ""
-                    else float(match[2])
-                )
-                trans_vec_frac[i] = factor * num
-
-        print(f"rot_mat = {rot_mat}")
-        print(f"{trans_vec_frac=}")
         new_mol = self.copy()
         new_mol.matmul(rot_mat, with_lattice_vecs=False)
         new_mol.translate(frac2cart(trans_vec_frac, self.lattice_vecs))

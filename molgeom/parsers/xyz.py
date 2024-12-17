@@ -15,6 +15,10 @@ def xyz_parser(filepath: str) -> Molecule:
     with open(filepath, "r") as file:
         lines = remove_trailing_empty_lines(file.readlines())
 
+        # replace tabs, non-breaking spaces, and multiple spaces with single space
+        for i in range(len(lines)):
+            lines[i] = re.sub(r"[\s\t\xa0]+", " ", lines[i])
+
         first_line = lines[0].strip()
         mol_struc_lines = []
         if re.fullmatch(r"\d+", first_line):

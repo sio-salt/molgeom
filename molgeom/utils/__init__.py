@@ -7,6 +7,7 @@ from .lattice_utils import (
     cart2frac,
     frac2cart,
 )
+from .symmetry_utils import symmop_from_xyz_str
 
 __all__ = [
     "FancyIndexingList",
@@ -18,4 +19,5 @@ __all__ = [
     "lat_vecs_to_lat_params",
     "cart2frac",
     "frac2cart",
+    "symmop_from_xyz_str",
 ]

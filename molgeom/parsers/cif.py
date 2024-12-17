@@ -1,4 +1,5 @@
 import os
+import re
 from collections import deque
 
 from molgeom import Vec3, Atom, Molecule, Mat3
@@ -18,7 +19,10 @@ def cif_tag_parser(filepath: str) -> dict:
         lines = deque()
         # add empty line before loop_ block to separate tags
         for line in remove_trailing_empty_lines(file.readlines()):
+            # replace tabs, non-breaking spaces, and multiple spaces with single space
+            line = re.sub(r"[\s\t\xa0]+", " ", line)
             if "loop_" in line:
+                lines.append(" ")
                 lines.append(" ")
                 lines.append(line)
             else:
@@ -85,22 +89,50 @@ def cif_tag_parser(filepath: str) -> dict:
                     line = lines.popleft().strip()
 
             # load atom symbols and positions
-            atom_tags = [
+            atom_symbol_tags = [
                 "_atom_site_type_symbol",
+                "_atom_site_label",
+            ]
+            atom_fract_tags = [
                 "_atom_site_fract_x",
                 "_atom_site_fract_y",
                 "_atom_site_fract_z",
             ]
-            if any(atom_tag in loop_tags_idx for atom_tag in atom_tags):
-                if not all(atom_tag in loop_tags_idx for atom_tag in atom_tags):
-                    raise ValueError("All atom tags must be present in the loop_ block")
+            if (
+                len(
+                    {
+                        atom_symbol_tag
+                        for atom_symbol_tag in atom_symbol_tags
+                        if atom_symbol_tag in loop_tags_idx
+                    }
+                )
+                > 0
+            ) and (
+                len(
+                    {
+                        atom_tag
+                        for atom_tag in atom_fract_tags
+                        if atom_tag in loop_tags_idx
+                    }
+                )
+                == 3
+            ):
                 cif_tags["atoms"] = []
                 while len(line.split()) == len(loop_tags_idx):
                     splited = line.split()
-                    symbol = splited[loop_tags_idx["_atom_site_type_symbol"]]
+                    if atom_symbol_tags[0] in loop_tags_idx:
+                        symbol = splited[loop_tags_idx["_atom_site_type_symbol"]]
+                        # remove charge info from symbol
+                        symbol = re.sub(r"\d+[+-]?", "", symbol)
+                    else:
+                        symbol = splited[loop_tags_idx["_atom_site_label"]]
+                        # remove label info from symbol
+                        symbol = re.sub(r"\d+[+-]?", "", re.split("_", symbol)[0])
+                        symbol = symbol.replace("HW", "H").replace("OW", "O")
                     fract_x = splited[loop_tags_idx["_atom_site_fract_x"]].split("(")[0]
                     fract_y = splited[loop_tags_idx["_atom_site_fract_y"]].split("(")[0]
                     fract_z = splited[loop_tags_idx["_atom_site_fract_z"]].split("(")[0]
+
                     atom = {
                         "symbol": symbol,
                         "fract_x": float(fract_x),
@@ -159,7 +191,7 @@ def cif_parser(filepath: str, apply_symop: bool = True) -> Molecule:
     tmp_mol = mol.copy()
     if apply_symop and "symops" in cif_tags:
         for symop in cif_tags["symops"]:
-            new_mol = tmp_mol.replicated_from_xyz_str(symop)
+            new_mol = tmp_mol.replicated_from_xyz_str(symop, wrap=False)
             mol.merge(new_mol)
     mol.lattice_vecs = tmp_mol.lattice_vecs
     return mol

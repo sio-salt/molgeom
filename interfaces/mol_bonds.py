@@ -49,7 +49,8 @@ def main():
             "label   bond length (Angstrom)       "
             + "atom1                                                                          -     atom2"
         )
-        for label, (i, j) in enumerate(bonds):
+        for label, bond_dict in enumerate(bonds):
+            i, j = bond_dict["pair"]
             ai, aj = mole[(i, j)]
             dist_angst = ai.distance_to(aj)
             output.append(
