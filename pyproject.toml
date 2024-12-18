@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "molgeom"
-version = "0.2.2"
+version = "0.3.0"
 description = "A simple molecular geometry manipulation module"
 readme = "README.md"
 requires-python = ">=3.9"
@@ -17,9 +17,16 @@ authors = [
     { name = "sio-salt", email = "saltinthedesertyou@gmail.com" }
 ]
 
+[tool.setuptools]
+include-package-data = true
+
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["molgeom*"]
+
+[tool.setuptools.package-data]
+"molgeom" = ["data/*.json", "data/*.yaml"]
+
 
 [tool.uv]
 dev-dependencies = [
