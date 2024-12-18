@@ -1,1 +1,0 @@
-recursive-include molgeom/data *.json *.yaml
