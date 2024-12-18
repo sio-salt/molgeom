@@ -119,7 +119,7 @@ class Molecule:
         """
         if key is None:
             self.atoms.sort(
-                key=lambda atom: ATOMIC_NUMBER[atom.symbol, atom.x, atom.y, atom.z]
+                key=lambda atom: (ATOMIC_NUMBER[atom.symbol], atom.x, atom.y, atom.z)
             )
         else:
             self.atoms.sort(key=key)
