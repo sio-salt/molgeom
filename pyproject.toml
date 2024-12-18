@@ -17,9 +17,16 @@ authors = [
     { name = "sio-salt", email = "saltinthedesertyou@gmail.com" }
 ]
 
+[tool.setuptools]
+include-package-data = true
+
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["molgeom*"]
+
+[tool.setuptools.package-data]
+"molgeom" = ["data/*.json", "data/*.yaml"]
+
 
 [tool.uv]
 dev-dependencies = [
