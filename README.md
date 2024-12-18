@@ -1,4 +1,4 @@
-# molgeom
+# molgeom ⌬
 Easy to use molecular geometry manipulation Python library.
 Makes your quantum chemistry life easier.
 
