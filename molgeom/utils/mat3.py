@@ -15,7 +15,7 @@ class Mat3:
         return f"{str(self.mat[0])}\n{str(self.mat[1])}\n{str(self.mat[2])}"
 
     def __repr__(self) -> str:
-        return f"Mat3({repr(self.mat[0])}\n{repr(self.mat[1])}\n[0]{repr(self.mat[2])})"
+        return f"Mat3({repr(self.mat[0])}\n{repr(self.mat[1])}\n{repr(self.mat[2])})"
 
     def __eq__(self, other: Mat3) -> bool:
         return self.mat == other.mat
