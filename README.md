@@ -3,7 +3,7 @@ Easy to use molecular geometry manipulation Python library.
 Makes your quantum chemistry life easier.
 
 
-### molgeom currently can do:
+## molgeom currently can do:
 1. Reading and writing of molecular geometries of various formats:
     - XYZ, Gaussian input, GAMESS input, CIF, POSCAR
 2. Calculations of molecular properties:
@@ -24,8 +24,15 @@ Makes your quantum chemistry life easier.
 More functionalities are coming soon!
 
 
-### Installation
+## Installation
 ```bash
 pip install -U git+https://github.com/sio-salt/molgeom
 ```
+The minimul Python version is 3.9.
+
+
+## Future plans
+- Add Z-matrix support
+- Add multi-molecule support
+- much more...
 
