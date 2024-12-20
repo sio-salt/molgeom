@@ -11,7 +11,9 @@ requires-python = ">=3.9"
 dependencies = [
     "cachetools>=5.5.0",
     "networkx>=2.6.3",
+    "numpy>=2.0.2",
     "pyyaml>=6.0.1",
+    "scipy>=1.13.1",
 ]
 authors = [
     { name = "sio-salt", email = "saltinthedesertyou@gmail.com" }
