@@ -1,10 +1,20 @@
+import pytest
+import numpy as np
 from molgeom import Vec3
-from molgeom import Mat3
 
 
 def test_vec3_init():
     v1 = Vec3(1, 2, 3)
     assert v1.x == 1 and v1.y == 2 and v1.z == 3
+    assert np.array_equal(v1.coord, np.array([1, 2, 3]))
+
+
+def test_numpyfy():
+    v1 = Vec3(1, 2, 3)
+    nary = np.array(v1)
+    assert np.array_equal(nary, np.array([1, 2, 3]))
+    nary2 = np.asarray(v1)
+    assert np.array_equal(nary2, np.array([1, 2, 3]))
 
 
 def test_vec3_eq_ne():
@@ -13,6 +23,12 @@ def test_vec3_eq_ne():
     v3 = Vec3(4, 5, 6)
     assert v1 == v2 and v1 is not v2
     assert v1 != v3 and v1 is not v3
+
+
+def test_vec3_neg():
+    v1 = Vec3(1, 2, 3)
+    v2 = -v1
+    assert v2 == Vec3(-1, -2, -3) and id(v2) != id(v1)
 
 
 def test_vec3_add_sub():
@@ -36,10 +52,18 @@ def test_vec3_mul_div():
     v3 = 2 * v1
     v4 = v1 / 2
     v5 = v1 // 2
+    v6 = 2 / v1
+    v7 = 2 // v1
+    v8 = v1 % 2
+    v9 = 2 % v1
     assert v2 == Vec3(2, 4, 6) and id(v2) != id(v1)
     assert v3 == Vec3(2, 4, 6) and id(v3) != id(v1)
     assert v4 == Vec3(1 / 2, 2 / 2, 3 / 2) and id(v4) != id(v1)
     assert v5 == Vec3(1 // 2, 2 // 2, 3 // 2) and id(v5) != id(v1)
+    assert v6 == Vec3(2 / 1, 2 / 2, 2 / 3) and id(v6) != id(v1)
+    assert v7 == Vec3(2 // 1, 2 // 2, 2 // 3) and id(v7) != id(v1)
+    assert v8 == Vec3(1 % 2, 2 % 2, 3 % 2) and id(v8) != id(v1)
+    assert v9 == Vec3(2 % 1, 2 % 2, 2 % 3) and id(v9) != id(v1)
 
     v1 = Vec3(1, 2, 3)
     tmp_id_1 = id(v1)
@@ -54,11 +78,26 @@ def test_vec3_mul_div():
     v1 //= 2
     assert v1 == Vec3(1 // 2, 2 // 2, 3 // 2) and id(v1) == tmp_id_1
 
-
-def test_vec3_neg():
     v1 = Vec3(1, 2, 3)
-    v2 = -v1
-    assert v2 == Vec3(-1, -2, -3) and id(v2) != id(v1)
+    num = 2
+    num *= v1
+    assert num == Vec3(2 * 1, 2 * 2, 2 * 3)
+    num = 2
+    num /= v1
+    assert num == Vec3(2 / 1, 2 / 2, 2 / 3)
+    num = 2
+    num //= v1
+    assert num == Vec3(2 // 1, 2 // 2, 2 // 3)
+    num = 2
+    num %= v1
+    assert num == Vec3(2 % 1, 2 % 2, 2 % 3)
+
+    v1 = Vec3(1, 2, 3)
+    v2 = Vec3(4, 5, 6)
+    assert v1 * v2 == Vec3(1 * 4, 2 * 5, 3 * 6)
+    assert v1 / v2 == Vec3(1 / 4, 2 / 5, 3 / 6)
+    assert v1 // v2 == Vec3(1 // 4, 2 // 5, 3 // 6)
+    assert v1 % v2 == Vec3(1 % 4, 2 % 5, 3 % 6)
 
 
 def test_vec3_len():
@@ -77,6 +116,7 @@ def test_vec3_copy():
     v1 = Vec3(1, 2, 3)
     v2 = v1.copy()
     assert v1 == v2 and id(v1) != id(v2)
+    assert np.array_equal(v1.coord, v2.coord) and id(v1.coord) != id(v2.coord)
 
 
 def test_vec3_str_repr():
@@ -92,49 +132,54 @@ def test_vec3_getter_setter():
     v1.z = 6
     assert v1 == Vec3(4, 5, 6)
     assert v1.x == 4 and v1.y == 5 and v1.z == 6
+    assert np.array_equal(v1.coord, np.array([4, 5, 6]))
 
-    try:
+    with pytest.raises(TypeError):
         v1.x = "a"
-    except TypeError as e:
-        assert str(e) == "x must be an int or float"
-    try:
-        v1.y = "a"
-    except TypeError as e:
-        assert str(e) == "y must be an int or float"
-    try:
-        v1.z = "a"
-    except TypeError as e:
-        assert str(e) == "z must be an int or float"
+    with pytest.raises(TypeError):
+        v1.y = "1"
+    with pytest.raises(TypeError):
+        v1.z = np.array([1, 2, 3])
+
+    with pytest.raises(TypeError):
+        v1.coord = "a"
+    with pytest.raises(TypeError):
+        v1.coord = [1, 2, 3]
+    with pytest.raises(ValueError):
+        v1.coord = np.array([1, 2, 3, 4])
+    with pytest.raises(ValueError):
+        v1.coord = np.array([[1, 2, 3], [4, 5, 6]])
 
 
 def test_vec3_types():
     v1 = Vec3(1, 2, 3)
     assert isinstance(v1, Vec3)
+    assert isinstance(v1.coord, np.ndarray)
 
 
-def test_mat3_matmul():
-    mat1 = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
-    mat2 = Mat3([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
-    mat3 = [Vec3(1, 2, 3), Vec3(4, 5, 6), Vec3(7, 8, 9)]
-    mat4 = Mat3([Vec3(1, 2, 3), Vec3(4, 5, 6), Vec3(7, 8, 9)])
-
-    v1 = Vec3(1, 2, 3)
-    v1.matmul(mat1)
-    assert v1 == Vec3(
-        1 * 1 + 2 * 2 + 3 * 3, 1 * 4 + 2 * 5 + 3 * 6, 1 * 7 + 2 * 8 + 3 * 9
-    )
-    v1 = Vec3(1, 2, 3)
-    v1.matmul(mat2)
-    assert v1 == Vec3(
-        1 * 1 + 2 * 2 + 3 * 3, 1 * 4 + 2 * 5 + 3 * 6, 1 * 7 + 2 * 8 + 3 * 9
-    )
-    v1 = Vec3(1, 2, 3)
-    v1.matmul(mat3)
-    assert v1 == Vec3(
-        1 * 1 + 2 * 2 + 3 * 3, 1 * 4 + 2 * 5 + 3 * 6, 1 * 7 + 2 * 8 + 3 * 9
-    )
-    v1 = Vec3(1, 2, 3)
-    v1.matmul(mat4)
-    assert v1 == Vec3(
-        1 * 1 + 2 * 2 + 3 * 3, 1 * 4 + 2 * 5 + 3 * 6, 1 * 7 + 2 * 8 + 3 * 9
-    )
+# def test_mat3_matmul():
+#     mat1 = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
+#     mat2 = Mat3([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+#     mat3 = [Vec3(1, 2, 3), Vec3(4, 5, 6), Vec3(7, 8, 9)]
+#     mat4 = Mat3([Vec3(1, 2, 3), Vec3(4, 5, 6), Vec3(7, 8, 9)])
+#
+#     v1 = Vec3(1, 2, 3)
+#     v1.matmul(mat1)
+#     assert v1 == Vec3(
+#         1 * 1 + 2 * 2 + 3 * 3, 1 * 4 + 2 * 5 + 3 * 6, 1 * 7 + 2 * 8 + 3 * 9
+#     )
+#     v1 = Vec3(1, 2, 3)
+#     v1.matmul(mat2)
+#     assert v1 == Vec3(
+#         1 * 1 + 2 * 2 + 3 * 3, 1 * 4 + 2 * 5 + 3 * 6, 1 * 7 + 2 * 8 + 3 * 9
+#     )
+#     v1 = Vec3(1, 2, 3)
+#     v1.matmul(mat3)
+#     assert v1 == Vec3(
+#         1 * 1 + 2 * 2 + 3 * 3, 1 * 4 + 2 * 5 + 3 * 6, 1 * 7 + 2 * 8 + 3 * 9
+#     )
+#     v1 = Vec3(1, 2, 3)
+#     v1.matmul(mat4)
+#     assert v1 == Vec3(
+#         1 * 1 + 2 * 2 + 3 * 3, 1 * 4 + 2 * 5 + 3 * 6, 1 * 7 + 2 * 8 + 3 * 9
+#     )

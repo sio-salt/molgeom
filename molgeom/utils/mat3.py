@@ -111,7 +111,7 @@ class Mat3:
             raise TypeError(f"Expected Mat3 or Vec3, got {type(other)}")
 
         if isinstance(other, Vec3):
-            return Vec3.from_list(
+            return Vec3.from_array(
                 [sum(self.mat[i][j] * other[j] for j in range(3)) for i in range(3)]
             )
         else:
@@ -130,7 +130,7 @@ class Mat3:
             raise TypeError(f"Expected Mat3 or Vec3, got {type(other)}")
 
         if isinstance(other, Vec3):
-            return Vec3.from_list(
+            return Vec3.from_array(
                 [sum(self.mat[i][j] * other[j] for j in range(3)) for i in range(3)]
             )
         else:

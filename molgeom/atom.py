@@ -7,11 +7,11 @@ from importlib.resources import files
 from typing import Any
 
 import yaml
+from numpy import ndarray
 
-from molgeom.utils.vec3 import Vec3, mat_type
-from molgeom.utils.mat3 import Mat3, is_mat_type
+from molgeom.utils.vec3 import Vec3
 from molgeom.utils.lattice_utils import cart2frac
-from molgeom.data.consts import ATOMIC_NUMBER
+from molgeom.data.consts import ATOM_SYMBOLS
 
 _pt_data = None
 _bond_pair_data = None
@@ -56,7 +56,7 @@ def _load_bond_pair_data():
 class Atom(Vec3):
     def __init__(self, symbol: str, x: float, y: float, z: float) -> None:
         super().__init__(x, y, z)
-        if symbol not in ATOMIC_NUMBER:
+        if symbol not in ATOM_SYMBOLS:
             raise ValueError(f"Invalid atomic symbol: {symbol}")
         self.symbol: str = symbol
         self._atomic_data, self._std_bond_rad = self.get_atomic_data(self.symbol)
@@ -108,13 +108,10 @@ class Atom(Vec3):
     def copy(self) -> Atom:
         return copy.deepcopy(self)
 
-    def get_frac_coords(self, lattice_vecs: mat_type, wrap=False) -> Vec3:
-        if not is_mat_type(lattice_vecs):
-            raise ValueError("Invalid lattice vector type")
-        if not isinstance(lattice_vecs, Mat3):
-            lattice_vecs = Mat3(lattice_vecs)
-
-        return cart2frac(self.to_Vec3(), lattice_vecs, wrap=wrap)
+    def get_frac_coords(self, lattice_vecs: ndarray, wrap: bool = True) -> Vec3:
+        return Vec3.from_array(
+            cart2frac(cart_coords=self.coord, lattice_vecs=lattice_vecs, wrap=wrap)
+        )
 
     def to_Vec3(self) -> Vec3:
         return Vec3(self.x, self.y, self.z)
@@ -164,12 +161,3 @@ class Atom(Vec3):
                 return dist_angst
 
         return None
-
-    def closest_atom(self, mole, symbol=None) -> Atom:
-        closest = mole.atoms[0]
-        for atom in mole:
-            if symbol is not None and atom.symbol != symbol:
-                continue
-            if self.distance_to(atom) < self.distance_to(closest):
-                closest = atom
-        return closest

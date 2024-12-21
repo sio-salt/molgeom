@@ -3,14 +3,15 @@ from __future__ import annotations
 import copy
 from collections.abc import Iterable
 
+import numpy as np
+import networkx as nx
 from cachetools import cachedmethod, LRUCache
 from cachetools.keys import hashkey
-import networkx as nx
 
-from molgeom.data.consts import ANGST2BOHR_GAU16, ATOMIC_NUMBER
+from molgeom.data.consts import ANGST2BOHR_GAU16, ATOM_SYMBOLS
 from molgeom.utils.fancy_indexing_list import FancyIndexingList
-from molgeom.utils.vec3 import Vec3, mat_type
-from molgeom.utils.mat3 import Mat3, is_mat_type
+from molgeom.utils.vec3 import Vec3
+from molgeom.utils.mat3 import Mat3, is_mat_type, mat_type
 from molgeom.utils.decorators import args_to_list, args_to_set
 from molgeom.utils.lattice_utils import cart2frac, frac2cart
 from molgeom.utils.symmetry_utils import symmop_from_xyz_str
@@ -119,7 +120,7 @@ class Molecule:
         """
         if key is None:
             self.atoms.sort(
-                key=lambda atom: (ATOMIC_NUMBER[atom.symbol], atom.x, atom.y, atom.z)
+                key=lambda atom: (ATOM_SYMBOLS[atom.symbol], atom.x, atom.y, atom.z)
             )
         else:
             self.atoms.sort(key=key)
@@ -188,7 +189,7 @@ class Molecule:
         formula = "-".join(
             f"{symbol}{count}" if count > 1 else symbol
             for symbol, count in sorted(
-                symbol_count.items(), key=lambda x: ATOMIC_NUMBER[x[0]]
+                symbol_count.items(), key=lambda x: ATOM_SYMBOLS[x[0]]
             )
         )
         return formula
@@ -196,13 +197,18 @@ class Molecule:
     def get_cart_coords(self) -> list[Vec3]:
         return [[atom.x, atom.y, atom.z] for atom in self]
 
-    def get_frac_coords(self, wrap=False) -> list[Vec3]:
+    def get_frac_coords(self, wrap=False) -> np.ndarray:
         if self.lattice_vecs is None:
             raise ValueError("Lattice vectors must be set to bound the molecule.")
 
-        return [
-            cart2frac(atom.to_Vec3(), self.lattice_vecs, wrap=wrap) for atom in self
-        ]
+        return np.asarray(
+            [
+                cart2frac(
+                    cart_coords=atom.coord, lattice_vecs=self.lattice_vecs, wrap=wrap
+                )
+                for atom in self
+            ]
+        )
 
     @cachedmethod(
         lambda self: self._cache,

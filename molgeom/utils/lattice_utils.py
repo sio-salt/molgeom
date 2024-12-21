@@ -1,4 +1,8 @@
 import math
+
+import numpy as np
+from numpy.typing import ArrayLike
+
 from .mat3 import Mat3
 from .vec3 import Vec3
 
@@ -39,12 +43,22 @@ def lat_vecs_to_lat_params(lattice_vecs: Mat3) -> tuple:
     return a, b, c, alpha, beta, gamma
 
 
-def wrap_frac_coords(frac_coords: Vec3) -> Vec3:
+def wrap_frac_coords(frac_coords: np.ndarray) -> np.ndarray:
     return frac_coords % 1.0
 
 
-def cart2frac(cart_coords: Vec3, lattice_vecs: Mat3, wrap=False) -> Vec3:
-    frac_coords = lattice_vecs.inv().T() @ cart_coords
+def cart2frac(
+    cart_coords: ArrayLike, lattice_vecs: ArrayLike, wrap: bool = True
+) -> np.ndarray:
+    cart_coords = np.asarray(cart_coords)
+    lattice_vecs = np.asarray(lattice_vecs)
+    if lattice_vecs.shape != (3, 3):
+        raise ValueError("lattice_vecs must be a 3x3 matrix")
+    if np.linalg.matrix_rank(lattice_vecs) != 3:
+        raise ValueError("lattice_vecs must be linearly independent")
+
+    # same as `np.linalg.inv(lattice_vecs).T @ cart_coords` but faster and stable
+    frac_coords = np.linalg.solve(lattice_vecs.T, cart_coords)
     if wrap:
         frac_coords = wrap_frac_coords(frac_coords)
     return frac_coords

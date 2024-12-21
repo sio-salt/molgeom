@@ -15,7 +15,22 @@ HARTREE2KCAL_GMS19 = 627.509469  # from GAMESS
 HARTREE2KCAL_WIKI = 627.5094740631  # from Wikipedia
 
 # fmt: off
-ATOMIC_NUMBER = {
+ATOM_SYMBOLS = {
+    "H", "He", "Li", "Be", "B", "C", "N", "O", "F", "Ne",
+    "Na", "Mg", "Al", "Si", "P", "S", "Cl", "Ar", "K", "Ca",
+    "Sc", "Ti", "V", "Cr", "Mn", "Fe", "Co", "Ni", "Cu", "Zn",
+    "Ga", "Ge", "As", "Se", "Br", "Kr", "Rb", "Sr", "Y", "Zr",
+    "Nb", "Mo", "Tc", "Ru", "Rh", "Pd", "Ag", "Cd", "In", "Sn",
+    "Sb", "Te", "I", "Xe", "Cs", "Ba", "La", "Ce", "Pr", "Nd",
+    "Pm", "Sm", "Eu", "Gd", "Tb", "Dy", "Ho", "Er", "Tm" #, "Yb",
+    # "Lu", "Hf", "Ta", "W", "Re", "Os", "Ir", "Pt", "Au", "Hg",
+}
+
+SPECIAL_ELEMENTS = {
+    "X", "Tv" 
+}
+
+ATOM_SYMBOLS = {
     "H" :  1, "He":  2, "Li":  3, "Be":  4, "B" :  5, "C" :  6,
     "N" :  7, "O" :  8, "F" :  9, "Ne": 10, "Na": 11, "Mg": 12,
     "Al": 13, "Si": 14, "P" : 15, "S" : 16, "Cl": 17, "Ar": 18,
@@ -32,11 +47,7 @@ ATOMIC_NUMBER = {
     # "Au": 79, "Hg": 80, "Tl": 81, "Pb": 82,
 }
 
-NUMBER_TO_SYMBOL = {v: k for k, v in ATOMIC_NUMBER.items()}
-
-SPECIAL_ELEMENTS = {
-    "X", "Tv" 
-}
+NUMBER_TO_SYMBOL = {v: k for k, v in ATOM_SYMBOLS.items()}
 
 ATOMIC_MASSES = {
     "H" :  1.00790, "He":  4.00260, "Li":  6.94000, "Be":  9.01218, "B" : 10.81000, "C" : 12.01100,

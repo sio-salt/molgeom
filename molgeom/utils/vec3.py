@@ -1,61 +1,78 @@
 from __future__ import annotations
-from copy import deepcopy
 
-import math
-from typing import TYPE_CHECKING
+from typing import Self, TypeVar
 
-if TYPE_CHECKING:
-    from .mat3 import Mat3
+import numpy as np
+from numpy.typing import ArrayLike
+from scipy.spatial.transform import Rotation
 
-# import numpy as np
-# from scipy.spatial.transform import Rotation as R
+
+# can be used as a type hint. not isinstance() check
+# Tvec is a type variable that can be bound to Vec3 or a subclass of Vec3
+Tvec = TypeVar("Tvec", bound="Vec3")
+scalar_type = int | float | np.integer | np.floating
+scalar_type_tuple = (int, float, np.integer, np.floating)
+VecLike = Tvec | list[scalar_type, scalar_type, scalar_type] | ArrayLike
 
 
 class Vec3:
-    def __init__(self, x: int | float, y: int | float, z: int | float) -> None:
-        if not all(isinstance(i, (int, float)) for i in (x, y, z)):
+    def __init__(self, x: scalar_type, y: scalar_type, z: scalar_type) -> None:
+        if not all(isinstance(i, scalar_type_tuple) for i in (x, y, z)):
             raise TypeError("x, y, z must be an int or float")
-        self._x = float(x)
-        self._y = float(y)
-        self._z = float(z)
+
+        self._coord = np.asarray([x, y, z], dtype=float)
+
+    @property
+    def coord(self) -> np.ndarray:
+        return self._coord
+
+    @coord.setter
+    def coord(self, array: np.ndarray) -> None:
+        if not isinstance(array, np.ndarray):
+            raise TypeError("value must be a numpy.ndarray")
+        if array.shape != (3,):
+            raise ValueError("value must have shape (3,)")
+        self._coord[:] = array
 
     @property
     def x(self) -> float:
-        return self._x
+        return self._coord[0]
 
     @x.setter
-    def x(self, value: int | float) -> None:
-        if not isinstance(value, (int, float)):
-            raise TypeError("x must be an int or float")
-        self._x = float(value)
+    def x(self, value: scalar_type) -> None:
+        self._validate_scalar(value)
+        self._coord[0] = float(value)
 
     @property
     def y(self) -> float:
-        return self._y
+        return self._coord[1]
 
     @y.setter
-    def y(self, value: int | float) -> None:
-        if not isinstance(value, (int, float)):
-            raise TypeError("y must be an int or float")
-        self._y = float(value)
+    def y(self, value: scalar_type) -> None:
+        self._validate_scalar(value)
+        self._coord[1] = float(value)
 
     @property
     def z(self) -> float:
-        return self._z
+        return self._coord[2]
 
     @z.setter
-    def z(self, value: int | float) -> None:
-        if not isinstance(value, (int, float)):
-            raise TypeError("z must be an int or float")
-        self._z = float(value)
+    def z(self, value: scalar_type) -> None:
+        self._validate_scalar(value)
+        self._coord[2] = float(value)
+
+    def _validate_scalar(self, value: scalar_type) -> None:
+        if not isinstance(value, scalar_type_tuple):
+            raise TypeError(f"value must be an int or float, got {type(value)}")
 
     @classmethod
-    def from_list(cls, vec: list[int | float]) -> Vec3:
-        if not is_vec_type(vec):
-            raise ValueError("vec must be a list of 3 int or float")
-        return cls(*vec)
+    def from_array(cls, array: ArrayLike) -> Vec3:
+        array = np.asarray(array, dtype=float)
+        if array.shape != (3,):
+            raise ValueError(f"array must have shape (3,), got {array.shape}")
+        return cls(*array)
 
-    def to_list(self) -> list[float]:
+    def to_list(self) -> list[float, float, float]:
         return [self.x, self.y, self.z]
 
     def to_dict(self) -> dict[str, float]:
@@ -67,205 +84,249 @@ class Vec3:
     def __repr__(self) -> str:
         return f"Vec3({self.x:.12f}, {self.y:.12f}, {self.z:.12f})"
 
-    def __getitem__(self, index: int) -> float:
-        return (self.x, self.y, self.z)[index]
+    def __getitem__(self, index: int | slice) -> scalar_type | np.ndarray:
+        return self.coord[index]
 
-    def __setitem__(self, index: int, value: int | float) -> None:
-        if not isinstance(value, (int, float)):
-            raise TypeError("value must be an int or float")
-        if index in (0, -3):
-            self.x = value
-        elif index in (1, -2):
-            self.y = value
-        elif index in (2, -1):
-            self.z = value
-        else:
-            raise IndexError("index out of range")
+    def __setitem__(self, index: int | slice, value: scalar_type) -> None:
+        self.coord[index] = value
 
-    def __eq__(self, other: Vec3) -> bool:
-        return self.x == other.x and self.y == other.y and self.z == other.z
+    def __array__(self, dtype=None) -> np.ndarray:
+        if dtype is not None:
+            return self.coord.astype(dtype)
+        return self._coord
 
-    def __ne__(self, other: Vec3) -> bool:
+    def __eq__(self, other: Self) -> bool:
+        if not isinstance(other, type(self)):
+            return False
+        return np.array_equal(self.coord, other.coord)
+
+    def __ne__(self, other: Self) -> bool:
         return not self == other
 
-    def __neg__(self) -> Vec3:
-        return Vec3(-self.x, -self.y, -self.z)
+    def __neg__(self: Tvec) -> Tvec:
+        return type(self).from_array(-self.coord)
 
-    def __add__(self, other: Vec3) -> Vec3:
+    def __add__(self: Self, other: Tvec) -> Self:
         other_class_check_for_operand(self, other, "+")
-        return self.__class__(self.x + other.x, self.y + other.y, self.z + other.z)
+        return type(self).from_array(self.coord + other.coord)
 
-    def __radd__(self, other: Vec3) -> Vec3:
-        return self.__add__(other)
+    def __radd__(self: Self, other: Tvec) -> Tvec:
+        other_class_check_for_operand(self, other, "+")
+        return type(other)(other.coord + self.coord)
 
-    def __iadd__(self, other: Vec3) -> Vec3:
-        self.x += other.x
-        self.y += other.y
-        self.z += other.z
+    def __iadd__(self: Self, other: Tvec) -> Self:
+        other_class_check_for_operand(self, other, "+")
+        self.coord += other.coord
         return self
 
-    def __sub__(self, other: Vec3) -> Vec3:
+    def __sub__(self: Self, other: Tvec) -> Self:
         other_class_check_for_operand(self, other, "-")
-        return self.__class__(self.x - other.x, self.y - other.y, self.z - other.z)
+        return type(self).from_array(self.coord - other.coord)
 
-    def __rsub__(self, other: Vec3) -> Vec3:
-        return self.__class__(other.x - self.x, other.y - self.y, other.z - self.z)
+    def __rsub__(self: Self, other: Tvec) -> Tvec:
+        other_class_check_for_operand(self, other, "-")
+        return type(other)(other.coord - self.coord)
 
-    def __isub__(self, other: Vec3) -> Vec3:
-        self.x -= other.x
-        self.y -= other.y
-        self.z -= other.z
+    def __isub__(self: Self, other: Tvec) -> Self:
+        other_class_check_for_operand(self, other, "-")
+        self.coord -= other.coord
         return self
 
-    def __mul__(self, value: int | float | Vec3) -> Vec3:
-        if not isinstance(value, (int, float, Vec3)):
-            raise TypeError("value must be an int, float or Vec3")
-        if isinstance(value, (int, float)):
-            return Vec3(self.x * value, self.y * value, self.z * value)
+    def __mul__(self, value: scalar_type | Tvec) -> Self:
+        if isinstance(value, scalar_type_tuple):
+            return type(self).from_array(self.coord * value)
+        if isinstance(value, self.__class__):
+            return type(self).from_array(self.coord * value.coord)
+        raise TypeError(f"value must be an scalar_type_tuple or Vec3{type(value)}")
 
-        return Vec3(self.x * value.x, self.y * value.y, self.z * value.z)
-
-    def __rmul__(self, value: int | float | Vec3) -> Vec3:
+    def __rmul__(self, value: scalar_type | Tvec) -> Tvec:
         return self.__mul__(value)
 
-    def __imul__(self, value: int | float | Vec3) -> Vec3:
-        if isinstance(value, (int, float)):
-            self.x *= value
-            self.y *= value
-            self.z *= value
+    def __imul__(self, value: scalar_type | Tvec) -> Self:
+        if isinstance(value, scalar_type_tuple):
+            self.coord *= value
+            return self
+        if isinstance(value, self.__class__):
+            self.coord *= value.coord
+            return self
+        raise TypeError(
+            f"value must be an scalar_type_tuple or Vec3, got {type(value)}"
+        )
+
+    def __truediv__(self, value: scalar_type | Tvec) -> Self:
+        if isinstance(value, scalar_type_tuple):
+            return type(self).from_array(self.coord / value)
+        if isinstance(value, Vec3):
+            return type(self).from_array(self.coord / value.coord)
+        raise TypeError(
+            f"value must be an scalar_type_tuple or Vec3, got {type(value)}"
+        )
+
+    def __rtruediv__(self, value: scalar_type | Tvec) -> Tvec:
+        tmp = self.copy()
+        tmp.coord[:] = value / tmp.coord
+        return tmp
+
+    def __itruediv__(self, value: scalar_type | Tvec) -> Self:
+        if isinstance(value, scalar_type_tuple):
+            self.coord /= value
             return self
         if isinstance(value, Vec3):
-            self.x *= value.x
-            self.y *= value.y
-            self.z *= value.z
+            self.coord /= value.coord
             return self
-        raise TypeError("value must be an int, float or Vec3")
+        raise TypeError(
+            f"value must be an scalar_type_tuple or Vec3, got {type(value)}"
+        )
 
-    def __truediv__(self, value: int | float | Vec3) -> Vec3:
-        if not isinstance(value, (int, float, Vec3)):
-            raise TypeError("value must be an int, float or Vec3")
-        if isinstance(value, (int, float)):
-            return Vec3(self.x / value, self.y / value, self.z / value)
+    def __floordiv__(self, value: scalar_type | Tvec) -> Self:
+        if isinstance(value, scalar_type_tuple):
+            return type(self).from_array(self.coord // value)
+        if isinstance(value, Vec3):
+            return type(self).from_array(self.coord // value.coord)
+        raise TypeError(
+            f"value must be an scalar_type_tuple or Vec3, got {type(value)}"
+        )
 
-        return Vec3(self.x / value.x, self.y / value.y, self.z / value.z)
+    def __rfloordiv__(self, value: scalar_type | Tvec) -> Tvec:
+        tmp = self.copy()
+        tmp.coord[:] = value // tmp.coord
+        return tmp
 
-    def __itruediv__(self, value: int | float | Vec3) -> Vec3:
-        if isinstance(value, (int, float)):
-            self.x /= value
-            self.y /= value
-            self.z /= value
+    def __ifloordiv__(self, value: scalar_type | Tvec) -> Self:
+        if isinstance(value, scalar_type_tuple):
+            self.coord //= value
             return self
         if isinstance(value, Vec3):
-            self.x /= value.x
-            self.y /= value.y
-            self.z /= value.z
+            self.coord //= value.coord
             return self
-        raise TypeError("value must be an int, float or Vec3")
+        raise TypeError(
+            f"value must be an scalar_type_tuple or Vec3, got {type(value)}"
+        )
 
-    def __floordiv__(self, value: int | float | Vec3) -> Vec3:
-        if not isinstance(value, (int, float, Vec3)):
-            raise TypeError("value must be an int, float or Vec3")
-        if isinstance(value, (int, float)):
-            return Vec3(self.x // value, self.y // value, self.z // value)
+    def __mod__(self, value: scalar_type | Tvec) -> Self:
+        if isinstance(value, scalar_type_tuple):
+            return type(self).from_array(self.coord % value)
+        if isinstance(value, Vec3):
+            return type(self).from_array(self.coord % value.coord)
+        raise TypeError(
+            f"value must be an scalar_type_tuple or Vec3, got {type(value)}"
+        )
 
-        return Vec3(self.x // value.x, self.y // value.y, self.z // value.z)
+    def __rmod__(self, value: scalar_type | Tvec) -> Tvec:
+        tmp = self.copy()
+        tmp.coord[:] = value % tmp.coord
+        return tmp
 
-    def __ifloordiv__(self, value: int | float | Vec3) -> Vec3:
-        if isinstance(value, (int, float)):
-            self.x //= value
-            self.y //= value
-            self.z //= value
+    def __imod__(self, value: scalar_type | Tvec) -> Self:
+        if isinstance(value, scalar_type_tuple):
+            self.coord %= value
             return self
         if isinstance(value, Vec3):
-            self.x //= value.x
-            self.y //= value.y
-            self.z //= value.z
+            self.coord %= value.coord
             return self
-        raise TypeError("value must be an int, float or Vec3")
+        raise TypeError(
+            f"value must be an scalar_type_tuple or Vec3, got {type(value)}"
+        )
 
-    def __mod__(self, value: int | float | Vec3) -> Vec3:
-        if not isinstance(value, (int, float, Vec3)):
-            raise TypeError("value must be an int, float or Vec3")
-        if isinstance(value, (int, float)):
-            return Vec3(self.x % value, self.y % value, self.z % value)
+    def __pow__(self, value: scalar_type | Tvec) -> Self:
+        if isinstance(value, scalar_type_tuple):
+            return type(self).from_array(self.coord**value)
+        if isinstance(value, Vec3):
+            return type(self).from_array(self.coord**value.coord)
+        raise TypeError(
+            f"value must be an scalar_type_tuple or Vec3, got {type(value)}"
+        )
 
-        return Vec3(self.x % value.x, self.y % value.y, self.z % value.z)
+    def __rpow__(self, value: scalar_type | Tvec) -> Tvec:
+        tmp = self.copy()
+        tmp.coord[:] = value**tmp.coord
+        return tmp
 
-    def __imod__(self, value: int | float | Vec3) -> Vec3:
-        if isinstance(value, (int, float)):
-            self.x %= value
-            self.y %= value
-            self.z %= value
+    def __ipow__(self, value: scalar_type | Tvec) -> Self:
+        if isinstance(value, scalar_type_tuple):
+            self.coord **= value
             return self
         if isinstance(value, Vec3):
-            self.x %= value.x
-            self.y %= value.y
-            self.z %= value.z
+            self.coord **= value.coord
             return self
-        raise TypeError("value must be an int, float or Vec3")
+        raise TypeError(
+            f"value must be an scalar_type_tuple or Vec3, got {type(value)}"
+        )
+
+    def __matmul__(self: Self, other: Tvec | np.ndarray) -> Tvec:
+        if isinstance(other, Vec3):
+            return type(self).from_array(self.coord @ other.coord)
+        if isinstance(other, np.ndarray):
+            return type(self).from_array(self.coord @ other)
+        raise TypeError(f"value must be an Vec3 or np.ndarray, got {type(other)}")
+
+    def __rmatmul__(self: Self, other: Tvec | np.ndarray) -> Tvec:
+        if isinstance(other, Vec3):
+            return type(other).from_array(other.coord @ self.coord)
+        if isinstance(other, np.ndarray):
+            return type(other).from_array(other @ self.coord)
+        raise TypeError(f"value must be an Vec3 or np.ndarray, got {type(other)}")
+
+    def __imatmul__(self: Self, other: Tvec | np.ndarray) -> Self:
+        if isinstance(other, Vec3):
+            self.coord @= other.coord
+            return self
+        if isinstance(other, np.ndarray):
+            self.coord @= other
+            return self
+        raise TypeError(f"value must be an Vec3 or np.ndarray, got {type(other)}")
+
+    def matmul(self, mat: np.ndarray) -> None:
+        self.coord[:] = mat @ self.coord
 
     def __len__(self) -> int:
         return 3
 
-    def copy(self) -> Vec3:
-        return deepcopy(self)
+    def copy(self) -> Self:
+        return type(self).from_array(self._coord.copy())
 
-    def dot(self, other: vec_type) -> float:
-        other = vectorize_arg(other)
-        return self.x * other.x + self.y * other.y + self.z * other.z
+    def dot(self, other: Tvec) -> float:
+        return np.dot(self.coord, other.coord)
 
-    def cross(self, other: vec_type) -> Vec3:
-        return Vec3(
-            self.y * other.z - self.z * other.y,
-            self.z * other.x - self.x * other.z,
-            self.x * other.y - self.y * other.x,
-        )
+    def cross(self, other: Tvec) -> Self:
+        return type(self).from_array(np.cross(self.coord, other.coord))
 
-    def distance_to(self, other: Vec3) -> float:
-        other = vectorize_arg(other)
-        return math.sqrt(
-            (self.x - other.x) ** 2 + (self.y - other.y) ** 2 + (self.z - other.z) ** 2
-        )
+    def distance_to(self, other: VecLike) -> float:
+        other = vec3fy(other)
+        return np.linalg.norm(self.coord - other.coord)
 
-    def isclose(self, other: Vec3, rel_tol: float = 1e-5, abs_tol: float = 0.0) -> bool:
-        other = vectorize_arg(other)
-        self_coords = [self.x, self.y, self.z]
-        other_coords = [other.x, other.y, other.z]
-        return all(
-            math.isclose(
-                self_coords[i],
-                other_coords[i],
-                rel_tol=rel_tol,
-                abs_tol=abs_tol,
-            )
-            for i in range(3)
-        )
+    def distance_to_sq(self, other: VecLike) -> float:
+        other = vec3fy(other)
+        return np.sum((self.coord - other.coord) ** 2)
+
+    def isclose(
+        self, other: VecLike, rel_tol: float = 1e-5, abs_tol: float = 0.0
+    ) -> bool:
+        other = vec3fy(other)
+        return np.allclose(self.coord, other.coord, rtol=rel_tol, atol=abs_tol)
 
     def norm(self) -> float:
-        return math.sqrt(self.x**2 + self.y**2 + self.z**2)
+        return np.linalg.norm(self.coord)
 
     def normsq(self) -> float:
-        return self.x**2 + self.y**2 + self.z**2
+        return np.sum(self.coord**2)
 
     def normalize(self) -> None:
         self /= self.norm()
 
-    def angle(self, other: Vec3) -> float:
-        if not isinstance(other, Vec3):
-            raise TypeError(f"Expected Vec3, got {type(other)}")
-        other = vectorize_arg(other)
-        dot = self.dot(other)
-        cos_theta = dot / (self.norm() * other.norm())
-        return math.acos(cos_theta)
+    def normalized(self) -> Self:
+        return self / self.norm()
 
-    def mid_point(self, other: Vec3) -> Vec3:
-        return (self + other) / 2
+    def angle_to(self, other: VecLike, deg: bool = True) -> float:
+        other = vec3fy(other)
+        angle = np.arccos(self.dot(other) / (self.norm() * other.norm()))
+        return np.degrees(angle) if deg else angle
 
-    def translate(self, trans_vec) -> None:
-        trans_vec = vectorize_arg(trans_vec)
-        self.x += trans_vec.x
-        self.y += trans_vec.y
-        self.z += trans_vec.z
+    def translate(self, trans: VecLike) -> None:
+        self += vec3fy(trans)
+
+    def scale(self, scale: scalar_type | VecLike) -> None:
+        self *= scale
 
     def mirror(self, sx: int, sy: int, sz: int) -> None:
         if sx not in (-1, 1) or sy not in (-1, 1) or sz not in (-1, 1):
@@ -292,142 +353,36 @@ class Vec3:
         # calculate the mirror image of the point
         self += 2 * (projection - self)
 
-    def matmul(self, mat: mat_type) -> None:
-        x_rot = mat[0][0] * self.x + mat[0][1] * self.y + mat[0][2] * self.z
-        y_rot = mat[1][0] * self.x + mat[1][1] * self.y + mat[1][2] * self.z
-        z_rot = mat[2][0] * self.x + mat[2][1] * self.y + mat[2][2] * self.z
-
-        self.x = x_rot
-        self.y = y_rot
-        self.z = z_rot
-
     def rotate_by_axis(
-        self,
-        axis_point1: vec_type,
-        axis_point2: vec_type,
-        deg: float | int,
+        self, axis_point1: VecLike, axis_point2: VecLike, deg: scalar_type
     ) -> None:
-        """
-        :param axis_point1: One point on the rotation axis
-        :param axis_point2: Another point on the rotation axis
-        :param deg: Rotation angle (degrees)
-        """
-
-        # if scipy and numpy is available, you can use the following code
-        """
+        axis_point1 = np.asarray(axis_point1)
+        axis_point2 = np.asarray(axis_point2)
         angle_radians = np.deg2rad(deg)
-        axis_vector = np.array(
-            [
-                axis_point2.x - axis_point1.x,
-                axis_point2.y - axis_point1.y,
-                axis_point2.z - axis_point1.z,
-            ]
-        )
-        axis_unit_vector = axis_vector / np.linalg.norm(axis_vector)
-        point = np.array([*self]) - np.array([*axis_point1])
-        rotation = R.from_rotvec(angle_radians * axis_unit_vector)
-        rotated_point = rotation.apply(point)
-        rotated_point += np.array([*axis_point1])
-        self.x, self.y, self.z = rotated_point.tolist()
-        """
 
-        axis_point1 = vectorize_arg(axis_point1)
-        axis_point2 = vectorize_arg(axis_point2)
-
-        angle_radians = math.radians(deg)
         axis_vector = axis_point2 - axis_point1
         axis_unit_vector = axis_vector / axis_vector.norm()
-
-        # translate to move the rotation axis to the origin
-        self -= axis_point1
-
-        # calculate elements of rotation matrix
-        cos_theta = math.cos(angle_radians)
-        sin_theta = math.sin(angle_radians)
-        one_minus_cos = 1 - cos_theta
-
-        # Rodrigues' rotation formula
-        x_rot = (
-            (cos_theta + axis_unit_vector.x**2 * one_minus_cos) * self.x
-            + (
-                axis_unit_vector.x * axis_unit_vector.y * one_minus_cos
-                - axis_unit_vector.z * sin_theta
-            )
-            * self.y
-            + (
-                axis_unit_vector.x * axis_unit_vector.z * one_minus_cos
-                + axis_unit_vector.y * sin_theta
-            )
-            * self.z
-        )
-
-        y_rot = (
-            (
-                axis_unit_vector.y * axis_unit_vector.x * one_minus_cos
-                + axis_unit_vector.z * sin_theta
-            )
-            * self.x
-            + (cos_theta + axis_unit_vector.y**2 * one_minus_cos) * self.y
-            + (
-                axis_unit_vector.y * axis_unit_vector.z * one_minus_cos
-                - axis_unit_vector.x * sin_theta
-            )
-            * self.z
-        )
-
-        z_rot = (
-            (
-                axis_unit_vector.z * axis_unit_vector.x * one_minus_cos
-                - axis_unit_vector.y * sin_theta
-            )
-            * self.x
-            + (
-                axis_unit_vector.z * axis_unit_vector.y * one_minus_cos
-                + axis_unit_vector.x * sin_theta
-            )
-            * self.y
-            + (cos_theta + axis_unit_vector.z**2 * one_minus_cos) * self.z
-        )
-
-        xyz_rotated = Vec3(x_rot, y_rot, z_rot)
-
-        # translate back to the original position
-        self = xyz_rotated + axis_point1
+        rot = Rotation.from_rotvec(angle_radians * axis_unit_vector)
+        point = self.coord - axis_point1
+        rotated_point = rot.apply(point)
+        self._coord[:] = rotated_point + axis_point1
 
 
-# can be used as a type hint. not isinstance() check
-vec_type = Vec3 | list[int | float]
-mat_type = list[Vec3 | list[int | float]]
-
-
-def vectorize_arg(arg: vec_type) -> Vec3:
+def vec3fy(arg: VecLike) -> Vec3:
     if isinstance(arg, Vec3):
         return arg
     if isinstance(arg, list) and len(arg) == 3:
-        if all(isinstance(i, (int, float)) for i in arg):
+        if all(isinstance(i, scalar_type_tuple) for i in arg):
             return Vec3(*arg)
-    raise ValueError("arg must be a Vec3 instance or a list of 3 int or float")
+    raise ValueError(
+        f"arg must be a Vec3 instance or a list of 3 int or float, got {arg}"
+    )
 
 
 def other_class_check_for_operand(self, other, operand: str) -> None:
+    # if other is not the same class as self or a subclass of self, raise an error
     if not isinstance(other, self.__class__):
         return NotImplementedError(
-            f"unsupported operand type(s) for {operand}:"
-            + f"'{self.__class__.__name__}' and '{other.__class__.__name__}'"
+            f"unsupported operand type(s) for {operand}: \n"
+            + f"{type(self).__name__} and {type(other).__name__}"
         )
-
-
-def is_vec_type(vec: list[float]) -> bool:
-    return (
-        isinstance(vec, list)
-        and len(vec) == 3
-        and all(isinstance(i, (int, float)) for i in [*vec])
-    )
-
-
-def is_mat_type(mat: list[list[float]] | Mat3) -> bool:
-    return isinstance(mat, Mat3) or (
-        isinstance(mat, list)
-        and len(mat) == 3
-        and all(is_vec_type(vec) for vec in mat if isinstance(vec, list))
-    )
