@@ -254,8 +254,8 @@ class Vec3:
         )
 
     def __matmul__(self: Self, other: Tvec | np.ndarray) -> Tvec:
-        if isinstance(other, Vec3):
-            return type(self).from_array(self.coord @ other.coord)
+        if isinstance(other, self.__class__):
+            return self.coord @ other.coord
         if isinstance(other, np.ndarray):
             return type(self).from_array(self.coord @ other)
         raise TypeError(f"value must be an Vec3 or np.ndarray, got {type(other)}")
@@ -374,6 +374,8 @@ def vec3fy(arg: VecLike) -> Vec3:
     if isinstance(arg, list) and len(arg) == 3:
         if all(isinstance(i, scalar_type_tuple) for i in arg):
             return Vec3(*arg)
+    if isinstance(arg, np.ndarray) and arg.shape == (3,):
+        return Vec3(*arg)
     raise ValueError(
         f"arg must be a Vec3 instance or a list of 3 int or float, got {arg}"
     )

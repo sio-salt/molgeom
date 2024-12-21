@@ -4,7 +4,7 @@ import numpy as np
 from numpy.typing import ArrayLike
 
 from .mat3 import Mat3
-from .vec3 import Vec3
+from .vec3 import Vec3, Tvec
 
 
 def lat_params_to_lat_vecs(a, b, c, alpha, beta, gamma, angle_in_degrees=True) -> Mat3:
@@ -64,5 +64,7 @@ def cart2frac(
     return frac_coords
 
 
-def frac2cart(frac_coords: Vec3, lattice_vecs: Mat3) -> Vec3:
-    return lattice_vecs.T() @ frac_coords
+def frac2cart(frac_coords: Tvec | ArrayLike, lattice_vecs: ArrayLike) -> np.ndarray:
+    frac_coords = np.asarray(frac_coords)
+    lattice_vecs = np.asarray(lattice_vecs)
+    return lattice_vecs.T @ frac_coords

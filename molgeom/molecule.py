@@ -3,15 +3,15 @@ from __future__ import annotations
 import copy
 from collections.abc import Iterable
 
-import numpy as np
 import networkx as nx
+import numpy as np
+from numpy.typing import ArrayLike
 from cachetools import cachedmethod, LRUCache
 from cachetools.keys import hashkey
 
 from molgeom.data.consts import ANGST2BOHR_GAU16, ATOM_SYMBOLS
 from molgeom.utils.fancy_indexing_list import FancyIndexingList
-from molgeom.utils.vec3 import Vec3
-from molgeom.utils.mat3 import Mat3, is_mat_type, mat_type
+from molgeom.utils.vec3 import Vec3, vec3fy
 from molgeom.utils.decorators import args_to_list, args_to_set
 from molgeom.utils.lattice_utils import cart2frac, frac2cart
 from molgeom.utils.symmetry_utils import symmop_from_xyz_str
@@ -26,30 +26,35 @@ class Molecule:
     A class to represent a molecule.
     """
 
-    def __init__(self, *atoms: Atom, lattice_vecs: mat_type | None = None):
+    def __init__(self, *atoms: Atom, lattice_vecs: ArrayLike | None = None):
         self.atoms: FancyIndexingList[Atom] = FancyIndexingList()
         if atoms:
             self.add_atoms_from(atoms)
-        self._lattice_vecs: list[Vec3] | None = None
-        self.lattice_vecs = lattice_vecs
+        self._lattice_vecs: np.ndarray | None = None
+        self.lattice_vecs: np.ndarray | None = lattice_vecs
         self._cache = LRUCache(maxsize=10)
 
     @property
-    def lattice_vecs(self) -> list[Vec3] | None:
+    def lattice_vecs(self) -> np.ndarray | None:
         return self._lattice_vecs
 
     @lattice_vecs.setter
-    def lattice_vecs(self, lattice_vecs: mat_type | None) -> None:
+    def lattice_vecs(self, lattice_vecs: ArrayLike | None) -> None:
         if lattice_vecs is None:
             self._lattice_vecs = None
             return
 
-        lat_vecs = Mat3(lattice_vecs)
-        lat_det = Mat3.det(lat_vecs)
-        if lat_det == 0:
-            raise ValueError("lattice vectors must not be linearly dependent")
-        if lat_det < 0:
-            raise ValueError("lattice vectors must form a right-handed basis")
+        lat_vecs = np.asarray(lattice_vecs)
+        if lat_vecs.shape != (3, 3):
+            raise ValueError(
+                f"lattice vectors must be a 3x3 matrix, got shape {lat_vecs.shape}"
+            )
+        if np.linalg.matrix_rank(lat_vecs) != 3:
+            raise ValueError("lattice vectors must be linearly independent (rank 3)")
+        if np.linalg.det(lat_vecs) <= 0:
+            raise ValueError(
+                f"lattice_vecs must form a right-handed coordinate system (det > 0), got {np.linalg.det(lat_vecs)}"
+            )
 
         self._lattice_vecs = lat_vecs
 
@@ -150,13 +155,15 @@ class Molecule:
 
     @classmethod
     @args_to_list
-    def from_atoms(cls, atoms: Iterable[Atom]) -> Molecule:
+    def from_atoms(
+        cls, atoms: Iterable[Atom], lattice_vecs: ArrayLike | None = None
+    ) -> Molecule:
         """
         Create a new molecule from Atom objects.
         """
         if not all(isinstance(atom, Atom) for atom in atoms):
             raise TypeError("All elements must be Atom objects")
-        return cls(*atoms)
+        return cls(*atoms, lattice_vecs=lattice_vecs)
 
     def add_atom(self, atom: Atom) -> None:
         self.atoms.append(atom)
@@ -283,26 +290,21 @@ class Molecule:
         for mol in mols:
             self.add_atoms_from(mol)
 
-        self._lattice_vecs = None
-
     def translate(
-        self, trans_vec: Vec3 | list[float | int], with_lattice_vecs: bool = False
+        self, trans_vec: Vec3 | ArrayLike, with_lattice_vecs: bool = False
     ) -> None:
-        if not isinstance(trans_vec, (Vec3, list)):
-            raise TypeError("trans_vec must be Vec3 object or list of 3 floats or ints")
-        if isinstance(trans_vec, list):
-            if len(trans_vec) != 3:
-                raise ValueError("trans_vec must be of length 3")
-            if not all(isinstance(i, (int, float)) for i in trans_vec):
-                raise TypeError("elements of trans_vec must be int or float")
-            trans_vec = Vec3(*trans_vec)
+
+        trans_vec = np.asarray(trans_vec, dtype=float)
+        if trans_vec.shape != (3,):
+            raise ValueError(
+                f"trans_vec must be a 3 element array, got {trans_vec.shape}"
+            )
 
         for atom in self:
             atom.translate(trans_vec)
 
         if with_lattice_vecs and self.lattice_vecs is not None:
-            for vec in self.lattice_vecs:
-                vec.translate(trans_vec)
+            self.lattice_vecs += trans_vec
 
     def mirror(self, sx: int, sy: int, sz: int) -> None:
         for atom in self.atoms:
@@ -312,9 +314,10 @@ class Molecule:
         for atom in self.atoms:
             atom.mirror_by_plane(p1, p2, p3)
 
-    def matmul(self, mat: mat_type, with_lattice_vecs: bool = True) -> None:
-        if not is_mat_type(mat):
-            raise TypeError("mat must be a 3x3 matrix")
+    def matmul(self, mat: ArrayLike, with_lattice_vecs: bool = True) -> None:
+        mat = np.asarray(mat, dtype=float)
+        if mat.shape != (3, 3):
+            raise ValueError(f"mat must be a 3x3 matrix, got shape {mat.shape}")
 
         for atom in self.atoms:
             atom.matmul(mat)
@@ -339,39 +342,47 @@ class Molecule:
             atom.rotate_by_axis(axis_point1, axis_point2, deg)
 
         if with_lattice_vecs and self.lattice_vecs is not None:
-            for vec in self.lattice_vecs:
+            for i, vec in enumerate(self.lattice_vecs):
+                vec = vec3fy(vec)
                 vec.rotate_by_axis(axis_point1, axis_point2, deg)
+                self.lattice_vecs[i] = np.asarray(vec)
 
-    def replicate(self, rep_a: list[int], rep_b: list[int], rep_c: list[int]) -> None:
+    def replicate(
+        self, a_range: list[int], b_range: list[int], c_range: list[int]
+    ) -> None:
         """
         Replicate the molecule in the a, b, and c directions.
         """
         if self.lattice_vecs is None:
             raise ValueError("Lattice vectors must be set to replicate the molecule.")
 
-        if not all(isinstance(rep, list) for rep in (rep_a, rep_b, rep_c)):
+        if not all(isinstance(rep, list) for rep in (a_range, b_range, c_range)):
             raise TypeError(
                 "Replication vectors must be of length 2 list\n"
-                + f"{(rep_a, rep_b, rep_c)=}"
+                + f"{(a_range, b_range, c_range)=}"
             )
 
-        if len(rep_a) != 2 or len(rep_b) != 2 or len(rep_c) != 2:
+        if len(a_range) != 2 or len(b_range) != 2 or len(c_range) != 2:
             raise ValueError(
                 "Replication vectors must be of length 2 list\n"
-                + f"{(rep_a, rep_b, rep_c)=}"
+                + f"{(a_range, b_range, c_range)=}"
             )
 
-        if rep_a[0] >= rep_a[1] or rep_b[0] >= rep_b[1] or rep_c[0] >= rep_c[1]:
+        if (
+            a_range[0] >= a_range[1]
+            or b_range[0] >= b_range[1]
+            or c_range[0] >= c_range[1]
+        ):
             raise ValueError(
                 "Replication vectors must be of the form [start, end], start < end\n"
-                + f"{(rep_a, rep_b, rep_c)=}"
+                + f"{(a_range, b_range, c_range)=}"
             )
 
         tmp_mol = self.copy()
         self.atoms = FancyIndexingList()
-        for i in range(rep_a[0], rep_a[1]):
-            for j in range(rep_b[0], rep_b[1]):
-                for k in range(rep_c[0], rep_c[1]):
+        for i in range(a_range[0], a_range[1]):
+            for j in range(b_range[0], b_range[1]):
+                for k in range(c_range[0], c_range[1]):
 
                     trans_vec = (
                         i * tmp_mol.lattice_vecs[0]
@@ -381,8 +392,6 @@ class Molecule:
                     mol_copied = tmp_mol.copy()
                     mol_copied.translate(trans_vec)
                     self.merge(mol_copied)
-
-        self.lattice_vecs = tmp_mol.lattice_vecs
 
     def is_inside_cell(self, atom: Atom) -> bool:
         """
@@ -518,5 +527,7 @@ class Molecule:
             f.write(self.to_xyz() + "\n")
             if self.lattice_vecs is not None:
                 for vec in self.lattice_vecs:
-                    f.write(f"{'Tv':2s} {vec.x:19.12f} {vec.y:19.12f} {vec.z:19.12f}\n")
+                    f.write(
+                        f"{'Tv':2s} {vec[0]:19.12f} {vec[1]:19.12f} {vec[2]:19.12f}\n"
+                    )
         print(f"File written to {filepath}")

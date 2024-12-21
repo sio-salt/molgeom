@@ -157,29 +157,55 @@ def test_vec3_types():
     assert isinstance(v1.coord, np.ndarray)
 
 
-# def test_mat3_matmul():
-#     mat1 = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
-#     mat2 = Mat3([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
-#     mat3 = [Vec3(1, 2, 3), Vec3(4, 5, 6), Vec3(7, 8, 9)]
-#     mat4 = Mat3([Vec3(1, 2, 3), Vec3(4, 5, 6), Vec3(7, 8, 9)])
-#
-#     v1 = Vec3(1, 2, 3)
-#     v1.matmul(mat1)
-#     assert v1 == Vec3(
-#         1 * 1 + 2 * 2 + 3 * 3, 1 * 4 + 2 * 5 + 3 * 6, 1 * 7 + 2 * 8 + 3 * 9
-#     )
-#     v1 = Vec3(1, 2, 3)
-#     v1.matmul(mat2)
-#     assert v1 == Vec3(
-#         1 * 1 + 2 * 2 + 3 * 3, 1 * 4 + 2 * 5 + 3 * 6, 1 * 7 + 2 * 8 + 3 * 9
-#     )
-#     v1 = Vec3(1, 2, 3)
-#     v1.matmul(mat3)
-#     assert v1 == Vec3(
-#         1 * 1 + 2 * 2 + 3 * 3, 1 * 4 + 2 * 5 + 3 * 6, 1 * 7 + 2 * 8 + 3 * 9
-#     )
-#     v1 = Vec3(1, 2, 3)
-#     v1.matmul(mat4)
-#     assert v1 == Vec3(
-#         1 * 1 + 2 * 2 + 3 * 3, 1 * 4 + 2 * 5 + 3 * 6, 1 * 7 + 2 * 8 + 3 * 9
-#     )
+def test_mat3_matmul():
+    mat1 = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+
+    v1 = Vec3(1, 2, 3)
+    v1.matmul(mat1)
+    assert v1 == Vec3(
+        1 * 1 + 2 * 2 + 3 * 3, 1 * 4 + 2 * 5 + 3 * 6, 1 * 7 + 2 * 8 + 3 * 9
+    )
+
+    v1 = Vec3(1, 2, 3)
+    v1.coord[:] @= mat1
+    assert v1 == Vec3(
+        1 * 1 + 2 * 4 + 3 * 7, 1 * 2 + 2 * 5 + 3 * 8, 1 * 3 + 2 * 6 + 3 * 9
+    )
+
+    v1 = Vec3(1, 2, 3)
+    res = v1 @ mat1
+    assert res == Vec3(
+        1 * 1 + 2 * 4 + 3 * 7, 1 * 2 + 2 * 5 + 3 * 8, 1 * 3 + 2 * 6 + 3 * 9
+    )
+
+    v1 = Vec3(1, 2, 3)
+    res = mat1 @ v1
+    assert np.array_equal(
+        res,
+        np.array([1 * 1 + 2 * 2 + 3 * 3, 4 * 1 + 5 * 2 + 6 * 3, 7 * 1 + 8 * 2 + 9 * 3]),
+    )
+
+    v1 = Vec3(1, 2, 3)
+    v1 @= mat1
+    assert v1 == Vec3(
+        1 * 1 + 2 * 4 + 3 * 7, 1 * 2 + 2 * 5 + 3 * 8, 1 * 3 + 2 * 6 + 3 * 9
+    )
+
+    identity_mat = np.eye(3)
+    v1 = Vec3(1, 2, 3)
+    res = v1 @ identity_mat
+    assert res == v1
+
+    v1 = Vec3(1, 2, 3)
+    res = v1 @ np.zeros((3, 3))
+    assert res == Vec3(0, 0, 0)
+
+    with pytest.raises(ValueError):
+        v1 @ np.zeros((3, 2))
+    with pytest.raises(ValueError):
+        v1 @ np.array([[1, 2, 3], [4, 5, 6]])
+
+    v1 = Vec3(1, 2, 3)
+    v2 = Vec3(4, 5, 6)
+    res = v1 @ v2
+    assert res == 32.0
