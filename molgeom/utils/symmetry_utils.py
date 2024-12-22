@@ -1,12 +1,9 @@
 import re
 
-from .vec3 import Vec3
-from .mat3 import Mat3
+import numpy as np
 
 
-def symmop_from_xyz_str(
-    xyz_str: str
-) -> (Mat3, Vec3):
+def symmop_from_xyz_str(xyz_str: str) -> (np.ndarray, np.ndarray):
     """
     Make rotation matrix and translation vector from symmetry operation xyz string.
     Args:
@@ -14,7 +11,7 @@ def symmop_from_xyz_str(
             e.g.   ‘x, y, z’, ‘-x, -y, z’,
                    '-x, y + 1/2, -z + 1/2', ‘-2y+1/2, 3x+1/2, z-y+1/2’,
     Returns:
-        (Mat3, Vec3): Rotation matrix and translation vector in fractional coordinates.
+        (np.ndarray, np.ndarray): (3, 3) and (3,) shaped numpy arrays in fractional coordinates.
         if you want to convert transvec to cartesian, use molgeom.frac2cart(transvec).
     """
 
@@ -22,8 +19,8 @@ def symmop_from_xyz_str(
     re_rot = re.compile(r"([+-]?)([\d\.]*)/?([\d\.]*)([x-z])")
     re_trans = re.compile(r"([+-]?)([\d\.]+)/?([\d\.]*)(?![x-z])")
 
-    rot_mat = Mat3([[0.0] * 3 for _ in range(3)])
-    trans_vec_frac = Vec3(0, 0, 0)
+    rot_mat = np.zeros((3, 3))
+    trans_vec_frac = np.zeros(3)
     for i, op in enumerate(ops):
 
         # make rot mat

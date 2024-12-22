@@ -32,7 +32,8 @@ class Vec3:
             raise TypeError("value must be a numpy.ndarray")
         if array.shape != (3,):
             raise ValueError("value must have shape (3,)")
-        self._coord[:] = array
+        # to share memory in sub-classes, not self._coord[:] = array (copy values)
+        self._coord = array
 
     @property
     def x(self) -> float:
@@ -94,6 +95,9 @@ class Vec3:
         if dtype is not None:
             return self.coord.astype(dtype)
         return self._coord
+
+    def __hash__(self) -> int:
+        return hash(tuple(self.x, self.y, self.z))
 
     def __eq__(self, other: Self) -> bool:
         if not isinstance(other, type(self)):
@@ -361,7 +365,7 @@ class Vec3:
         angle_radians = np.deg2rad(deg)
 
         axis_vector = axis_point2 - axis_point1
-        axis_unit_vector = axis_vector / axis_vector.norm()
+        axis_unit_vector = axis_vector / np.linalg.norm(axis_vector)
         rot = Rotation.from_rotvec(angle_radians * axis_unit_vector)
         point = self.coord - axis_point1
         rotated_point = rot.apply(point)

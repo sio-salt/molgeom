@@ -31,13 +31,13 @@ def main():
         print(help_msg)
         sys.exit(1)
 
-    mole = poscar_parser(filepath)
-    mole.replicate(
+    mol = poscar_parser(filepath)
+    rep_mol = mol.replicated(
         cell_rep[0:2],
         cell_rep[2:4],
         cell_rep[4:],
     )
-    print(mole.to_xyz())
+    print(rep_mol.to_xyz())
 
 
 if __name__ == "__main__":

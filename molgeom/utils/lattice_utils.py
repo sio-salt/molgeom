@@ -1,44 +1,46 @@
-import math
-
 import numpy as np
 from numpy.typing import ArrayLike
 
-from .mat3 import Mat3
-from .vec3 import Vec3, Tvec
+from .vec3 import Tvec
 
 
-def lat_params_to_lat_vecs(a, b, c, alpha, beta, gamma, angle_in_degrees=True) -> Mat3:
+def lat_params_to_lat_vecs(
+    a, b, c, alpha, beta, gamma, angle_in_degrees=True
+) -> np.ndarray:
     if angle_in_degrees:
-        alpha = math.radians(alpha)
-        beta = math.radians(beta)
-        gamma = math.radians(gamma)
+        alpha = np.radians(alpha)
+        beta = np.radians(beta)
+        gamma = np.radians(gamma)
 
-    cosa = math.cos(alpha)
-    cosb = math.cos(beta)
-    cosg = math.cos(gamma)
-    sing = math.sin(gamma)
-    volume = math.sqrt(
-        1.0 - cosa**2.0 - cosb**2.0 - cosg**2.0 + 2.0 * cosa * cosb * cosg
-    )
+    cosa = np.cos(alpha)
+    cosb = np.cos(beta)
+    cosg = np.cos(gamma)
+    sing = np.sin(gamma)
+    volume = np.sqrt(1.0 - cosa**2.0 - cosb**2.0 - cosg**2.0 + 2.0 * cosa * cosb * cosg)
 
-    mat = Mat3(
+    mat = np.array(
         [
-            a * Vec3(1, 0, 0),
-            b * Vec3(cosg, sing, 0),
-            c * Vec3(cosb, (cosa - cosb * cosg) / sing, volume / sing),
+            [a, 0, 0],
+            [b * cosg, b * sing, 0],
+            [c * cosb, c * ((cosa - cosb * cosg) / sing), c * volume / sing],
         ]
     )
 
     return mat
 
 
-def lat_vecs_to_lat_params(lattice_vecs: Mat3) -> tuple:
-    a = lattice_vecs[0].norm()
-    b = lattice_vecs[1].norm()
-    c = lattice_vecs[2].norm()
-    alpha = math.degrees(lattice_vecs[1].angle(lattice_vecs[2]))
-    beta = math.degrees(lattice_vecs[0].angle(lattice_vecs[2]))
-    gamma = math.degrees(lattice_vecs[0].angle(lattice_vecs[1]))
+def lat_vecs_to_lat_params(
+    lattice_vecs: ArrayLike,
+) -> tuple[float, float, float, float, float, float]:
+    lattice_vecs = np.asarray(lattice_vecs)
+
+    a = np.linalg.norm(lattice_vecs[0])
+    b = np.linalg.norm(lattice_vecs[1])
+    c = np.linalg.norm(lattice_vecs[2])
+
+    alpha = np.degrees(np.arccos(lattice_vecs[1].dot(lattice_vecs[2]) / (b * c)))
+    beta = np.degrees(np.arccos(lattice_vecs[0].dot(lattice_vecs[2]) / (a * c)))
+    gamma = np.degrees(np.arccos(lattice_vecs[0].dot(lattice_vecs[1]) / (a * b)))
 
     return a, b, c, alpha, beta, gamma
 
@@ -57,8 +59,7 @@ def cart2frac(
     if np.linalg.matrix_rank(lattice_vecs) != 3:
         raise ValueError("lattice_vecs must be linearly independent")
 
-    # same as `np.linalg.inv(lattice_vecs).T @ cart_coords` but faster and stable
-    frac_coords = np.linalg.solve(lattice_vecs.T, cart_coords)
+    frac_coords = cart_coords @ np.linalg.inv(lattice_vecs)
     if wrap:
         frac_coords = wrap_frac_coords(frac_coords)
     return frac_coords
@@ -67,4 +68,9 @@ def cart2frac(
 def frac2cart(frac_coords: Tvec | ArrayLike, lattice_vecs: ArrayLike) -> np.ndarray:
     frac_coords = np.asarray(frac_coords)
     lattice_vecs = np.asarray(lattice_vecs)
-    return lattice_vecs.T @ frac_coords
+    if lattice_vecs.shape != (3, 3):
+        raise ValueError("lattice_vecs must be a 3x3 matrix")
+    if np.linalg.matrix_rank(lattice_vecs) != 3:
+        raise ValueError("lattice_vecs must be linearly independent")
+
+    return frac_coords @ lattice_vecs

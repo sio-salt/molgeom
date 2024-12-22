@@ -9,7 +9,7 @@ from typing import Any
 import yaml
 from numpy import ndarray
 
-from molgeom.utils.vec3 import Vec3
+from molgeom.utils.vec3 import Vec3, VecLike, vec3fy
 from molgeom.utils.lattice_utils import cart2frac
 from molgeom.data.consts import ATOM_SYMBOLS
 
@@ -66,15 +66,8 @@ class Atom(Vec3):
         self.charge: int | float | None = None
 
     @classmethod
-    def from_vec(cls, symbol: str, vec: list | tuple | Vec3) -> Atom:
-        if (
-            isinstance(vec, (list, tuple))
-            and len(vec) == 3
-            and all(isinstance(i, (int, float)) for i in vec)
-        ):
-            return cls(symbol, vec[0], vec[1], vec[2])
-        if isinstance(vec, Vec3):
-            return cls(symbol, vec.x, vec.y, vec.z)
+    def from_vec(cls, symbol: str, vec: VecLike) -> Atom:
+        vec = vec3fy(vec)
         return cls(symbol, vec.x, vec.y, vec.z)
 
     @staticmethod
@@ -105,13 +98,14 @@ class Atom(Vec3):
     def __repr__(self) -> str:
         return f"Atom({self.symbol!r}, {self.x:.12f}, {self.y:.12f}, {self.z:.12f})"
 
+    def __hash__(self) -> int:
+        return hash((self.symbol, self.x, self.y, self.z))
+
     def copy(self) -> Atom:
         return copy.deepcopy(self)
 
-    def get_frac_coords(self, lattice_vecs: ndarray, wrap: bool = True) -> Vec3:
-        return Vec3.from_array(
-            cart2frac(cart_coords=self.coord, lattice_vecs=lattice_vecs, wrap=wrap)
-        )
+    def get_frac_coords(self, lattice_vecs: ndarray, wrap: bool = True) -> ndarray:
+        return cart2frac(cart_coords=self.coord, lattice_vecs=lattice_vecs, wrap=wrap)
 
     def to_Vec3(self) -> Vec3:
         return Vec3(self.x, self.y, self.z)

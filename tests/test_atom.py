@@ -1,4 +1,5 @@
 import pytest
+import numpy as np
 
 from molgeom import Atom, Vec3, Mat3
 
@@ -13,10 +14,10 @@ def test_instanciation():
 
 def test_from_vec():
     list_vec = [2, 1.1, -0.2]
-    tuple_vec = (2, 1.1, -0.2)
+    adarray_vec = np.array([2, 1.1, -0.2])
     vec3 = Vec3(2, 1.1, -0.2)
     a1 = Atom.from_vec("C", list_vec)
-    a2 = Atom.from_vec("C", tuple_vec)
+    a2 = Atom.from_vec("C", adarray_vec)
     a3 = Atom.from_vec("C", vec3)
     assert isinstance(a1, Atom) and isinstance(a2, Atom) and isinstance(a3, Atom)
     assert a1 == a2 == a3
@@ -44,19 +45,19 @@ def test_get_frac_coords():
     atom = Atom("C", 0.3, 1.1, -0.2)
     lattice_vec = Mat3([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
     frac_coords = atom.get_frac_coords(lattice_vec, wrap=False)
-    assert frac_coords.isclose(Vec3(0.3, 1.1, -0.2))
+    assert np.allclose(frac_coords, Vec3(0.3, 1.1, -0.2))
     frac_coords = atom.get_frac_coords(lattice_vec, wrap=True)
-    assert frac_coords.isclose(Vec3(0.3, 0.1, 0.8))
+    assert np.allclose(frac_coords, Vec3(0.3, 0.1, 0.8))
 
     lattice_vec = Mat3([[2, 0, 0], [0, 2, 0], [0, 0, 2]])
     frac_coords = atom.get_frac_coords(lattice_vec, wrap=False)
-    assert frac_coords.isclose(Vec3(0.15, 0.55, -0.1))
+    assert np.allclose(frac_coords, Vec3(0.15, 0.55, -0.1))
     frac_coords = atom.get_frac_coords(lattice_vec, wrap=True)
-    assert frac_coords.isclose(Vec3(0.15, 0.55, 0.9))
+    assert np.allclose(frac_coords, Vec3(0.15, 0.55, 0.9))
 
     lattice_vec = Mat3([[1, 0, 0], [0, 2, 0], [0, 0, 2]])
     frac_coords = atom.get_frac_coords(lattice_vec, wrap=True)
-    assert frac_coords.isclose(Vec3(0.3, 0.55, 0.9))
+    assert np.allclose(frac_coords, Vec3(0.3, 0.55, 0.9))
 
 
 def test_invalid_symbol():
