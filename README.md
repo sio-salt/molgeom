@@ -1,7 +1,8 @@
 # molgeom ⌬
 Easy to use molecular geometry manipulation Python library.
-Makes your quantum chemistry life easier.
 
+There is the numpyfy version of molgeom.
+If you want to use the numpyfy version, please check the [numpyfy branch](https://github.com/sio-salt/molgeom/tree/numpyfy).
 
 ## molgeom currently can do:
 1. Reading and writing of molecular geometries of various formats:
@@ -26,13 +27,21 @@ More functionalities are coming soon!
 
 ## Installation
 ```bash
-pip install -U git+https://github.com/sio-salt/molgeom
+pip install -U git+https://github.com/sio-salt/molgeom/tree/main
+```
+or
+```bash
+git clone https://github.com/sio-salt/molgeom.git
+cd molgeom
+pip install -e .
 ```
 The minimul Python version is 3.9.
 
 
 ## Future plans
+- Add example codes
 - Add Z-matrix support
 - Add multi-molecule support
 - much more...
+
 
