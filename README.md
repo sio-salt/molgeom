@@ -39,6 +39,7 @@ The minimul Python version is 3.11.
 
 
 ## Future plans
+- Add example codes
 - Add Z-matrix support
 - Add multi-molecule support
 - much more...
