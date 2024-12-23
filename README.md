@@ -27,7 +27,7 @@ More functionalities are coming soon!
 
 ## Installation
 ```bash
-pip install -U git+https://github.com/sio-salt/molgeom/tree/main
+pip install -U git+https://github.com/sio-salt/molgeom@main
 ```
 or
 ```bash
