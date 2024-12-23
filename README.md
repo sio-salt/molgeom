@@ -2,7 +2,7 @@
 Easy to use molecular geometry manipulation Python library.
 
 This is the version that requires numpy.
-If you want to use the version that does not require numpy, please check the `main` branch.
+If you want to use the version that does not require numpy, please check the [main branch](https://github.com/sio-salt/molgeom/tree/main).
 
 ## molgeom currently can do:
 1. Reading and writing of molecular geometries of various formats:
@@ -27,6 +27,14 @@ If you want to use the version that does not require numpy, please check the `ma
 ```bash
 pip install -U git+https://github.com/sio-salt/molgeom@numpyfy
 ```
+or
+```bash
+git clone https://github.com/sio-salt/molgeom.git
+cd molgeom
+git switch numpyfy
+pip install -e .
+```
+
 The minimul Python version is 3.11.
 
 
