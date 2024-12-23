@@ -1,7 +1,8 @@
 # molgeom ⌬
 Easy to use molecular geometry manipulation Python library.
-Makes your quantum chemistry life easier.
 
+This is the version that requires numpy.
+If you want to use the version that does not require numpy, please check the `main` branch.
 
 ## molgeom currently can do:
 1. Reading and writing of molecular geometries of various formats:
@@ -21,14 +22,12 @@ Makes your quantum chemistry life easier.
     - Fragments clustering
     - Get bond cycles
 
-More functionalities are coming soon!
-
 
 ## Installation
 ```bash
-pip install -U git+https://github.com/sio-salt/molgeom
+pip install -U git+https://github.com/sio-salt/molgeom@numpyfy
 ```
-The minimul Python version is 3.9.
+The minimul Python version is 3.11.
 
 
 ## Future plans
