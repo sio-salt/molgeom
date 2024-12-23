@@ -2,7 +2,8 @@ import sys
 import re
 from collections import deque
 
-from molgeom import Vec3
+import numpy as np
+
 from molgeom.atom import Atom
 from molgeom.molecule import Molecule
 from molgeom.parsers.parser_tools import is_valid_xyz_line, remove_trailing_empty_lines
@@ -10,8 +11,9 @@ from molgeom.parsers.parser_tools import is_valid_xyz_line, remove_trailing_empt
 
 # Gaussian input file parser (com, gjf)
 def gau_inp_parser(filepath: str) -> Molecule:
-    mole = Molecule()
 
+    atoms = []
+    lattice_vecs = None
     with open(filepath, "r") as file:
         # remove trailing empty lines and create a deque to pop from left
         lines = deque(remove_trailing_empty_lines(file.readlines()))
@@ -79,13 +81,14 @@ def gau_inp_parser(filepath: str) -> Molecule:
                         )
                     data = lines.popleft().strip().split()
                     lat_vec.append(data[1:4])
-                mole.lattice_vecs = [Vec3(*map(float, vec)) for vec in lat_vec]
+                lattice_vecs = np.array([list(map(float, vec)) for vec in lat_vec])
             else:
                 atom = Atom(
                     symbol=data[0], x=float(data[1]), y=float(data[2]), z=float(data[3])
                 )
-                mole.add_atom(atom)
-        if not mole:
+                atoms.append(atom)
+        if not atoms:
             raise ValueError("No atoms found in file.")
 
+    mole = Molecule.from_atoms(atoms, lattice_vecs=lattice_vecs)
     return mole

@@ -240,6 +240,22 @@ class Molecule:
             raise TypeError("All elements must be Atom objects")
         return cls(*atoms, lattice_vecs=lattice_vecs)
 
+    @classmethod
+    def from_symbols_and_coords(
+        cls, symbols: Iterable[str], coords: ArrayLike
+    ) -> Molecule:
+        """
+        Create a new molecule from symbols and coordinates.
+        not so efficient yet
+        """
+        if len(symbols) != len(coords):
+            raise ValueError(
+                f"Number of symbols ({len(symbols)}) must match number of coordinates ({len(coords)})"
+            )
+
+        atoms = [Atom(symbol, *coord) for symbol, coord in zip(symbols, coords)]
+        return cls(*atoms)
+
     def add_atom(self, new_atom: Atom) -> None:
         """
         Add an atom to the molecule.

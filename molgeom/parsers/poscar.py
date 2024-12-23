@@ -3,8 +3,9 @@ from __future__ import annotations
 import os
 import re
 
+import numpy as np
+
 from molgeom.utils.vec3 import Vec3
-from molgeom.utils.mat3 import Mat3
 from molgeom.utils.lattice_utils import frac2cart
 from molgeom.atom import Atom
 from molgeom.data.consts import ATOMIC_MASSES
@@ -23,7 +24,7 @@ def poscar_parser(filepath: str) -> Molecule:
     if "poscar" not in os.path.basename(filepath).lower():
         raise ValueError(f"{filepath} is not a POSCAR file")
 
-    mole = Molecule()
+    atoms = []
     with open(filepath, "r") as file:
 
         # replace tabs, non-breaking spaces, and multiple spaces with single space
@@ -43,20 +44,21 @@ def poscar_parser(filepath: str) -> Molecule:
             raise RuntimeError("All three scaling factors must be positive.")
 
         # Lattice vectors
-        lattice_vec_a = Vec3(*map(float, next(lines_gen).split()[:3]))
-        lattice_vec_b = Vec3(*map(float, next(lines_gen).split()[:3]))
-        lattice_vec_c = Vec3(*map(float, next(lines_gen).split()[:3]))
-        lattice_vecs = Mat3([lattice_vec_a, lattice_vec_b, lattice_vec_c])
-        mole.lattice_vecs = lattice_vecs
+        lattice_vecs = np.zeros((3, 3))
+        lattice_vecs[0] = list(map(float, next(lines_gen).split()[:3]))
+        lattice_vecs[1] = list(map(float, next(lines_gen).split()[:3]))
+        lattice_vecs[2] = list(map(float, next(lines_gen).split()[:3]))
 
         if len(scale) == 1:
             # Negative scaling factor corresponds to the cell volume.
             scale = scale[0]
             if scale < 0.0:
                 scale = (-1.0 * scale / lattice_vecs.det()) ** (1 / 3)
-            lattice_vecs = Mat3([scale * vec for vec in lattice_vecs])
+            lattice_vecs = np.array([scale * vec for vec in lattice_vecs])
         else:
-            lattice_vecs = Mat3([scale[i] * vec for i, vec in enumerate(lattice_vecs)])
+            lattice_vecs = np.array(
+                [scale[i] * vec for i, vec in enumerate(lattice_vecs)]
+            )
 
         # Atom symbols and number of atoms per symbol
         atom_symbols = next(lines_gen).split()
@@ -89,7 +91,7 @@ def poscar_parser(filepath: str) -> Molecule:
                         y=cart_coords[1],
                         z=cart_coords[2],
                     )
-                    mole.add_atom(atom)
+                    atoms.append(atom)
         elif coord_type == "cartesian":
             for i in range(len(atom_symbols)):
                 for _ in range(num_atoms_per_symbol[i]):
@@ -100,8 +102,9 @@ def poscar_parser(filepath: str) -> Molecule:
                         y=cart_coords[1],
                         z=cart_coords[2],
                     )
-                    mole.add_atom(atom)
+                    atoms.append(atom)
         else:
             raise ValueError(f"Expected 'Direct' or 'Cartesian', got {coord_type=}")
 
-    return mole
+    mol = Molecule.from_atoms(atoms, lattice_vecs=lattice_vecs)
+    return mol

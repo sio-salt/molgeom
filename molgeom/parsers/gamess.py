@@ -12,8 +12,8 @@ from molgeom.parsers.parser_tools import (
 
 # GAMESS input file parser
 def gms_inp_parser(filepath: str) -> Molecule:
-    mole = Molecule()
 
+    atoms = []
     with open(filepath, "r") as file:
         lines = deque(remove_trailing_empty_lines(file.readlines()))
 
@@ -53,6 +53,7 @@ def gms_inp_parser(filepath: str) -> Molecule:
             atom = Atom(
                 symbol=data[0], x=float(data[2]), y=float(data[3]), z=float(data[4])
             )
-            mole.add_atom(atom)
+            atoms.append(atom)
 
+    mole = Molecule.from_atoms(atoms)
     return mole

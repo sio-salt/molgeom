@@ -10,8 +10,8 @@ from molgeom.parsers.parser_tools import (
 
 
 def xyz_parser(filepath: str) -> Molecule:
-    mole = Molecule()
 
+    atoms = []
     with open(filepath, "r") as file:
         lines = remove_trailing_empty_lines(file.readlines())
 
@@ -39,12 +39,13 @@ def xyz_parser(filepath: str) -> Molecule:
             atom = Atom(
                 symbol=data[0], x=float(data[1]), y=float(data[2]), z=float(data[3])
             )
-            mole.atoms.append(atom)
+            atoms.append(atom)
 
-        if num_atoms != len(mole):
+        if num_atoms != len(atoms):
             raise ValueError(
                 f"Number of atoms specified ({num_atoms}) "
-                + f"does not match number of atoms read ({len(mole)})."
+                + f"does not match number of atoms read len(atoms) = ({len(atoms)})."
             )
 
+    mole = Molecule.from_atoms(atoms)
     return mole

@@ -172,16 +172,15 @@ def ciftag2mol(cif_tags: dict) -> Molecule:
         cif_tags["cell_angle_gamma"],
         angle_in_degrees=True,
     )
-    mol = Molecule()
+    atoms = []
     for atom in cif_tags["atoms"]:
         fract_vec = Vec3(atom["fract_x"], atom["fract_y"], atom["fract_z"])
         cart_vec = frac_to_cart_mat @ fract_vec
         symbol = atom["symbol"]
         atom = Atom.from_vec(symbol, cart_vec)
-        mol.add_atom(atom)
+        atoms.append(atom)
 
-    mol.lattice_vecs = frac_to_cart_mat
-
+    mol = Molecule.from_atoms(atoms, lattice_vecs=frac_to_cart_mat)
     return mol
 
 
