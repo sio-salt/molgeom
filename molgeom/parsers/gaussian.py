@@ -1,4 +1,3 @@
-import sys
 import re
 from collections import deque
 
@@ -55,7 +54,6 @@ def gau_inp_parser(filepath: str) -> Molecule:
             charge, multiplicity = map(int, lines.popleft().strip().split())
         except ValueError as e:
             print(f"gau_parser : invalid file format \n{e}")
-            sys.exit(1)
 
         # atom cartesian coordinates
         while lines and lines[0].strip():
@@ -92,3 +90,67 @@ def gau_inp_parser(filepath: str) -> Molecule:
 
     mole = Molecule.from_atoms(atoms, lattice_vecs=lattice_vecs)
     return mole
+
+
+def gau_inp_head_tail(filepath: str) -> tuple[str, str]:
+    file_head = []
+    file_tail = []
+    with open(filepath, "r") as file:
+        lines = deque(file.readlines())
+
+        # # replace tabs, non-breaking spaces, and multiple spaces with single space
+        # for i in range(len(lines)):
+        #     lines[i] = re.sub(r"[\s\t\xa0]+", " ", lines[i])
+
+        # link0 section
+        link0 = []
+        while lines and lines[0].strip().startswith("%"):
+            link0.append(lines.popleft().strip())
+        file_head.extend(link0)
+
+        # route section
+        route_section = []
+        if not lines[0].strip().startswith("#"):
+            raise ValueError("Expected route section.\n" + f"Found: {lines[0]}\n")
+        while lines and lines[0].strip():
+            route_section.append(lines.popleft().strip())
+        file_head.extend(route_section)
+        lines.popleft()
+
+        # title section
+        if not lines[0].strip() or lines[1].strip():
+            raise ValueError(
+                "Expected title section.\n"
+                + f"Found: {lines[0]}\n"
+                + f"Found: {lines[1]}\n"
+            )
+        title = lines.popleft().strip()
+        file_head.append("\n" + title)
+        lines.popleft()
+
+        # molecule Specification section
+        if not lines[0].strip():
+            raise ValueError(
+                "Expected molecule specification section.\n" + f"Found: {lines[0]}\n"
+            )
+
+        try:
+            charge, multiplicity = map(int, lines.popleft().strip().split())
+        except ValueError as e:
+            print(f"gau_parser : invalid file format \n{e}")
+        file_head.append(f"{charge} {multiplicity}")
+
+        # atom cartesian coordinates
+        while lines and lines[0].strip():
+            if not is_valid_xyz_line(lines[0]):
+                raise ValueError(
+                    "Expected atom symbol and cartesian coordinates.\n"
+                    + f"Found: {lines[0]}\n"
+                )
+            lines.popleft().strip().split()
+
+        # rest of the file is the tail
+        for line in lines:
+            file_tail.append(line.replace("\n", ""))
+
+        return "\n".join(file_head), "\n".join(file_tail)
