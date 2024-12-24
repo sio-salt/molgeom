@@ -719,19 +719,24 @@ class Molecule:
             f.write(self.to_xyz())
         print(f"File written to {filepath}")
 
-    def write_to_gaussian_input(self, filepath: str) -> None:
+    def write_to_gaussian_input(self, filepath: str, head: str | None = None, tail: str | None = None) -> None:
         with open(filepath, "w") as f:
-            f.write("#p B3LYP\n")
-            f.write("\n")
-            f.write(f"{self.get_formula()}\n")
-            f.write("\n")
-            f.write("0 1\n")
+            if head is not None:
+                f.write(head)
+            else:
+                f.write("#p B3LYP\n")
+                f.write("\n")
+                f.write(f"{self.get_formula()}\n")
+                f.write("\n")
+                f.write("0 1\n")
             f.write(self.to_xyz() + "\n")
             if self.lattice_vecs is not None:
                 for vec in self.lattice_vecs:
                     f.write(
                         f"{'Tv':2s} {vec[0]:19.12f} {vec[1]:19.12f} {vec[2]:19.12f}\n"
                     )
+            if tail is not None:
+                f.write(tail)
         print(f"File written to {filepath}")
 
     def write_to_gamess_input(self, filepath: str) -> None:
