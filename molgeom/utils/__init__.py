@@ -8,6 +8,7 @@ from .lattice_utils import (
     frac2cart,
 )
 from .symmetry_utils import symmop_from_xyz_str
+from .polar import xyz_to_polar, pol_to_xyz
 
 __all__ = [
     "FancyIndexingList",
@@ -19,4 +20,6 @@ __all__ = [
     "cart2frac",
     "frac2cart",
     "symmop_from_xyz_str",
+    "xyz_to_polar",
+    "pol_to_xyz",
 ]

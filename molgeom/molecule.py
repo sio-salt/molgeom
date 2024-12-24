@@ -17,6 +17,7 @@ from molgeom.utils.vec3 import Vec3, VecLike
 from molgeom.utils.decorators import args_to_list, args_to_set
 from molgeom.utils.lattice_utils import cart2frac, frac2cart, lat_vecs_to_lat_params
 from molgeom.utils.symmetry_utils import symmop_from_xyz_str
+from molgeom.utils.polar import xyz_to_pol
 from molgeom.atom import Atom
 
 
@@ -369,6 +370,15 @@ class Molecule:
             cart_coords=self.coords, lattice_vecs=self.lattice_vecs, wrap=wrap
         )
 
+    def get_polar_coords(self) -> tuple[ArrayLike, ArrayLike, ArrayLike]:
+        """
+        Convert cartesian coordinates to polar coordinates.
+        """
+        x, y, z = self.coords.T
+        r, theta, phi = xyz_to_pol(x, y, z)
+        r_theta_phi = np.array([r, theta, phi]).T
+        return r_theta_phi
+
     @cachedmethod(
         lambda self: self._cache,
         key=lambda self, tol=0.15: hashkey(self._get_geom_hash(), tol),
@@ -719,7 +729,9 @@ class Molecule:
             f.write(self.to_xyz())
         print(f"File written to {filepath}")
 
-    def write_to_gaussian_input(self, filepath: str, head: str | None = None, tail: str | None = None) -> None:
+    def write_to_gaussian_input(
+        self, filepath: str, head: str | None = None, tail: str | None = None
+    ) -> None:
         with open(filepath, "w") as f:
             if head is not None:
                 f.write(head)
