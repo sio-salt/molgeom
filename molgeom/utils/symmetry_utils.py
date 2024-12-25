@@ -3,6 +3,11 @@ import re
 import numpy as np
 
 
+# This function is adapted from the `SymmOp.from_rotation_and_translation.from_xyz_str` method in the pymatgen library.
+# Original source: https://github.com/materialsproject/pymatgen/blob/da607e86f9ce8aec942067c6c1a4fda6e04915dd/src/pymatgen/core/operations.py#L462
+# License: MIT License
+# Copyright (c) 2011-2012 MIT & The Regents of the University of California, through Lawrence Berkeley National Laboratory
+# Modifications made by [sio-salt], [2024]
 def symmop_from_xyz_str(xyz_str: str) -> (np.ndarray, np.ndarray):
     """
     Make rotation matrix and translation vector from symmetry operation xyz string.
