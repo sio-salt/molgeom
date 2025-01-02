@@ -179,10 +179,10 @@ def ciftag2mol(cif_tags: dict) -> Molecule:
 def cif_parser(filepath: str, apply_symop: bool = True) -> Molecule:
     cif_tags = cif_tag_parser(filepath)
     mol = ciftag2mol(cif_tags)
-    tmp_mol = mol.copy()
+    rep_mol = Molecule()
     if apply_symop and "symops" in cif_tags:
         for symop in cif_tags["symops"]:
-            new_mol = tmp_mol.replicated_from_xyz_str(symop, wrap=False)
-            mol.merge(new_mol)
-    mol.lattice_vecs = tmp_mol.lattice_vecs
-    return mol
+            new_mol = mol.replicated_from_xyz_str(symop, wrap=False)
+            rep_mol.merge(new_mol)
+    rep_mol.lattice_vecs = mol.lattice_vecs
+    return rep_mol
