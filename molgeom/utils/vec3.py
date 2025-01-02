@@ -389,10 +389,10 @@ class Vec3:
             + (cos_theta + axis_unit_vector.z**2 * one_minus_cos) * self.z
         )
 
-        xyz_rotated = Vec3(x_rot, y_rot, z_rot)
-
         # translate back to the original position
-        self = xyz_rotated + axis_point1
+        self.x = x_rot + axis_point1.x
+        self.y = y_rot + axis_point1.y
+        self.z = z_rot + axis_point1.z
 
 
 # can be used as a type hint. not isinstance() check
