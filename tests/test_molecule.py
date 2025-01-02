@@ -246,6 +246,23 @@ def test_bound_to_cell():
     assert mol[0] == Atom("N", 1, 1, 1)
 
 
+def test_remove_duplicates():
+    a1 = Atom("N", 3, 3, 3)
+    a2 = Atom("H", 1, 0, 0)
+    a3 = Atom("H", 0, 1, 0)
+    a4 = Atom("H", 0, 0, 1)
+    mol = Molecule(a1, a2, a3, a4)
+    mol.lattice_vecs = [[2, 0, 0], [0, 2, 0], [0, 0, 2]]
+
+    mol.remove_duplicates()
+    assert len(mol) == 4
+
+    a5 = Atom("H", 1, 0, 0)
+    mol.add_atom(a5)
+    mol.remove_duplicates()
+    assert len(mol) == 4
+
+
 def test_replicated_from_xyz_str():
     a1 = Atom("O", 1, 1, 1)
     a2 = Atom("H", 1, 0, 0)
