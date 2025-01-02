@@ -74,17 +74,9 @@ def cif_tag_parser(filepath: str) -> dict:
             if symop_tags_used:
                 symop_idx = loop_tags_idx[symop_tags_used[0]]
                 cif_tags["symops"] = []
-                while line.count("'") == 2:
-                    quote_idxes = [
-                        line.index("'"),
-                        line.index("'", line.index("'") + 1),
-                    ]
-                    symop_str = line[quote_idxes[0] + 1 : quote_idxes[1]]
-                    if symop_str.count(",") != 2:
-                        raise ValueError(
-                            f"Invalid symop string: {symop_str}\n"
-                            + "at least 3 tokens separated by comma are required"
-                        )
+                while line.count(",") == 2:
+                    line_str = "".join(line.split()[symop_idx:])
+                    symop_str = line_str.replace("'", "")
                     cif_tags["symops"].append(symop_str)
                     line = lines.popleft().strip()
 
