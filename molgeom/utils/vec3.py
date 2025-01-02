@@ -93,10 +93,14 @@ class Vec3:
 
     def __add__(self, other: Vec3) -> Vec3:
         other_class_check_for_operand(self, other, "+")
-        return self.__class__(self.x + other.x, self.y + other.y, self.z + other.z)
+        copied_self = self.copy()
+        copied_self.x += other.x
+        copied_self.y += other.y
+        copied_self.z += other.z
+        return copied_self
 
     def __radd__(self, other: Vec3) -> Vec3:
-        return self.__add__(other)
+        return other.__add__(self)
 
     def __iadd__(self, other: Vec3) -> Vec3:
         self.x += other.x
@@ -106,10 +110,15 @@ class Vec3:
 
     def __sub__(self, other: Vec3) -> Vec3:
         other_class_check_for_operand(self, other, "-")
-        return self.__class__(self.x - other.x, self.y - other.y, self.z - other.z)
+        copied_self = self.copy()
+        return copied_self.__isub__(other)
 
     def __rsub__(self, other: Vec3) -> Vec3:
-        return self.__class__(other.x - self.x, other.y - self.y, other.z - self.z)
+        copied_self = self.copy()
+        copied_self.x = other.x - copied_self.x
+        copied_self.y = other.y - copied_self.y
+        copied_self.z = other.z - copied_self.z
+        return copied_self
 
     def __isub__(self, other: Vec3) -> Vec3:
         self.x -= other.x
@@ -123,7 +132,11 @@ class Vec3:
         if isinstance(value, (int, float)):
             return Vec3(self.x * value, self.y * value, self.z * value)
 
-        return Vec3(self.x * value.x, self.y * value.y, self.z * value.z)
+        copied_self = self.copy()
+        copied_self.x *= value.x
+        copied_self.y *= value.y
+        copied_self.z *= value.z
+        return copied_self
 
     def __rmul__(self, value: int | float | Vec3) -> Vec3:
         return self.__mul__(value)
@@ -147,7 +160,12 @@ class Vec3:
         if isinstance(value, (int, float)):
             return Vec3(self.x / value, self.y / value, self.z / value)
 
-        return Vec3(self.x / value.x, self.y / value.y, self.z / value.z)
+        copied_self = self.copy()
+        copied_self.x /= value.x
+        copied_self.y /= value.y
+        copied_self.z /= value.z
+
+        return copied_self
 
     def __itruediv__(self, value: int | float | Vec3) -> Vec3:
         if isinstance(value, (int, float)):
@@ -168,7 +186,11 @@ class Vec3:
         if isinstance(value, (int, float)):
             return Vec3(self.x // value, self.y // value, self.z // value)
 
-        return Vec3(self.x // value.x, self.y // value.y, self.z // value.z)
+        copied_self = self.copy()
+        copied_self.x //= value.x
+        copied_self.y //= value.y
+        copied_self.z //= value.z
+        return copied_self
 
     def __ifloordiv__(self, value: int | float | Vec3) -> Vec3:
         if isinstance(value, (int, float)):
@@ -189,7 +211,11 @@ class Vec3:
         if isinstance(value, (int, float)):
             return Vec3(self.x % value, self.y % value, self.z % value)
 
-        return Vec3(self.x % value.x, self.y % value.y, self.z % value.z)
+        copied_self = self.copy()
+        copied_self.x %= value.x
+        copied_self.y %= value.y
+        copied_self.z %= value.z
+        return copied_self
 
     def __imod__(self, value: int | float | Vec3) -> Vec3:
         if isinstance(value, (int, float)):
