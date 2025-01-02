@@ -12,7 +12,7 @@ from molgeom.utils.fancy_indexing_list import FancyIndexingList
 from molgeom.utils.vec3 import Vec3, mat_type
 from molgeom.utils.mat3 import Mat3, is_mat_type
 from molgeom.utils.decorators import args_to_list, args_to_set
-from molgeom.utils.lattice_utils import cart2frac, frac2cart
+from molgeom.utils.lattice_utils import cart2frac, frac2cart, lat_vecs_to_lat_params
 from molgeom.utils.symmetry_utils import symmop_from_xyz_str
 from molgeom.atom import Atom
 
@@ -627,6 +627,6 @@ class Molecule:
             frac_coords = self.get_frac_coords(wrap=False)
             for i in range(len(self)):
                 f.write(
-                    f"{i+1:3d} {atom.symbols[i]:2s} {frac_coords[i][0]:19.12f} {frac_coords[i][1]:19.12f} {frac_coords[i][2]:19.12f}\n"
+                    f"{i+1:3d} {self[i].symbol:2s} {frac_coords[i][0]:19.12f} {frac_coords[i][1]:19.12f} {frac_coords[i][2]:19.12f}\n"
                 )
         print(f"File written to {filepath}")
