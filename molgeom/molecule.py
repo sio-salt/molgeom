@@ -564,7 +564,7 @@ class Molecule:
             f.write("C1\n")
             for i in range(len(self)):
                 f.write(
-                    f"{self.symbols[i]:2s}  {float(self[i].atomic_number):3d}  {self[i].x:19.12f} {self[i].y:19.12f} {self[i].z:19.12f}\n"
+                    f"{self.symbol[i]:2s}  {float(self[i].atomic_number):1f}  {self[i].x:19.12f} {self[i].y:19.12f} {self[i].z:19.12f}\n"
                 )
         print(f"File written to {filepath}")
 
