@@ -1,0 +1,24 @@
+data_CIF
+###########################################################################
+#                 Cif file created by Chemcraft program                   #
+###########################################################################
+
+loop_
+_symmetry_equiv_pos_site_id
+_symmetry_equiv_pos_as_xyz
+1 x,y,z
+
+_cell_length_a                          15.170300
+_cell_length_b                          15.170300
+_cell_length_c                          15.334964
+_cell_angle_alpha                       101.160792
+_cell_angle_beta                        104.497173
+_cell_angle_gamma                       101.855507
+ loop_
+_atom_site_label
+_atom_site_fract_x
+_atom_site_fract_y
+_atom_site_fract_z
+H 0.634983 0.507730 0.024495
+H 0.712286 0.530672 0.121075
+O 0.644188 0.514284 0.091129
