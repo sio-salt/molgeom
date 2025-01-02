@@ -274,9 +274,13 @@ class Vec3:
         self.y *= sy
         self.z *= sz
 
-    def mirror_by_plane(self, p1: Vec3, p2: Vec3, p3: Vec3) -> None:
-        if not all(isinstance(p, Vec3) for p in (p1, p2, p3)):
+    def mirror_by_plane(self, p1: vec_type, p2: vec_type, p3: vec_type) -> None:
+        if not all(is_vec_type(p) for p in (p1, p2, p3)):
             raise TypeError("p1, p2, p3 must be Vec3 instances")
+
+        p1 = vectorize_arg(p1)
+        p2 = vectorize_arg(p2)
+        p3 = vectorize_arg(p3)
 
         v1 = p2 - p1
         v2 = p3 - p1
