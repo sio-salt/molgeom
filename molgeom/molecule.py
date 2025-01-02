@@ -581,11 +581,11 @@ class Molecule:
             f.write(
                 f"{self.lattice_vecs[2][0]:19.12f} {self.lattice_vecs[2][1]:19.12f} {self.lattice_vecs[2][2]:19.12f}\n"
             )
-            unique_symbols = np.unique(self.symbols)
+            unique_symbols = set(atom.symbol for atom in self)
             f.write(" ".join(unique_symbols) + "\n")
-            symbol_count = {
-                symbol: np.sum(self.symbols == symbol) for symbol in unique_symbols
-            }
+            symbol_count = dict()
+            for symbol in unique_symbols:
+                symbol_count[symbol] = sum(atom.symbol == symbol for atom in self)
             f.write(
                 " ".join(str(symbol_count[symbol]) for symbol in unique_symbols) + "\n"
             )
