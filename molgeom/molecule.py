@@ -393,17 +393,50 @@ class Molecule:
         U = atom.get_frac_coords(self.lattice_vecs)
         return all(0 <= u < 1 for u in U)
 
+    # def remove_duplicates(self, tol: float = default_tol) -> None:
+    #     """
+    #     Remove duplicate atoms (close atoms) from the molecule.
+    #     finds too close clusters of same elements
+    #     and combines them into one atom at the center of mass
+    #     """
+    #     clusters = self.get_clusters(tol)
+    #     for cluster in clusters:
+    #         if len(cluster) > 1:
+    #             com = cluster.center_of_mass()
+    #             cluster[:] = [Atom("C", com.x, com.y, com.z)]
+
     def remove_duplicates(self, tol: float = default_tol) -> None:
         """
-        Remove duplicate atoms (close atoms) from the molecule.
-        finds too close clusters of same elements
-        and combines them into one atom at the center of mass
+        Remove duplicate atoms by combining close atoms with the same symbol
+        into their centroid.
+        Args:
+            tol (float): Tolerance for distance to consider atoms as duplicates.
         """
-        clusters = self.get_clusters(tol)
-        for cluster in clusters:
-            if len(cluster) > 1:
-                com = cluster.center_of_mass()
-                cluster[:] = [Atom("C", com.x, com.y, com.z)]
+        unique_atoms = FancyIndexingList()
+
+        symbols = set(a.symbol for a in self.atoms)
+        for symbol in symbols:
+            indices = [i for i, atom in enumerate(self) if atom.symbol == symbol]
+            sub_atoms = self[indices]
+
+            processed = set()
+            for i, atom in enumerate(sub_atoms):
+                if i in processed:
+                    continue
+
+                cluster = [i]
+                for j, other_atom in enumerate(sub_atoms):
+                    if j != i and atom.distance_to(other_atom) < tol:
+                        cluster.append(j)
+
+                processed.update(cluster)
+
+                cluster_atoms = sub_atoms[cluster]
+                centroid = cluster_atoms.center_of_mass()
+
+                unique_atoms.append(Atom(symbol, *centroid))
+
+        self.atoms = unique_atoms
 
     def wrap_to_cell(self) -> None:
         """
