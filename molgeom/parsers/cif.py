@@ -176,13 +176,13 @@ def ciftag2mol(cif_tags: dict) -> Molecule:
     return mol
 
 
-def cif_parser(filepath: str, apply_symop: bool = True) -> Molecule:
+def cif_parser(filepath: str, apply_symop: bool = True, wrap: bool = True) -> Molecule:
     cif_tags = cif_tag_parser(filepath)
     mol = ciftag2mol(cif_tags)
     tmp_mol = mol.copy()
     if apply_symop and "symops" in cif_tags:
         for symop in cif_tags["symops"]:
-            new_mol = tmp_mol.replicated_from_xyz_str(symop, wrap=False)
+            new_mol = tmp_mol.replicated_from_xyz_str(symop, wrap=wrap)
             mol.merge(new_mol)
     mol.lattice_vecs = tmp_mol.lattice_vecs
     return mol
