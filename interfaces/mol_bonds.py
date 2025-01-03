@@ -10,7 +10,7 @@ if importlib.util.find_spec("readline"):
 
 def main():
     if len(sys.argv) < 2:
-        print("Usage: python script.py <xyz_file_path1> <xyz_file_path2> ...")
+        print("Usage: python script.py <file_path1> <file_path2> ...")
         sys.exit(1)
     else:
         for filepath in sys.argv[1:]:
