@@ -25,6 +25,7 @@ You can try out example of `molgeom` in Jupyter Notebook:
 
 For a version with NumPy, see the [**numpyfy branch**](https://github.com/sio-salt/molgeom/tree/numpyfy).  
 
+---
 
 ## 🗂️ Installation
 Install `molgeom` using pip:
