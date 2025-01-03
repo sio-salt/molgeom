@@ -27,7 +27,7 @@ For a version with NumPy, see the [**numpyfy branch**](https://github.com/sio-sa
 
 ---
 
-## Installation
+## 🔽 Installation
 Install `molgeom` using pip:
 ```bash
 pip install -U git+https://github.com/sio-salt/molgeom@main
@@ -41,13 +41,13 @@ pip install -e .
 ```
 The minimum Python version required is 3.9 for the main branch.
 
-## Future Plans
+## 🛠️ Future Plans
 - Support Z-matrix format.
 - Add more symmetry utilities.
 - Handle multi-molecule systems.
 - Additional features and improvements.
 
-## Links
+## 🔗 Links
 - [GitHub Repository](https://github.com/sio-salt/molgeom/tree/main)
 - [Numpyfy Branch](https://github.com/sio-salt/molgeom/tree/numpyfy)
 - [Example Repository](https://github.com/sio-salt/molgeom-examples/tree/main)
