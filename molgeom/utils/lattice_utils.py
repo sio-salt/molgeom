@@ -7,27 +7,21 @@ from .vec3 import Tvec
 def lat_params_to_lat_vecs(
     a, b, c, alpha, beta, gamma, angle_in_degrees=True
 ) -> np.ndarray:
+    angles = np.array([alpha, beta, gamma])
+
     if angle_in_degrees:
-        alpha = np.radians(alpha)
-        beta = np.radians(beta)
-        gamma = np.radians(gamma)
+        angles = np.radians(angles)
 
-    cosa = np.cos(alpha)
-    cosb = np.cos(beta)
-    cosg = np.cos(gamma)
-    sing = np.sin(gamma)
-    volume = np.sqrt(1.0 - cosa**2.0 - cosb**2.0 - cosg**2.0 + 2.0 * cosa * cosb * cosg)
+    cosa, cosb, cosg = np.cos(angles)
+    sina, sinb, sing = np.sin(angles)
 
-    mat = np.array(
-        [
-            [a, 0, 0],
-            [b * cosg, b * sing, 0],
-            [c * cosb, c * ((cosa - cosb * cosg) / sing), c * volume / sing],
-        ]
-    )
+    c1 = c * cosb
+    c2 = (c * (cosa - (cosb * cosg))) / sing
+    va = [float(a), 0.0, 0.0]
+    vb = [b * cosg, b * sing, 0]
+    vc = [c1, c2, np.sqrt(c**2 - c1**2 - c2**2)]
 
-    return mat
-
+    return np.array([va, vb, vc], dtype=np.float64)
 
 def lat_vecs_to_lat_params(
     lattice_vecs: ArrayLike,

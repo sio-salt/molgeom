@@ -11,6 +11,8 @@ from molgeom.parsers.xyz import xyz_parser
 
 
 def read_file(filepath: str | Path) -> Molecule:
+    filepath = filepath.strip()
+
     ext_parser_map = {
         ".xyz": xyz_parser,
         ".com": gau_inp_parser,
