@@ -5,7 +5,7 @@ from molgeom import read_file
 
 def main():
     if len(sys.argv) != 2:
-        print("Usage: python script.py <xyz_file_path> ...")
+        print("Usage: python script.py <file_path>")
         sys.exit(1)
 
     print()
@@ -18,6 +18,7 @@ def main():
         if len(cluster) >= 3:
             print(cluster)
             print(cluster.to_xyz())
+            print()
 
 
 if __name__ == "__main__":
