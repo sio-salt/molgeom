@@ -568,7 +568,7 @@ class Molecule:
                 )
         print(f"File written to {filepath}")
 
-    def write_to_poscar(self, filepath: str, frac: bool = True) -> None:
+    def write_to_poscar(self, filepath: str, frac: bool = True, wrap: bool = False) -> None:
         with open(filepath, "w") as f:
             f.write(f"{self.get_formula()}\n")
             f.write("1.0\n")
@@ -581,7 +581,8 @@ class Molecule:
             f.write(
                 f"{self.lattice_vecs[2][0]:19.12f} {self.lattice_vecs[2][1]:19.12f} {self.lattice_vecs[2][2]:19.12f}\n"
             )
-            unique_symbols = set(atom.symbol for atom in self)
+            # remove duplicates and keep the order
+            unique_symbols = list(dict.fromkeys([atom.symbol for atom in self]))
             f.write(" ".join(unique_symbols) + "\n")
             symbol_count = dict()
             for symbol in unique_symbols:
@@ -591,7 +592,7 @@ class Molecule:
             )
             if frac:
                 f.write("Direct\n")
-                coords = self.get_frac_coords(wrap=False)
+                coords = self.get_frac_coords(wrap=wrap)
             else:
                 f.write("Cartesian\n")
                 coords = self.coords
@@ -599,7 +600,7 @@ class Molecule:
                 f.write(f"{coord[0]:19.12f} {coord[1]:19.12f} {coord[2]:19.12f}\n")
         print(f"File written to {filepath}")
 
-    def write_to_cif(self, filepath: str) -> None:
+    def write_to_cif(self, filepath: str, wrap: bool = False) -> None:
         with open(filepath, "w") as f:
             f.write("data_molecule\n")
             f.write("########################\n")
@@ -624,7 +625,7 @@ class Molecule:
             f.write("_atom_site_fract_x\n")
             f.write("_atom_site_fract_y\n")
             f.write("_atom_site_fract_z\n")
-            frac_coords = self.get_frac_coords(wrap=False)
+            frac_coords = self.get_frac_coords(wrap=wrap)
             for i in range(len(self)):
                 f.write(
                     f"{i+1:3d} {self[i].symbol:2s} {frac_coords[i][0]:19.12f} {frac_coords[i][1]:19.12f} {frac_coords[i][2]:19.12f}\n"
