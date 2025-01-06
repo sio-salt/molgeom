@@ -18,6 +18,7 @@ from molgeom.utils.decorators import args_to_list, args_to_set
 from molgeom.utils.lattice_utils import cart2frac, frac2cart, lat_vecs_to_lat_params
 from molgeom.utils.symmetry_utils import symmop_from_xyz_str
 from molgeom.utils.polar import xyz_to_pol
+from molgeom.parsers.parser_selector import read_file
 from molgeom.atom import Atom
 
 
@@ -256,6 +257,14 @@ class Molecule:
 
         atoms = [Atom(symbol, *coord) for symbol, coord in zip(symbols, coords)]
         return cls(*atoms)
+
+    @classmethod
+    def from_file(cls, filepath: str) -> Molecule:
+        """
+        Create a new molecule from a file.
+        auto-detects file format (*.xyz, *.com, *.gjf, *.inp, *.cif, *POSCAR*)
+        """
+        return read_file(filepath)
 
     def add_atom(self, new_atom: Atom) -> None:
         """
