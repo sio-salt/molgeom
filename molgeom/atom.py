@@ -104,7 +104,7 @@ class Atom(Vec3):
     def copy(self) -> Atom:
         return copy.deepcopy(self)
 
-    def get_frac_coords(self, lattice_vecs: ndarray, wrap: bool = True) -> ndarray:
+    def get_frac_coords(self, lattice_vecs: ndarray, wrap: bool = False) -> ndarray:
         return cart2frac(cart_coords=self.coord, lattice_vecs=lattice_vecs, wrap=wrap)
 
     def to_Vec3(self) -> Vec3:

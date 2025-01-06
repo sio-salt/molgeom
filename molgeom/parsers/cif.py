@@ -2,9 +2,9 @@ import os
 import re
 from collections import deque
 
-from molgeom import Vec3, Atom, Molecule, Mat3
+from molgeom import Atom, Molecule, Mat3
 from molgeom.parsers.parser_tools import remove_trailing_empty_lines
-from molgeom.utils.lattice_utils import lat_params_to_lat_vecs
+from molgeom.utils.lattice_utils import lat_params_to_lat_vecs, frac2cart
 
 # CIF format specification:
 # http://www.physics.gov.az/book_I/S_R_Hall.pdf
@@ -166,23 +166,23 @@ def ciftag2mol(cif_tags: dict) -> Molecule:
     )
     atoms = []
     for atom in cif_tags["atoms"]:
-        fract_vec = Vec3(atom["fract_x"], atom["fract_y"], atom["fract_z"])
-        cart_vec = frac_to_cart_mat @ fract_vec
+        frac_coord = [atom["fract_x"], atom["fract_y"], atom["fract_z"]]
+        cart_coord = frac2cart(frac_coords=frac_coord, lattice_vecs=frac_to_cart_mat)
         symbol = atom["symbol"]
-        atom = Atom.from_vec(symbol, cart_vec)
+        atom = Atom(symbol, *cart_coord)
         atoms.append(atom)
 
-    mol = Molecule.from_atoms(atoms, lattice_vecs=frac_to_cart_mat)
+    mol = Molecule(*atoms, lattice_vecs=frac_to_cart_mat)
     return mol
 
 
-def cif_parser(filepath: str, apply_symop: bool = True, wrap: bool = True) -> Molecule:
+def cif_parser(filepath: str, apply_symop: bool = True, wrap: bool = False) -> Molecule:
     cif_tags = cif_tag_parser(filepath)
-    mol = ciftag2mol(cif_tags)
-    tmp_mol = mol.copy()
+    cif_mol = ciftag2mol(cif_tags)
+    new_mol = Molecule()
     if apply_symop and "symops" in cif_tags:
         for symop in cif_tags["symops"]:
-            new_mol = tmp_mol.replicated_from_xyz_str(symop, wrap=wrap)
-            mol.merge(new_mol)
-    mol.lattice_vecs = tmp_mol.lattice_vecs
-    return mol
+            tmp_mol = cif_mol.replicated_from_xyz_str(symop, wrap=wrap)
+            new_mol.merge(tmp_mol)
+    new_mol.lattice_vecs = cif_mol.lattice_vecs
+    return cif_mol
