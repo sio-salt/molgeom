@@ -18,19 +18,19 @@ authors = [
 ]
 
 [project.scripts]
-mass-center = "molgeom.interfaces.mass_center:main"
-nuclear-repulsion = "molgeom.interfaces.nuclear_repulsion:main"
-mol-bonds = "molgeom.interfaces.mol_bonds:main"
-geom-modifier = "molgeom.interfaces.geom_modifier:main"
-poscar-to-xyz = "molgeom.interfaces.poscar2xyz:main"
-split-mol-clusters = "molgeom.interfaces.split_mol_clusters:main"
+mass-center = "interfaces.mass_center:main"
+nuclear-repulsion = "interfaces.nuclear_repulsion:main"
+mol-bonds = "interfaces.mol_bonds:main"
+geom-modifier = "interfaces.geom_modifier:main"
+poscar2xyz = "interfaces.poscar2xyz:main"
+split-mol-clusters = "interfaces.split_mol_clusters:main"
 
 [tool.setuptools]
 include-package-data = true
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["molgeom*"]
+include = ["molgeom*", "interfaces"]
 
 [tool.setuptools.package-data]
 "molgeom" = ["data/*.json", "data/*.yaml"]
