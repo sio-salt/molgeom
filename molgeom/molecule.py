@@ -14,6 +14,7 @@ from molgeom.utils.mat3 import Mat3, is_mat_type
 from molgeom.utils.decorators import args_to_list, args_to_set
 from molgeom.utils.lattice_utils import cart2frac, frac2cart, lat_vecs_to_lat_params
 from molgeom.utils.symmetry_utils import symmop_from_xyz_str
+from molgeom.parsers.parser_selector import read_file
 from molgeom.atom import Atom
 
 
@@ -156,6 +157,14 @@ class Molecule:
         if not all(isinstance(atom, Atom) for atom in atoms):
             raise TypeError("All elements must be Atom objects")
         return cls(*atoms)
+
+    @classmethod
+    def from_file(cls, filepath: str) -> Molecule:
+        """
+        Create a new molecule from a file.
+        auto-detects file format (*.xyz, *.com, *.gjf, *.inp, *.cif, *POSCAR*)
+        """
+        return read_file(filepath)
 
     def add_atom(self, atom: Atom) -> None:
         self.atoms.append(atom)
@@ -568,7 +577,9 @@ class Molecule:
                 )
         print(f"File written to {filepath}")
 
-    def write_to_poscar(self, filepath: str, frac: bool = True, wrap: bool = False) -> None:
+    def write_to_poscar(
+        self, filepath: str, frac: bool = True, wrap: bool = False
+    ) -> None:
         with open(filepath, "w") as f:
             f.write(f"{self.get_formula()}\n")
             f.write("1.0\n")
