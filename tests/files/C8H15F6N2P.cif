@@ -1,0 +1,166 @@
+#------------------------------------------------------------------------------
+#$Date: 2022-09-15 02:29:21 +0300 (Thu, 15 Sep 2022) $
+#$Revision: 277856 $
+#$URL: file:///home/coder/svn-repositories/cod/cif/4/10/09/4100972.cif $
+#------------------------------------------------------------------------------
+#
+# This file is available in the Crystallography Open Database (COD),
+# http://www.crystallography.net/
+#
+# All data on this site have been placed in the public domain by the
+# contributors.
+#
+data_4100972
+loop_
+_publ_author_name
+'Choudhury, Angshuman R.'
+'Winterton, Neil'
+'Steiner, Alexander'
+'Cooper, Andrew I.'
+'Johnson, Kathleen A.'
+_publ_section_title
+;
+ In situ crystallization of low-melting ionic liquids.
+;
+_journal_issue                   48
+_journal_name_full               'Journal of the American Chemical Society'
+_journal_page_first              16792
+_journal_page_last               16793
+_journal_paper_doi               10.1021/ja055956u
+_journal_volume                  127
+_journal_year                    2005
+_chemical_formula_sum            'C8 H15 F6 N2 P'
+_chemical_formula_weight         284.19
+_chemical_name_common            '[bmim]PF6'
+_space_group_IT_number           2
+_space_group_name_Hall           '-P 1'
+_space_group_name_H-M_alt        'P -1'
+_symmetry_cell_setting           triclinic
+_symmetry_Int_Tables_number      2
+_symmetry_space_group_name_Hall  '-P 1'
+_symmetry_space_group_name_H-M   'P -1'
+_cell_angle_alpha                95.949(16)
+_cell_angle_beta                 114.930(13)
+_cell_angle_gamma                103.01(3)
+_cell_formula_units_Z            2
+_cell_length_a                   8.774(5)
+_cell_length_b                   8.944(10)
+_cell_length_c                   9.032(6)
+_cell_measurement_temperature    183(2)
+_cell_volume                     610.2(8)
+_diffrn_ambient_temperature      183(2)
+_exptl_crystal_density_diffrn    1.547
+_cod_data_source_file            4100972.cif
+_cod_data_source_block           4100972
+_cod_depositor_comments
+;
+The following automatic conversions were performed:
+'_symmetry_cell_setting' value 'Triclinic' changed to 'triclinic'
+according to '/home/saulius/struct/CIF-dictionaries/cif_core.dic'
+dictionary named 'cif_core.dic' version 2.4.1 from 2010-06-29.
+
+Automatic conversion script
+Id: cif_fix_enum 1527 2010-12-29 10:47:43Z saulius 
+
+ Adding full bibliography for
+ /tmp/tmp-cod-update-bibliographies-19669/cifs/4100972.cif.
+;
+_cod_database_code               4100972
+loop_
+_space_group_symop_operation_xyz
+'x, y, z'
+'-x, -y, -z'
+loop_
+_atom_site_label
+_atom_site_type_symbol
+_atom_site_fract_x
+_atom_site_fract_y
+_atom_site_fract_z
+_atom_site_U_iso_or_equiv
+_atom_site_adp_type
+_atom_site_occupancy
+_atom_site_symmetry_multiplicity
+_atom_site_calc_flag
+_atom_site_refinement_flags
+_atom_site_disorder_assembly
+_atom_site_disorder_group
+P1 P 0.68491(7) 0.29426(5) 0.44906(5) 0.03151(17) Uani 1 1 d . . .
+F1 F 0.6304(2) 0.28245(19) 0.59432(16) 0.0610(4) Uani 1 1 d . . .
+F2 F 0.51532(19) 0.15102(15) 0.32373(17) 0.0580(4) Uani 1 1 d . . .
+F3 F 0.7412(2) 0.30998(18) 0.30282(16) 0.0626(4) Uani 1 1 d . . .
+F4 F 0.79731(19) 0.17495(15) 0.50805(17) 0.0553(4) Uani 1 1 d . . .
+F5 F 0.85531(18) 0.43871(14) 0.57104(16) 0.0470(3) Uani 1 1 d . . .
+F6 F 0.57435(19) 0.41403(15) 0.38784(17) 0.0530(4) Uani 1 1 d . . .
+N1 N 1.2889(2) 0.33711(17) 0.89335(18) 0.0305(4) Uani 1 1 d . . .
+C2 C 1.2091(3) 0.3325(2) 0.7305(2) 0.0303(5) Uani 1 1 d . . .
+H2 H 1.1319 0.3931 0.679 0.036 Uiso 1 1 d R . .
+N3 N 1.2525(2) 0.22960(17) 0.65074(17) 0.0306(4) Uani 1 1 d . . .
+C4 C 1.3648(3) 0.1665(2) 0.7667(2) 0.0343(5) Uani 1 1 d . . .
+H4 H 1.4207 0.0921 0.7449 0.041 Uiso 1 1 d R . .
+C5 C 1.3861(3) 0.2325(2) 0.9176(2) 0.0357(5) Uani 1 1 d . . .
+H5 H 1.4534 0.2086 1.0227 0.043 Uiso 1 1 d R . .
+C6 C 1.2654(3) 0.4288(2) 1.0229(2) 0.0400(5) Uani 1 1 d . . .
+H6A H 1.2164 0.5106 0.9817 0.048 Uiso 1 1 d R . .
+H6B H 1.3791 0.4773 1.1174 0.048 Uiso 1 1 d R . .
+C7 C 1.1495(3) 0.3243(2) 1.0815(2) 0.0350(5) Uani 1 1 d . . .
+H7A H 1.1399 0.3864 1.1686 0.042 Uiso 1 1 d R . .
+H7B H 1.2036 0.2468 1.1279 0.042 Uiso 1 1 d R . .
+C8 C 0.9661(3) 0.2398(2) 0.9446(2) 0.0386(5) Uani 1 1 d . . .
+H8A H 0.9741 0.1723 0.8601 0.046 Uiso 1 1 d R . .
+H8B H 0.9129 0.3163 0.8941 0.046 Uiso 1 1 d R . .
+C9 C 0.8512(3) 0.1406(3) 1.0087(3) 0.0471(6) Uani 1 1 d . . .
+H9A H 0.9029 0.0628 1.0575 0.071 Uiso 1 1 d R . .
+H9B H 0.7366 0.0893 0.9166 0.071 Uiso 1 1 d R . .
+H9C H 0.8408 0.2081 1.0916 0.071 Uiso 1 1 d R . .
+C10 C 1.1927(3) 0.1936(3) 0.4691(2) 0.0455(6) Uani 1 1 d . . .
+H10A H 1.092 0.2296 0.4146 0.068 Uiso 1 1 d R . .
+H10B H 1.1606 0.0818 0.4297 0.068 Uiso 1 1 d R . .
+H10C H 1.2847 0.245 0.4442 0.068 Uiso 1 1 d R . .
+loop_
+_atom_site_aniso_label
+_atom_site_aniso_U_11
+_atom_site_aniso_U_22
+_atom_site_aniso_U_33
+_atom_site_aniso_U_23
+_atom_site_aniso_U_13
+_atom_site_aniso_U_12
+P1 0.0285(5) 0.0348(3) 0.0280(2) 0.00458(19) 0.0097(2) 0.0114(3)
+F1 0.0514(12) 0.0915(10) 0.0471(7) 0.0230(7) 0.0295(8) 0.0169(9)
+F2 0.0364(12) 0.0464(7) 0.0580(8) -0.0033(6) -0.0010(7) 0.0039(8)
+F3 0.0696(13) 0.0855(10) 0.0459(7) 0.0120(7) 0.0375(8) 0.0264(10)
+F4 0.0441(11) 0.0415(6) 0.0634(8) 0.0078(6) 0.0056(7) 0.0217(7)
+F5 0.0317(10) 0.0416(6) 0.0529(7) -0.0042(5) 0.0113(7) 0.0069(7)
+F6 0.0444(11) 0.0533(7) 0.0606(8) 0.0157(6) 0.0162(7) 0.0277(8)
+N1 0.0298(12) 0.0318(7) 0.0309(7) 0.0084(6) 0.0152(8) 0.0075(8)
+C2 0.0278(15) 0.0338(8) 0.0336(8) 0.0127(7) 0.0156(9) 0.0117(10)
+N3 0.0276(12) 0.0366(7) 0.0289(6) 0.0105(6) 0.0128(7) 0.0112(8)
+C4 0.0292(15) 0.0364(9) 0.0369(9) 0.0111(7) 0.0121(9) 0.0139(10)
+C5 0.0332(16) 0.0373(9) 0.0327(8) 0.0125(7) 0.0099(9) 0.0118(10)
+C6 0.0508(18) 0.0312(9) 0.0373(9) 0.0022(7) 0.0235(11) 0.0069(11)
+C7 0.0413(17) 0.0360(9) 0.0286(8) 0.0052(7) 0.0177(10) 0.0108(10)
+C8 0.0379(17) 0.0494(11) 0.0313(8) 0.0090(8) 0.0157(10) 0.0186(11)
+C9 0.0325(18) 0.0554(13) 0.0500(12) 0.0048(10) 0.0204(12) 0.0069(13)
+C10 0.0536(18) 0.0574(12) 0.0299(8) 0.0126(8) 0.0193(10) 0.0232(13)
+loop_
+_geom_bond_atom_site_label_1
+_geom_bond_atom_site_label_2
+_geom_bond_distance
+_geom_bond_site_symmetry_2
+_geom_bond_publ_flag
+P1 F1 1.5797(15) . ?
+P1 F6 1.5916(16) . ?
+P1 F4 1.5950(16) . ?
+P1 F2 1.5993(18) . ?
+P1 F5 1.6015(17) . ?
+P1 F3 1.6016(15) . ?
+N1 C2 1.327(2) . ?
+N1 C5 1.376(2) . ?
+N1 C6 1.472(2) . ?
+C2 N3 1.327(2) . ?
+N3 C4 1.375(2) . ?
+N3 C10 1.469(2) . ?
+C4 C5 1.346(3) . ?
+C6 C7 1.522(3) . ?
+C7 C8 1.507(3) . ?
+C8 C9 1.528(3) . ?
+
