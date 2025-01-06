@@ -18,6 +18,7 @@ from molgeom.utils.decorators import args_to_list, args_to_set
 from molgeom.utils.lattice_utils import cart2frac, frac2cart, lat_vecs_to_lat_params
 from molgeom.utils.symmetry_utils import symmop_from_xyz_str
 from molgeom.utils.polar import xyz_to_pol
+from molgeom.parsers.parser_selector import read_file
 from molgeom.atom import Atom
 
 
@@ -257,6 +258,14 @@ class Molecule:
         atoms = [Atom(symbol, *coord) for symbol, coord in zip(symbols, coords)]
         return cls(*atoms)
 
+    @classmethod
+    def from_file(cls, filepath: str) -> Molecule:
+        """
+        Create a new molecule from a file.
+        auto-detects file format (*.xyz, *.com, *.gjf, *.inp, *.cif, *POSCAR*)
+        """
+        return read_file(filepath)
+
     def add_atom(self, new_atom: Atom) -> None:
         """
         Add an atom to the molecule.
@@ -362,7 +371,7 @@ class Molecule:
         )
         return formula
 
-    def get_frac_coords(self, wrap=False) -> np.ndarray:
+    def get_frac_coords(self, wrap: bool = False) -> np.ndarray:
         if self.lattice_vecs is None:
             raise ValueError("Lattice vectors must be set to bound the molecule.")
 
@@ -762,7 +771,9 @@ class Molecule:
                 )
         print(f"File written to {filepath}")
 
-    def write_to_poscar(self, filepath: str, frac: bool = True) -> None:
+    def write_to_poscar(
+        self, filepath: str, frac: bool = True, wrap: bool = False
+    ) -> None:
         with open(filepath, "w") as f:
             f.write(f"{self.get_formula()}\n")
             f.write("1.0\n")
@@ -775,7 +786,9 @@ class Molecule:
             f.write(
                 f"{self.lattice_vecs[2][0]:19.12f} {self.lattice_vecs[2][1]:19.12f} {self.lattice_vecs[2][2]:19.12f}\n"
             )
-            unique_symbols = np.unique(self.symbols)
+            self.sort()
+            _, idx = np.unique(self.symbols, return_index=True)
+            unique_symbols = self.symbols[np.sort(idx)]
             f.write(" ".join(unique_symbols) + "\n")
             symbol_count = {
                 symbol: np.sum(self.symbols == symbol) for symbol in unique_symbols
@@ -785,7 +798,7 @@ class Molecule:
             )
             if frac:
                 f.write("Direct\n")
-                coords = self.get_frac_coords(wrap=False)
+                coords = self.get_frac_coords(wrap=wrap)
             else:
                 f.write("Cartesian\n")
                 coords = self.coords
@@ -793,7 +806,7 @@ class Molecule:
                 f.write(f"{coord[0]:19.12f} {coord[1]:19.12f} {coord[2]:19.12f}\n")
         print(f"File written to {filepath}")
 
-    def write_to_cif(self, filepath: str) -> None:
+    def write_to_cif(self, filepath: str, wrap: bool = False) -> None:
         with open(filepath, "w") as f:
             f.write("data_molecule\n")
             f.write("########################\n")
@@ -818,7 +831,7 @@ class Molecule:
             f.write("_atom_site_fract_x\n")
             f.write("_atom_site_fract_y\n")
             f.write("_atom_site_fract_z\n")
-            frac_coords = self.get_frac_coords(wrap=False)
+            frac_coords = self.get_frac_coords(wrap=wrap)
             for i in range(len(self)):
                 f.write(
                     f"{i+1:3d} {self[i].symbol:2s} {frac_coords[i][0]:19.12f} {frac_coords[i][1]:19.12f} {frac_coords[i][2]:19.12f}\n"

@@ -44,7 +44,7 @@ def wrap_frac_coords(frac_coords: np.ndarray) -> np.ndarray:
 
 
 def cart2frac(
-    cart_coords: ArrayLike, lattice_vecs: ArrayLike, wrap: bool = True
+    cart_coords: ArrayLike, lattice_vecs: ArrayLike, wrap: bool = False
 ) -> np.ndarray:
     cart_coords = np.asarray(cart_coords)
     lattice_vecs = np.asarray(lattice_vecs)
