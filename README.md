@@ -51,7 +51,7 @@ The minimum Python version required is 3.9 for the main branch.
 - Additional features and improvements.
 
 ## 🔗 Links
-- [GitHub Repository](https://github.com/sio-salt/molgeom/tree/main)
-- [Numpyfy Branch](https://github.com/sio-salt/molgeom/tree/numpyfy)
-- [Example Repository](https://github.com/sio-salt/molgeom-examples/tree/main)
-- [Binder Link](https://mybinder.org/v2/gh/sio-salt/molgeom-examples/main?urlpath=lab/tree/notebooks/tutorial1.ipynb)
+- [main branch](https://github.com/sio-salt/molgeom/tree/main)
+- [numpyfy branch](https://github.com/sio-salt/molgeom/tree/numpyfy)
+- [molgeom examples repo](https://github.com/sio-salt/molgeom-examples/tree/main)
+- [molgeom examples Binder](https://mybinder.org/v2/gh/sio-salt/molgeom-examples/main?urlpath=lab/tree/notebooks/tutorial1.ipynb)
