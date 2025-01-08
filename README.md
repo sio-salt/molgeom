@@ -2,6 +2,8 @@
 A Simple Python library for molecular geometry manipulation.
 
 
+> **Note**: `molgeom` is under active development. The implemented features and method names may change in future updates. Please check the repository regularly for the latest information.
+
 ## ✨ Key Features
 - Read and write molecular geometries:
   - Formats supported: XYZ, Gaussian input, GAMESS input, CIF, POSCAR.
@@ -20,8 +22,6 @@ A Simple Python library for molecular geometry manipulation.
 
 
 ## 🚀 Getting Started
-
-> **Note**: `molgeom` is under active development. The implemented features and method names may change in future updates. Please check the repository regularly for the latest information.
 
 You can try out example of `molgeom` in Jupyter Notebook:  
 👉 [**Try Example Code in Jupyter Notebook**](https://mybinder.org/v2/gh/sio-salt/molgeom-examples/main?urlpath=lab/tree/notebooks/tutorial1.ipynb)
