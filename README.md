@@ -24,7 +24,7 @@ A Simple Python library for molecular geometry manipulation.
 > **Note**: `molgeom` is under active development. The implemented features and method names may change in future updates. Please check the repository regularly for the latest information.
 
 You can try out example of `molgeom` in Jupyter Notebook:  
-👉 [**Try Example Code in Jupyter Notebook**](https://mybinder.org/v2/gh/sio-salt/molgeom-examples/v0.2.2-main?urlpath=lab/tree/notebooks/tutorial1.ipynb&urlpath=lab/tree/notebooks/tutorial2.ipynb)
+👉 [**Try Example Code in Jupyter Notebook**](https://mybinder.org/v2/gh/sio-salt/molgeom-examples/main?urlpath=lab/tree/notebooks/tutorial1.ipynb)
 
 For a version with NumPy, see the [**numpyfy branch**](https://github.com/sio-salt/molgeom/tree/numpyfy).  
 
@@ -54,4 +54,4 @@ The minimum Python version required is 3.9 for the main branch.
 - [GitHub Repository](https://github.com/sio-salt/molgeom/tree/main)
 - [Numpyfy Branch](https://github.com/sio-salt/molgeom/tree/numpyfy)
 - [Example Repository](https://github.com/sio-salt/molgeom-examples/tree/main)
-- [Binder Link](https://mybinder.org/v2/gh/sio-salt/molgeom-examples/v0.2.2-main?urlpath=lab/tree/notebooks/tutorial1.ipynb&urlpath=lab/tree/notebooks/tutorial2.ipynb)
+- [Binder Link](https://mybinder.org/v2/gh/sio-salt/molgeom-examples/main?urlpath=lab/tree/notebooks/tutorial1.ipynb)
