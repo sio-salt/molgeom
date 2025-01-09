@@ -1,0 +1,52 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>3Dmol.js Interactive Viewer</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/3Dmol/2.4.2/3Dmol-min.js"></script>
+</head>
+<body>
+    <div>
+        <label for="step-slider">Step:</label>
+        <input id="step-slider" type="range" min="1" max="10" value="1" step="1" 
+               oninput="updateViewer()" style="width: 300px;">
+        <label id="step-label">1</label>
+    </div>
+    <div>
+        <label for="style-dropdown">Style:</label>
+        <select id="style-dropdown" onchange="updateViewer()">
+            <option value="ball and stick" selected>Ball and Stick</option>
+            <option value="stick">Stick</option>
+            <option value="sphere">Sphere</option>
+        </select>
+    </div>
+    <div id="3dmolviewer"  style="position: relative; width: 800px; height: 400px;">
+    </div>
+    <script>
+        var xyzData = ['3\ncomment line\nO       0.000000000000      0.000000000000      0.127164000000\nH       0.000000000000      0.758137000000     -0.508657000000\nH       0.000000000000     -0.758137000000     -0.508657000000', '3\ncomment line\nO       0.200000000000      0.000000000000      0.127164000000\nH       0.000000000000      0.758137000000     -0.508657000000\nH       0.000000000000     -0.758137000000     -0.508657000000', '3\ncomment line\nO       0.400000000000      0.000000000000      0.127164000000\nH       0.000000000000      0.758137000000     -0.508657000000\nH       0.000000000000     -0.758137000000     -0.508657000000', '3\ncomment line\nO       0.600000000000      0.000000000000      0.127164000000\nH       0.000000000000      0.758137000000     -0.508657000000\nH       0.000000000000     -0.758137000000     -0.508657000000', '3\ncomment line\nO       0.800000000000      0.000000000000      0.127164000000\nH       0.000000000000      0.758137000000     -0.508657000000\nH       0.000000000000     -0.758137000000     -0.508657000000', '3\ncomment line\nO       1.000000000000      0.000000000000      0.127164000000\nH       0.000000000000      0.758137000000     -0.508657000000\nH       0.000000000000     -0.758137000000     -0.508657000000', '3\ncomment line\nO       1.200000000000      0.000000000000      0.127164000000\nH       0.000000000000      0.758137000000     -0.508657000000\nH       0.000000000000     -0.758137000000     -0.508657000000', '3\ncomment line\nO       1.400000000000      0.000000000000      0.127164000000\nH       0.000000000000      0.758137000000     -0.508657000000\nH       0.000000000000     -0.758137000000     -0.508657000000', '3\ncomment line\nO       1.600000000000      0.000000000000      0.127164000000\nH       0.000000000000      0.758137000000     -0.508657000000\nH       0.000000000000     -0.758137000000     -0.508657000000', '3\ncomment line\nO       1.800000000000      0.000000000000      0.127164000000\nH       0.000000000000      0.758137000000     -0.508657000000\nH       0.000000000000     -0.758137000000     -0.508657000000'];
+        var viewer = $3Dmol.createViewer(document.getElementById("3dmolviewer"), { backgroundColor: "white" });
+
+        function updateViewer() {
+            var step = document.getElementById("step-slider").value;
+            var style = document.getElementById("style-dropdown").value;
+            document.getElementById("step-label").innerText = step;
+
+            viewer.removeAllModels();
+            viewer.addModel(xyzData[step - 1], "xyz");
+            if (style === "ball and stick") {
+                viewer.setStyle({"stick": {"radius": 0.1}, "sphere": {"radius": 0.3}});
+            } else if (style === "stick") {
+                viewer.setStyle({"stick": {}});
+            } else if (style === "sphere") {
+                viewer.setStyle({"sphere": {}});
+            }
+            viewer.zoomTo();
+            viewer.render();
+        }
+
+        // Initialize the viewer with the first structure
+        updateViewer();
+    </script>
+</body>
+</html>
+    

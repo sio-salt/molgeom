@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import copy
+from pathlib import Path
 from collections.abc import Iterable
 
 from cachetools import cachedmethod, LRUCache
@@ -158,7 +159,7 @@ class Molecule:
         return cls(*atoms)
 
     @classmethod
-    def from_file(cls, filepath: str) -> Molecule:
+    def from_file(cls, filepath: str | Path) -> Molecule:
         """
         Create a new molecule from a file.
         auto-detects file format (*.xyz, *.com, *.gjf, *.inp, *.cif, *POSCAR*)
