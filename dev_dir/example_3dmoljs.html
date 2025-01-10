@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>3D Molecule Viewer</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/3Dmol/2.4.2/3Dmol-min.js"></script>
+    <style>
+        .container {
+            display: flex;
+            flex-direction: column;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+        }
+
+        .viewer {
+            width: 100%;
+            height: 400px;
+            position: relative;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .controls {
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding: 15px;
+            background: #f5f5f5;
+            border-radius: 8px;
+        }
+
+        .control-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        select,
+        input {
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            margin: 0 5px;
+        }
+
+        label {
+            font-weight: bold;
+        }
+
+        #molLabel {
+            font-family: monospace;
+            min-width: 7ch;
+            display: inline-block;
+            text-align: right;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 5px;
+            margin-left: 10px;
+        }
+
+        .nav-button {
+            padding: 5px 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            background: white;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .nav-button:hover {
+            background: #e0e0e0;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="controls">
+            <div class="control-row">
+                <label for="molSlider">Molecule:</label>
+                <input type="range" id="molSlider" min="0" value="0" step="1" style="width: 200px;">
+                <span id="molLabel"></span>
+                <div class="nav-buttons">
+                    <button class="nav-button" id="prevMol">←</button>
+                    <button class="nav-button" id="nextMol">→</button>
+                </div>
+            </div>
+            <div class="control-row">
+                <label for="styleSelect">Style:</label>
+                <select id="styleSelect">
+                    <option value="ball and stick">Ball and Stick</option>
+                    <option value="stick">Stick</option>
+                    <option value="sphere">Sphere</option>
+                    <option value="line">Line</option>
+                </select>
+            </div>
+        </div>
+        <div id="viewer" class="viewer"></div>
+    </div>
+
+    <script>
+        // Sample water molecules in XYZ format at different geometric configurations
+        const molecules = [
+            `3
+H2-O
+O       0.000000000000      0.000000000000      0.127164000000
+H       0.000000000000      0.758137000000     -0.508657000000
+H       0.000000000000     -0.758137000000     -0.508657000000`,
+
+            `3
+H2-O
+O       0.000000000000     -0.022081796865      0.125232093104
+H       0.000000000000      0.834946556553     -0.369280248752
+H       0.000000000000     -0.658291834338     -0.632578465696`,
+
+            `3
+H2-O
+O       0.000000000000     -0.043492649506      0.119495072430
+H       0.000000000000      0.886386684488     -0.218683104011
+H       0.000000000000     -0.538444804401     -0.737279354812`,
+
+            `3
+H2-O
+O       0.000000000000     -0.063582000000      0.110127254447
+H       0.000000000000      0.910894401549     -0.061441383813
+H       0.000000000000     -0.402237401549     -0.819578383813`,
+
+            `3
+H2-O
+O       0.000000000000     -0.081739443598      0.097413275565
+H       0.000000000000      0.907725053153      0.097667201741
+H       0.000000000000     -0.253808218793     -0.876974938348`,
+
+            `3
+H2-O
+O       0.000000000000     -0.097413275565      0.081739443598
+H       0.000000000000      0.876974938348      0.253808218793
+H       0.000000000000     -0.097667201741     -0.907725053153`,
+
+            `3
+H2-O
+O       0.000000000000     -0.110127254447      0.063582000000
+H       0.000000000000      0.819578383813      0.402237401549
+H       0.000000000000      0.061441383813     -0.910894401549`,
+
+            `3
+H2-O
+O       0.000000000000     -0.119495072430      0.043492649506
+H       0.000000000000      0.737279354812      0.538444804401
+H       0.000000000000      0.218683104011     -0.886386684488`,
+
+            `3
+H2-O
+O       0.000000000000     -0.125232093104      0.022081796865
+H       0.000000000000      0.632578465696      0.658291834338
+H       0.000000000000      0.369280248752     -0.834946556553`,
+
+            `3
+H2-O
+O       0.000000000000     -0.127164000000      0.000000000000
+H       0.000000000000      0.508657000000      0.758137000000
+H       0.000000000000      0.508657000000     -0.758137000000`,
+
+            `3
+H2-O
+O       0.000000000000     -0.125232093104     -0.022081796865
+H       0.000000000000      0.369280248752      0.834946556553
+H       0.000000000000      0.632578465696     -0.658291834338`,
+
+            `3
+H2-O
+O       0.000000000000     -0.119495072430     -0.043492649506
+H       0.000000000000      0.218683104011      0.886386684488
+H       0.000000000000      0.737279354812     -0.538444804401`,
+
+            `3
+H2-O
+O       0.000000000000     -0.110127254447     -0.063582000000
+H       0.000000000000      0.061441383813      0.910894401549
+H       0.000000000000      0.819578383813     -0.402237401549`,
+
+            `3
+H2-O
+O       0.000000000000     -0.097413275565     -0.081739443598
+H       0.000000000000     -0.097667201741      0.907725053153
+H       0.000000000000      0.876974938348     -0.253808218793`,
+
+            `3
+H2-O
+O       0.000000000000     -0.081739443598     -0.097413275565
+H       0.000000000000     -0.253808218793      0.876974938348
+H       0.000000000000      0.907725053153     -0.097667201741`,
+
+            `3
+H2-O
+O       0.000000000000     -0.063582000000     -0.110127254447
+H       0.000000000000     -0.402237401549      0.819578383813
+H       0.000000000000      0.910894401549      0.061441383813`,
+
+            `3
+H2-O
+O       0.000000000000     -0.043492649506     -0.119495072430
+H       0.000000000000     -0.538444804401      0.737279354812
+H       0.000000000000      0.886386684488      0.218683104011`,
+
+            `3
+H2-O
+O       0.000000000000     -0.022081796865     -0.125232093104
+H       0.000000000000     -0.658291834338      0.632578465696
+H       0.000000000000      0.834946556553      0.369280248752`,
+
+            `3
+H2-O
+O       0.000000000000     -0.000000000000     -0.127164000000
+H       0.000000000000     -0.758137000000      0.508657000000
+H       0.000000000000      0.758137000000      0.508657000000`,
+
+            `3
+H2-O
+O       0.000000000000      0.022081796865     -0.125232093104
+H       0.000000000000     -0.834946556553      0.369280248752
+H       0.000000000000      0.658291834338      0.632578465696`,
+
+            `3
+H2-O
+O       0.000000000000      0.043492649506     -0.119495072430
+H       0.000000000000     -0.886386684488      0.218683104011
+H       0.000000000000      0.538444804401      0.737279354812`,
+
+            `3
+H2-O
+O       0.000000000000      0.063582000000     -0.110127254447
+H       0.000000000000     -0.910894401549      0.061441383813
+H       0.000000000000      0.402237401549      0.819578383813`,
+
+            `3
+H2-O
+O       0.000000000000      0.081739443598     -0.097413275565
+H       0.000000000000     -0.907725053153     -0.097667201741
+H       0.000000000000      0.253808218793      0.876974938348`,
+
+            `3
+H2-O
+O       0.000000000000      0.097413275565     -0.081739443598
+H       0.000000000000     -0.876974938348     -0.253808218793
+H       0.000000000000      0.097667201741      0.907725053153`,
+
+            `3
+H2-O
+O       0.000000000000      0.110127254447     -0.063582000000
+H       0.000000000000     -0.819578383813     -0.402237401549
+H       0.000000000000     -0.061441383813      0.910894401549`,
+
+            `3
+H2-O
+O       0.000000000000      0.119495072430     -0.043492649506
+H       0.000000000000     -0.737279354812     -0.538444804401
+H       0.000000000000     -0.218683104011      0.886386684488`,
+
+            `3
+H2-O
+O       0.000000000000      0.125232093104     -0.022081796865
+H       0.000000000000     -0.632578465696     -0.658291834338
+H       0.000000000000     -0.369280248752      0.834946556553`,
+
+            `3
+H2-O
+O       0.000000000000      0.127164000000     -0.000000000000
+H       0.000000000000     -0.508657000000     -0.758137000000
+H       0.000000000000     -0.508657000000      0.758137000000`,
+
+            `3
+H2-O
+O       0.000000000000      0.125232093104      0.022081796865
+H       0.000000000000     -0.369280248752     -0.834946556553
+H       0.000000000000     -0.632578465696      0.658291834338`,
+
+            `3
+H2-O
+O       0.000000000000      0.119495072430      0.043492649506
+H       0.000000000000     -0.218683104011     -0.886386684488
+H       0.000000000000     -0.737279354812      0.538444804401`,
+
+            `3
+H2-O
+O       0.000000000000      0.110127254447      0.063582000000
+H       0.000000000000     -0.061441383813     -0.910894401549
+H       0.000000000000     -0.819578383813      0.402237401549`,
+
+            `3
+H2-O
+O       0.000000000000      0.097413275565      0.081739443598
+H       0.000000000000      0.097667201741     -0.907725053153
+H       0.000000000000     -0.876974938348      0.253808218793`,
+
+            `3
+H2-O
+O       0.000000000000      0.081739443598      0.097413275565
+H       0.000000000000      0.253808218793     -0.876974938348
+H       0.000000000000     -0.907725053153      0.097667201741`,
+
+            `3
+H2-O
+O       0.000000000000      0.063582000000      0.110127254447
+H       0.000000000000      0.402237401549     -0.819578383813
+H       0.000000000000     -0.910894401549     -0.061441383813`,
+
+            `3
+H2-O
+O       0.000000000000      0.043492649506      0.119495072430
+H       0.000000000000      0.538444804401     -0.737279354812
+H       0.000000000000     -0.886386684488     -0.218683104011`,
+
+            `3
+H2-O
+O       0.000000000000      0.022081796865      0.125232093104
+H       0.000000000000      0.658291834338     -0.632578465696
+H       0.000000000000     -0.834946556553     -0.36928024875`
+        ];
+
+
+        // Initialize viewer and controls
+        const viewer = $3Dmol.createViewer("viewer", { backgroundColor: "white" });
+        const molSlider = document.getElementById('molSlider');
+        const styleSelect = document.getElementById('styleSelect');
+        const molLabel = document.getElementById('molLabel');
+
+        // Control timers and intervals
+        let repeatInterval = null;
+        let pressTimer = null;
+        const REPEAT_DELAY = 50;
+        const PRESS_DELAY = 500;
+
+        // Pre-load all molecule models
+        const moleculeModels = molecules.map(molString => {
+            const model = viewer.addModel(molString, "xyz");
+            model.setStyle({}, { stick: {}, sphere: { radius: 0.5 } });  // default style
+            return model;
+        });
+        viewer.render();
+
+        // Hide all models except the first one
+        moleculeModels.slice(1).forEach(model => model.hide());
+
+        function updateMolecule(index, style) {
+            // Hide current model
+            moleculeModels.forEach(model => model.hide());
+
+            // Show and update style for selected model
+            const model = moleculeModels[index];
+            model.show();
+
+            const styleConfig = style === "ball and stick"
+                ? { stick: {}, sphere: { radius: 0.5 } }
+                : { [style]: {} };
+
+            model.setStyle({}, styleConfig);
+            viewer.zoomTo();
+            viewer.render();
+            molLabel.textContent = `${index + 1}/${molecules.length}`;
+        }
+
+        function updateMoleculeView(index) {
+            index = Math.max(0, Math.min(index, molecules.length - 1));
+            molSlider.value = index;
+            updateMolecule(index, styleSelect.value);
+        }
+
+        function stopAutoRepeat() {
+            clearInterval(repeatInterval);
+            clearTimeout(pressTimer);
+            repeatInterval = pressTimer = null;
+        }
+
+        function handleButtonPress(direction, e) {
+            e.preventDefault();
+            stopAutoRepeat();
+
+            updateMoleculeView(parseInt(molSlider.value) + direction);
+
+            pressTimer = setTimeout(() => {
+                repeatInterval = setInterval(() => {
+                    updateMoleculeView(parseInt(molSlider.value) + direction);
+                }, REPEAT_DELAY);
+            }, PRESS_DELAY);
+        }
+
+        // Initialize
+        molSlider.max = molecules.length - 1;
+        updateMolecule(0, "ball and stick");
+
+        // Event listeners
+        molSlider.addEventListener('input', e =>
+            updateMoleculeView(parseInt(e.target.value)));
+
+        styleSelect.addEventListener('change', e =>
+            updateMolecule(parseInt(molSlider.value), e.target.value));
+
+        document.addEventListener('keydown', e => {
+            if (e.key === 'ArrowLeft') updateMoleculeView(parseInt(molSlider.value) - 1);
+            if (e.key === 'ArrowRight') updateMoleculeView(parseInt(molSlider.value) + 1);
+        });
+
+        ['prevMol', 'nextMol'].forEach((id, index) => {
+            const direction = index === 0 ? -1 : 1;
+            const button = document.getElementById(id);
+
+            button.addEventListener('mousedown', e => handleButtonPress(direction, e));
+            button.addEventListener('touchstart', e => handleButtonPress(direction, e));
+
+            ['mouseup', 'mouseleave', 'touchend', 'touchcancel'].forEach(event =>
+                button.addEventListener(event, e => {
+                    e.preventDefault();
+                    stopAutoRepeat();
+                })
+            );
+        });
+    </script>
+</body>
+
+</html>

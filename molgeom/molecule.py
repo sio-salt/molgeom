@@ -10,7 +10,7 @@ import networkx as nx
 
 from molgeom.data.consts import ANGST2BOHR_GAU16, ATOMIC_NUMBER
 from molgeom.utils.fancy_indexing_list import FancyIndexingList
-from molgeom.utils.vec3 import Vec3, mat_type
+from molgeom.utils.vec3 import Vec3, mat_type, vec_type
 from molgeom.utils.mat3 import Mat3, is_mat_type
 from molgeom.utils.decorators import args_to_list, args_to_set
 from molgeom.utils.lattice_utils import cart2frac, frac2cart, lat_vecs_to_lat_params
@@ -86,8 +86,7 @@ class Molecule:
         for atom in self.atoms:
             if not isinstance(atom, Atom):
                 raise TypeError(
-                    "Invalid element type: atom must be Atom object\n"
-                    + f"{type(atom)=}"
+                    "Invalid element type: atom must be Atom object\n" + f"{type(atom)=}"
                 )
             yield atom
 
@@ -119,9 +118,7 @@ class Molecule:
         Sort the atoms of the molecule.
         """
         if key is None:
-            self.atoms.sort(
-                key=lambda atom: (ATOMIC_NUMBER[atom.symbol], atom.x, atom.y, atom.z)
-            )
+            self.atoms.sort(key=lambda atom: (ATOMIC_NUMBER[atom.symbol], atom.x, atom.y, atom.z))
         else:
             self.atoms.sort(key=key)
 
@@ -131,9 +128,7 @@ class Molecule:
     def copy(self) -> Molecule:
         return copy.deepcopy(self)
 
-    def is_same_geom(
-        self, other: Molecule, rel_tol: float = 1e-5, abs_tol: float = 0.0
-    ) -> bool:
+    def is_same_geom(self, other: Molecule, rel_tol: float = 1e-5, abs_tol: float = 0.0) -> bool:
         sorted_self = Molecule.sorted(self)
         sorted_other = Molecule.sorted(other)
         return len(self) == len(other) and all(
@@ -165,6 +160,7 @@ class Molecule:
         auto-detects file format (*.xyz, *.com, *.gjf, *.inp, *.cif, *POSCAR*)
         """
         from molgeom.parsers.parser_selector import read_file
+
         return read_file(filepath)
 
     def add_atom(self, atom: Atom) -> None:
@@ -179,9 +175,7 @@ class Molecule:
             raise TypeError("atoms must be an Iterable of Atom objects")
         not_atoms = [atom for atom in atoms if not isinstance(atom, Atom)]
         if not_atoms:
-            raise TypeError(
-                "Invalid element type: atoms must be Atom objects " + f"{not_atoms=}"
-            )
+            raise TypeError("Invalid element type: atoms must be Atom objects " + f"{not_atoms=}")
         self.atoms.extend(atoms)
 
     def _get_geom_hash(self):
@@ -197,9 +191,7 @@ class Molecule:
 
         formula = "-".join(
             f"{symbol}{count}" if count > 1 else symbol
-            for symbol, count in sorted(
-                symbol_count.items(), key=lambda x: ATOMIC_NUMBER[x[0]]
-            )
+            for symbol, count in sorted(symbol_count.items(), key=lambda x: ATOMIC_NUMBER[x[0]])
         )
         return formula
 
@@ -210,9 +202,7 @@ class Molecule:
         if self.lattice_vecs is None:
             raise ValueError("Lattice vectors must be set to bound the molecule.")
 
-        return [
-            cart2frac(atom.to_Vec3(), self.lattice_vecs, wrap=wrap) for atom in self
-        ]
+        return [cart2frac(atom.to_Vec3(), self.lattice_vecs, wrap=wrap) for atom in self]
 
     @cachedmethod(
         lambda self: self._cache,
@@ -250,9 +240,7 @@ class Molecule:
         cycles = nx.simple_cycles(G, length_bound=length_bound)
         return [self[list(cycle)] for cycle in cycles]
 
-    def get_connected_cluster(
-        self, atom_idx: int, tol: float = default_tol
-    ) -> Molecule:
+    def get_connected_cluster(self, atom_idx: int, tol: float = default_tol) -> Molecule:
         G = nx.Graph()
         G.add_edges_from(bond["pair"] for bond in self.get_bonds(tol))
         return self[list(nx.node_connected_component(G, atom_idx))]
@@ -328,8 +316,8 @@ class Molecule:
 
     def rotate_by_axis(
         self,
-        axis_point1: Vec3,
-        axis_point2: Vec3,
+        axis_point1: vec_type,
+        axis_point2: vec_type,
         deg: float,
         with_lattice_vecs: bool = True,
     ) -> None:
@@ -355,14 +343,12 @@ class Molecule:
 
         if not all(isinstance(rep, list) for rep in (rep_a, rep_b, rep_c)):
             raise TypeError(
-                "Replication vectors must be of length 2 list\n"
-                + f"{(rep_a, rep_b, rep_c)=}"
+                "Replication vectors must be of length 2 list\n" + f"{(rep_a, rep_b, rep_c)=}"
             )
 
         if len(rep_a) != 2 or len(rep_b) != 2 or len(rep_c) != 2:
             raise ValueError(
-                "Replication vectors must be of length 2 list\n"
-                + f"{(rep_a, rep_b, rep_c)=}"
+                "Replication vectors must be of length 2 list\n" + f"{(rep_a, rep_b, rep_c)=}"
             )
 
         if rep_a[0] >= rep_a[1] or rep_b[0] >= rep_b[1] or rep_c[0] >= rep_c[1]:
@@ -502,11 +488,7 @@ class Molecule:
             for j in range(i + 1, len(self.atoms)):
                 dist_angst = self.atoms[i].distance_to(self.atoms[j])
                 dist_bohr = dist_angst * ANGST2BOHR_GAU16
-                nuclrep += (
-                    self.atoms[i].atomic_number
-                    * self.atoms[j].atomic_number
-                    / dist_bohr
-                )
+                nuclrep += self.atoms[i].atomic_number * self.atoms[j].atomic_number / dist_bohr
         return nuclrep
 
     def nuclrep(self) -> float:
@@ -560,9 +542,7 @@ class Molecule:
             f.write(self.to_xyz() + "\n")
             if self.lattice_vecs is not None:
                 for vec in self.lattice_vecs:
-                    f.write(
-                        f"{'Tv':2s} {vec[0]:19.12f} {vec[1]:19.12f} {vec[2]:19.12f}\n"
-                    )
+                    f.write(f"{'Tv':2s} {vec[0]:19.12f} {vec[1]:19.12f} {vec[2]:19.12f}\n")
             if tail is not None:
                 f.write(tail)
         print(f"File written to {filepath}")
@@ -578,9 +558,7 @@ class Molecule:
                 )
         print(f"File written to {filepath}")
 
-    def write_to_poscar(
-        self, filepath: str, frac: bool = True, wrap: bool = False
-    ) -> None:
+    def write_to_poscar(self, filepath: str, frac: bool = True, wrap: bool = False) -> None:
         with open(filepath, "w") as f:
             f.write(f"{self.get_formula()}\n")
             f.write("1.0\n")
@@ -599,9 +577,7 @@ class Molecule:
             symbol_count = dict()
             for symbol in unique_symbols:
                 symbol_count[symbol] = sum(atom.symbol == symbol for atom in self)
-            f.write(
-                " ".join(str(symbol_count[symbol]) for symbol in unique_symbols) + "\n"
-            )
+            f.write(" ".join(str(symbol_count[symbol]) for symbol in unique_symbols) + "\n")
             if frac:
                 f.write("Direct\n")
                 coords = self.get_frac_coords(wrap=wrap)
