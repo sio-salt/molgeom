@@ -721,18 +721,20 @@ class Molecule:
 
         print(f"File written to {filepath}")
 
-    def show(self, cleanup: bool = True) -> None:
+    def show(self, cleanup: bool = True, prefer_notebook: bool = True) -> None:
         """
         View molecular geometry using 3Dmol.js in a browser.
         args:
             cleanup: bool
                 If True, removes temporary files after viewing (default: True)
+            prefer_notebook: bool
+                If True, opens in Jupyter notebook if available (default: True)
         """
         xyz_data = f"{len(self)}\n{str(self)}\n{self.to_xyz()}"
-        view_mol(xyz_mol_data=xyz_data, cleanup=cleanup)
+        view_mol(xyz_mol_data=xyz_data, cleanup=cleanup, prefer_notebook=prefer_notebook)
 
     @staticmethod
-    def show(mols: list[Molecule], cleanup: bool = True) -> None:
+    def show(mols: list[Molecule], cleanup: bool = True, prefer_notebook: bool = True) -> None:
         """
         View multiple molecular geometries using 3Dmol.js in a browser.
         args:
@@ -740,6 +742,8 @@ class Molecule:
                 List of Molecule objects to view
             cleanup: bool
                 If True, removes temporary files after viewing (default: True)
+            prefer_notebook: bool
+                If True, opens in Jupyter notebook if available (default: True)
         """
         xyz_data = "\n".join([f"{len(mol)}\n{str(mol)}\n{mol.to_xyz()}" for mol in mols])
-        view_mol(xyz_mol_data=xyz_data, cleanup=cleanup)
+        view_mol(xyz_mol_data=xyz_data, cleanup=cleanup, prefer_notebook=prefer_notebook)

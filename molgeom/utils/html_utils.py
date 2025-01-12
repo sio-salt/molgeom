@@ -9,6 +9,23 @@ from string import Template
 from importlib.resources import files
 
 
+def is_jupyter_notebook():
+    """
+    Check if the current Python environment is running in a Jupyter Notebook.
+
+    Returns:
+        bool: True if running in Jupyter Notebook, otherwise False.
+    """
+    try:
+        from IPython import get_ipython
+
+        if "IPKernelApp" in get_ipython().config:
+            return True
+    except (ImportError, AttributeError):
+        pass
+    return False
+
+
 def is_wsl():
     return "microsoft" in platform.uname().release.lower()
 
@@ -92,16 +109,30 @@ def open_html_in_browser(html_str: str, cleanup: bool = True) -> None:
         shutil.rmtree(tmp_dir)
 
 
-def view_mol(xyz_mol_data: str, cleanup: bool = True) -> None:
+def view_mol(xyz_mol_data: str, cleanup: bool = True, prefer_notebook: bool = True) -> None:
     """
     View molecular geometry using 3Dmol.js in a browser.
     args:
         xyz_mol_data: str
             XYZ-format molecular geometry data. can contain multiple molecules.
+        cleanup: bool
+            If True, removes temporary file after opening (default: True)
+        prefer_notebook: bool
+            If True, tries to display in Jupyter Notebook if available (default: True)
     """
 
+    display_in_notebook = prefer_notebook and is_jupyter_notebook()
     html_str = gen_mol_view_html(xyz_mol_data)
-    open_html_in_browser(html_str=html_str, cleanup=cleanup)
+
+    if display_in_notebook:
+        try:
+            from IPython.display import display, HTML
+
+            display(HTML(html_str))
+        except (ImportError, ModuleNotFoundError):
+            print("Failed to import and display in Jupyter Notebook.")
+    else:
+        open_html_in_browser(html_str, cleanup)
 
 
 def test_view_mol():
