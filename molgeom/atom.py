@@ -11,7 +11,7 @@ import yaml
 from molgeom.utils.vec3 import Vec3, mat_type
 from molgeom.utils.mat3 import Mat3, is_mat_type
 from molgeom.utils.lattice_utils import cart2frac
-from molgeom.data.consts import ATOMIC_NUMBER
+from molgeom.data.consts import ATOMIC_NUMBERS
 
 _pt_data = None
 _bond_pair_data = None
@@ -56,7 +56,7 @@ def _load_bond_pair_data():
 class Atom(Vec3):
     def __init__(self, symbol: str, x: float, y: float, z: float) -> None:
         super().__init__(x, y, z)
-        if symbol not in ATOMIC_NUMBER:
+        if symbol not in ATOMIC_NUMBERS:
             raise ValueError(f"Invalid atomic symbol: {symbol}")
         self.symbol: str = symbol
         self._atomic_data, self._std_bond_rad = self.get_atomic_data(self.symbol)
@@ -98,9 +98,7 @@ class Atom(Vec3):
             return self.mass < other.mass
 
     def __str__(self) -> str:
-        return (
-            f"Atom({self.symbol:2s}, {self.x:19.12f}, {self.y:19.12f}, {self.z:19.12f})"
-        )
+        return f"Atom({self.symbol:2s}, {self.x:19.12f}, {self.y:19.12f}, {self.z:19.12f})"
 
     def __repr__(self) -> str:
         return f"Atom({self.symbol!r}, {self.x:.12f}, {self.y:.12f}, {self.z:.12f})"
@@ -145,9 +143,7 @@ class Atom(Vec3):
         dist_angst = self.distance_to(other)
         _bond_pair_data = _load_bond_pair_data()
         estimated_bond_len = self._std_bond_rad + other._std_bond_rad
-        std_bond_lens = _bond_pair_data.get(self.symbol, {}).get(
-            other.symbol, [estimated_bond_len]
-        )
+        std_bond_lens = _bond_pair_data.get(self.symbol, {}).get(other.symbol, [estimated_bond_len])
 
         # if lower_bound is not None and upper_bound is not None:
         #     for std_bond_len in std_bond_lens:

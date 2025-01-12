@@ -2,14 +2,15 @@
 <html>
 
 <head>
-    <title>3D Molecule Viewer</title>
+    <title>3D Molecule Viewer with Atom Labels</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/3Dmol/2.4.2/3Dmol-min.js"></script>
     <style>
+        /* 既存のスタイルはそのまま */
         .container {
             display: flex;
             flex-direction: column;
-            max-width: 800px;
+            max-width: 900px;
             margin: 0 auto;
             padding: 20px;
             font-family: Arial, sans-serif;
@@ -17,7 +18,7 @@
 
         .viewer {
             width: 100%;
-            height: 400px;
+            height: 500px;
             position: relative;
             box-sizing: border-box;
             border: 1px solid rgba(0, 0, 0, 0.15);
@@ -31,7 +32,7 @@
             margin-top: 20px;
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 15px;
             padding: 15px;
             background: #f5f5f5;
             border-radius: 8px;
@@ -41,6 +42,7 @@
             display: flex;
             align-items: center;
             gap: 10px;
+            flex-wrap: wrap;
         }
 
         select,
@@ -122,7 +124,6 @@
     </div>
 
     <script>
-        // Sample water molecules in XYZ format at different geometric configurations
         const molecules = [
             `3
 H2-O
@@ -341,136 +342,89 @@ H       0.000000000000      0.658291834338     -0.632578465696
 H       0.000000000000     -0.834946556553     -0.36928024875`
         ];
 
-        const atomicNumbers = {
-            "H": 1, "He": 2, "Li": 3, "Be": 4, "B": 5, "C": 6,
-            "N": 7, "O": 8, "F": 9, "Ne": 10, "Na": 11, "Mg": 12,
-            "Al": 13, "Si": 14, "P": 15, "S": 16, "Cl": 17, "Ar": 18,
-            "K": 19, "Ca": 20, "Sc": 21, "Ti": 22, "V": 23, "Cr": 24,
-            "Mn": 25, "Fe": 26, "Co": 27, "Ni": 28, "Cu": 29, "Zn": 30,
-            "Ga": 31, "Ge": 32, "As": 33, "Se": 34, "Br": 35, "Kr": 36,
-            "Rb": 37, "Sr": 38, "Y": 39, "Zr": 40, "Nb": 41, "Mo": 42,
-            "Tc": 43, "Ru": 44, "Rh": 45, "Pd": 46, "Ag": 47, "Cd": 48,
-            "In": 49, "Sn": 50, "Sb": 51, "Te": 52, "I": 53, "Xe": 54,
-            "Cs": 55, "Ba": 56, "La": 57, "Ce": 58, "Pr": 59, "Nd": 60,
-            "Pm": 61, "Sm": 62, "Eu": 63, "Gd": 64, "Tb": 65, "Dy": 66,
-            "Ho": 67, "Er": 68, "Tm": 69, "Yb": 70, "Lu": 71, "Hf": 72,
-            "Ta": 73, "W" : 74, "Re": 75, "Os": 76, "Ir": 77, "Pt": 78,
-            "Au": 79, "Hg": 80, "Tl": 81, "Pb": 82
-        }
 
+        // 原子番号のマッピングを追加
+        const atomicNumbers = {
+            "H": 1,
+            "He": 2,
+            "Li": 3,
+            "Be": 4,
+            "B": 5,
+            "C": 6,
+            "N": 7,
+            "O": 8,
+            "F": 9,
+            "Ne": 10
+        };
+
+        // ラベルをクリアする関数
         function clearAllLabels() {
             viewer.removeAllLabels();
         }
 
-        function addLabels(model, styleOption) {
-            if (styleOption === "none") return;
-        
+        // ラベルを追加する関数
+        function addLabels(model, option) {
+            if (option === "none") return;
+
             const atoms = model.selectedAtoms({});
+            atoms.forEach(atom => {
+                let text = '';
+                if (option === "number") {
+                    text = atomicNumbers[atom.elem] || '';
+                } else if (option === "symbol") {
+                    text = atom.elem;
+                } else if (option === "number_and_symbol") {
+                    const atomicNum = atomicNumbers[atom.elem] || '';
+                    text = `${atomicNum} ${atom.elem}`;
+                }
+
+                if (text) {
+                    viewer.addLabel(text, {
+                        position: { x: atom.x, y: atom.y, z: atom.z },
+                        fontSize: 12,
+                        backgroundColor: "white",
+                        fontColor: "black",
+                        showBackground: true,
+                        alignment: "center"
+                    });
+                }
+            });
         }
 
-        // Initialize viewer and controls
-        const viewer = $3Dmol.createViewer("viewer", { backgroundColor: "white" });
-        const molSlider = document.getElementById('molSlider');
-        const styleSelect = document.getElementById('styleSelect');
-        const molLabel = document.getElementById('molLabel');
-
-        // Control timers and intervals
-        let repeatInterval = null;
-        let pressTimer = null;
-        const REPEAT_DELAY = 50;
-        const PRESS_DELAY = 500;
-
-        // Pre-load all molecule models
-        const moleculeModels = molecules.map(molString => {
-            const model = viewer.addModel(molString, "xyz");
-            model.setStyle({}, { stick: {}, sphere: {scale: 0.3} });
-            return model;
-        });
-        viewer.render();
-
-        // Hide all models except the first one
-        moleculeModels.slice(1).forEach(model => model.hide());
-
-        // Update background color
-        document.getElementById('bgColor').addEventListener('change', function (e) {
-            viewer.setBackgroundColor(e.target.value);
-            viewer.render();
-        });
-
-        // Update style function to include theme colors
+        // updateMolecule関数を修正
         function updateMolecule(index, style) {
+            index = (index + molecules.length) % molecules.length;
+            molSlider.value = index;
+
             moleculeModels.forEach(model => model.hide());
+
             const model = moleculeModels[index];
             model.show();
 
             const styleConfig = style === "ball and stick"
-                ? {
-                    stick: {},
-                    sphere: {scale: 0.3}
-                }
+                ? { stick: {}, sphere: { radius: 0.5 } }
                 : { [style]: {} };
-
             model.setStyle({}, styleConfig);
+
+            // ラベルをクリアして再追加
+            clearAllLabels();
+            const labelOption = labelSelect.value;
+            addLabels(model, labelOption);
+
             viewer.zoomTo();
             viewer.render();
+
             molLabel.textContent = `${index + 1}/${molecules.length}`;
         }
 
-        function updateMoleculeView(index) {
-            index = (index + molecules.length) % molecules.length;
-            molSlider.value = index;
-            updateMolecule(index, styleSelect.value);
-        }
+        // ラベルオプション変更のイベントリスナーを追加
+        labelSelect.addEventListener('change', function (e) {
+            updateMolecule(parseInt(molSlider.value), styleSelect.value);
+        });
 
-        function stopAutoRepeat() {
-            clearInterval(repeatInterval);
-            clearTimeout(pressTimer);
-            repeatInterval = pressTimer = null;
-        }
-
-        function handleButtonPress(direction, e) {
-            e.preventDefault();
-            stopAutoRepeat();
-
-            updateMoleculeView(parseInt(molSlider.value) + direction);
-
-            pressTimer = setTimeout(() => {
-                repeatInterval = setInterval(() => {
-                    updateMoleculeView(parseInt(molSlider.value) + direction);
-                }, REPEAT_DELAY);
-            }, PRESS_DELAY);
-        }
-
-        // Initialize
+        // 初期化
         molSlider.max = molecules.length - 1;
         updateMolecule(0, "ball and stick");
-
-        // Event listeners
-        molSlider.addEventListener('input', e =>
-            updateMoleculeView(parseInt(e.target.value)));
-
-        styleSelect.addEventListener('change', e =>
-            updateMolecule(parseInt(molSlider.value), e.target.value));
-
-        document.addEventListener('keydown', e => {
-            if (e.key === 'ArrowLeft') updateMoleculeView(parseInt(molSlider.value) - 1);
-            if (e.key === 'ArrowRight') updateMoleculeView(parseInt(molSlider.value) + 1);
-        });
-
-        ['prevMol', 'nextMol'].forEach((id, index) => {
-            const direction = index === 0 ? -1 : 1;
-            const button = document.getElementById(id);
-
-            button.addEventListener('mousedown', e => handleButtonPress(direction, e));
-            button.addEventListener('touchstart', e => handleButtonPress(direction, e));
-
-            ['mouseup', 'mouseleave', 'touchend', 'touchcancel'].forEach(event =>
-                button.addEventListener(event, e => {
-                    e.preventDefault();
-                    stopAutoRepeat();
-                })
-            );
-        });
     </script>
 </body>
 

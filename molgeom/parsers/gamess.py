@@ -1,5 +1,6 @@
 import sys
 import re
+from pathlib import Path
 from collections import deque
 
 from molgeom.atom import Atom
@@ -57,7 +58,8 @@ def from_gms_inp_str(content: str) -> Molecule:
 
 
 # GAMESS input file parser
-def gms_inp_parser(filepath: str) -> Molecule:
+def gms_inp_parser(filepath: str | Path) -> Molecule:
+    filepath = str(filepath)
     with open(filepath, "r") as file:
         content = file.read()
     return from_gms_inp_str(content)

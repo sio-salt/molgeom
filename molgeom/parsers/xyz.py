@@ -1,4 +1,5 @@
 import re
+from pathlib import Path
 
 from molgeom.atom import Atom
 from molgeom.molecule import Molecule
@@ -49,7 +50,8 @@ def from_xyz_str(content: str) -> Molecule:
     return mole
 
 
-def xyz_parser(filepath: str) -> Molecule:
+def xyz_parser(filepath: str | Path) -> Molecule:
+    filepath = str(filepath)
     with open(filepath, "r") as file:
         content = file.read()
     return from_xyz_str(content)
