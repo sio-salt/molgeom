@@ -1,9 +1,10 @@
 import subprocess
-from pathlib import Path
 import platform
 import tempfile
 import webbrowser
 import time
+import shutil
+from pathlib import Path
 from string import Template
 from importlib.resources import files
 
@@ -16,6 +17,7 @@ def resolve_path(file_path: Path) -> str:
     """
     If WSL, converts Linux paths to Windows-style paths.
     """
+
     if is_wsl():
         try:
             # use wslpath command to convert Linux path to Windows path
@@ -38,6 +40,10 @@ def resolve_path(file_path: Path) -> str:
         return file_path.resolve().as_uri()
 
 
+jquery_js_path = resolve_path(files("molgeom").joinpath("static/js/jquery-3.7.1.min.js"))
+mol_js_path = resolve_path(files("molgeom").joinpath("static/js/3Dmol-2.4.2.min.js"))
+
+
 def gen_mol_view_html(xyz_mol_data: str) -> str:
     """
     Generates HTML code for viewing molecular geometries using 3Dmol.js.
@@ -47,43 +53,73 @@ def gen_mol_view_html(xyz_mol_data: str) -> str:
     returns:
         str: HTML string
     """
-    html_template_path = files("molgeom").joinpath("template/mol_view_template.html")
+
+    html_template_path = files("molgeom").joinpath("templates/mol_view_template.html")
     with open(html_template_path, "r") as f:
         html_template = Template(f.read())
 
-    jquery_js_path = resolve_path(files("molgeom").joinpath("static/js/jquery-3.7.1.min.js"))
-    mol_js_path = resolve_path(files("molgeom").joinpath("static/js/3Dmol-2.4.2.min.js"))
-    return html_template.substitute(
+    return html_template.safe_substitute(
         {"jquery_js_path": jquery_js_path, "mol_js_path": mol_js_path, "xyz_mol_data": xyz_mol_data}
     )
 
 
-def open_html_in_browser(html_str: str) -> None:
+def open_html_in_browser(html_str: str, cleanup: bool = True) -> None:
     """
     Opens HTML string in a browser.
     args:
         html_str: str
             HTML string
+        cleanup: bool
+            If True, removes temporary file after opening (default: True)
     """
-    with tempfile.TemporaryDirectory() as tmp_dir:
-        tmp_html_path = Path(tmp_dir).joinpath("tmp_mol_view.html")
-        tmp_html_path.write_text(html_str)
-        if is_wsl():
-            win_html_path = resolve_path(tmp_html_path)
-            subprocess.run(["explorer.exe", win_html_path])
-        else:
-            uri = tmp_html_path.as_uri()
-            webbrowser.open(uri)
 
+    tmp_dir = tempfile.mkdtemp()
+    tmp_dir_path = Path(tmp_dir)
+    # unique_id = str(time.time()).replace(".", "")
+    # tmp_html_path = tmp_dir_path.joinpath(f"tmp_mol_view_{unique_id}.html")
+    tmp_html_path = tmp_dir_path.joinpath("tmp_mol_view.html")
+    tmp_html_path.write_text(html_str)
+
+    if is_wsl():
+        win_html_path = resolve_path(tmp_html_path)
+        subprocess.run(["explorer.exe", win_html_path])
+    else:
+        uri = tmp_html_path.as_uri()
+        webbrowser.open(uri)
+
+    if cleanup:
         time.sleep(3)
+        shutil.rmtree(tmp_dir)
 
 
-def view_mol(xyz_mol_data: str) -> None:
+def view_mol(xyz_mol_data: str, cleanup: bool = True) -> None:
     """
     View molecular geometry using 3Dmol.js in a browser.
     args:
         xyz_mol_data: str
             XYZ-format molecular geometry data. can contain multiple molecules.
     """
+
     html_str = gen_mol_view_html(xyz_mol_data)
-    open_html_in_browser(html_str)
+    open_html_in_browser(html_str=html_str, cleanup=cleanup)
+
+
+def test_view_mol():
+    xyz_mol_data = """3
+    H2O
+    O  0.000000  0.000000  0.117370
+    H  0.000000  0.755450 -0.469481
+    H  0.000000 -0.755450 -0.469481
+    5
+    CH4
+    C  0.000000  0.000000  0.000000
+    H  0.000000 -0.000000  1.089000
+    H  1.026719  0.000000 -0.363000
+    H -0.513360 -0.889165 -0.363000
+    H -0.513360  0.889165 -0.363000
+    """
+    view_mol(xyz_mol_data)
+
+
+if __name__ == "__main__":
+    test_view_mol()

@@ -136,7 +136,7 @@
         const molecule_data = `${xyz_mol_data}`;  // placeholder to be replaced by python
 
         // Initialize viewer and model
-        const viewer = $3Dmol.createViewer("viewer", { backgroundColor: "white" });
+        const viewer = $3Dmol.createViewer("viewer"); //, { backgroundColor: "white" });
         const model = viewer.addModelsAsFrames(molecule_data, "xyz");
 
         // Get frame count and setup slider
