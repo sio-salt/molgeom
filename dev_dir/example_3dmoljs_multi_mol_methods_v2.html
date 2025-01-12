@@ -3,8 +3,8 @@
 
 <head>
     <title>3D Molecule Viewer</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/3Dmol/2.4.2/3Dmol-min.js"></script>
+    <script src="./js/jquery.min.js"></script>
+    <script src="./js/3Dmol-min.js"></script>
     <style>
         .container {
             display: flex;
@@ -58,12 +58,14 @@
 
         label {
             font-weight: bold;
+            color: black;
         }
 
         #frameLabel {
             font-family: monospace;
             min-width: 7ch;
             text-align: right;
+            color: black;
         }
 
         .nav-buttons {
@@ -131,7 +133,7 @@
     </div>
 
     <script>
-        const molcule_data = `3
+        const molecule_data = `3
 H2-O
 O       0.000000000000      0.000000000000      0.127164000000
 H       0.000000000000      0.758137000000     -0.508657000000
@@ -819,7 +821,7 @@ H       6.191266096460      0.056590000000      0.132406663341
 
         // Initialize viewer and model
         const viewer = $3Dmol.createViewer("viewer", { backgroundColor: "white" });
-        const model = viewer.addModelsAsFrames(molcule_data, "xyz");
+        const model = viewer.addModelsAsFrames(molecule_data, "xyz");
 
         // Get frame count and setup slider
         const frameCount = viewer.getNumFrames();
@@ -830,77 +832,56 @@ H       6.191266096460      0.056590000000      0.132406663341
         let currentLabels = [];
 
         function addAxis() {
-            const axisLength = 5;
-            const axisRadius = 0.075;
-            const axisColor = {
-                x: 'rgb(255, 120, 120)',
-                y: 'rgb(120, 255, 120)',
-                z: 'rgb(120, 120, 255)'
+            const axisConfig = {
+                length: 5,
+                radius: 0.075,
+                bgColor: 'rgb(230, 230, 230)',
+                bgOpacity: 0.95,
+                colors: {
+                    x: 'rgb(255, 120, 120)',
+                    y: 'rgb(120, 255, 120)',
+                    z: 'rgb(120, 120, 255)'
+                },
+                fontColors: {
+                    x: 'rgb(220, 60, 60)',
+                    y: 'rgb(50, 200, 50)',
+                    z: 'rgb(60, 60, 230)'
+                }
             };
-            const fontColor = {
-                x: 'rgb(255, 60, 60)',
-                y: 'rgb(60, 255, 60)',
-                z: 'rgb(60, 60, 255)'
+
+            const axes = ['x', 'y', 'z'];
+            const positions = {
+                x: { start: { x: 0, y: 0, z: 0 }, end: { x: axisConfig.length, y: 0, z: 0 }, label: { x: axisConfig.length + 0.5, y: 0, z: 0 } },
+                y: { start: { x: 0, y: 0, z: 0 }, end: { x: 0, y: axisConfig.length, z: 0 }, label: { x: 0, y: axisConfig.length + 0.5, z: 0 } },
+                z: { start: { x: 0, y: 0, z: 0 }, end: { x: 0, y: 0, z: axisConfig.length }, label: { x: 0, y: 0, z: axisConfig.length + 0.5 } }
             };
 
-            // X axis (red)
-            viewer.addCylinder({
-                start: { x: 0, y: 0, z: 0 },
-                end: { x: axisLength, y: 0, z: 0 },
-                radius: axisRadius,
-                fromCap: true,
-                toCap: true,
-                color: axisColor.x
-            });
-            viewer.addLabel("X", {
-                position: { x: axisLength + 0.5, y: 0, z: 0 },
-                backgroundColor: 'white',
-                backgroundOpacity: 0.9,
-                fontColor: fontColor.x,
-                borderThickness: 0.5,
-                borderColor: "black",
-                font: 'Arial',
-                fontSize: 20,
-            });
-
-            // Y axis (green)
-            viewer.addCylinder({
-                start: { x: 0, y: 0, z: 0 },
-                end: { x: 0, y: axisLength, z: 0 },
-                radius: axisRadius,
-                fromCap: true,
-                toCap: true,
-                color: axisColor.y
-            });
-            viewer.addLabel("Y", {
-                position: { x: 0, y: axisLength + 0.5, z: 0 },
-                backgroundColor: 'white',
-                backgroundOpacity: 0.9,
-                fontColor: fontColor.y,
-                borderThickness: 0.5,
-                borderColor: "black",
-                font: 'Arial',
-                fontSize: 20,
+            axes.forEach(axis => {
+                viewer.addCylinder({
+                    start: positions[axis].start,
+                    end: positions[axis].end,
+                    radius: axisConfig.radius,
+                    fromCap: true,
+                    toCap: true,
+                    color: axisConfig.colors[axis]
+                });
+                viewer.addLabel(axis.toUpperCase(), {
+                    position: positions[axis].label,
+                    backgroundColor: axisConfig.bgColor,
+                    backgroundOpacity: axisConfig.bgOpacity,
+                    fontColor: axisConfig.fontColors[axis],
+                    borderThickness: 0.5,
+                    borderColor: "black",
+                    font: 'Arial',
+                    fontSize: 20,
+                });
             });
 
-            // Z axis (blue)
-            viewer.addCylinder({
-                start: { x: 0, y: 0, z: 0 },
-                end: { x: 0, y: 0, z: axisLength },
-                radius: axisRadius,
-                fromCap: true,
-                toCap: true,
-                color: axisColor.z
-            });
-            viewer.addLabel("Z", {
-                position: { x: 0, y: 0, z: axisLength + 0.5 },
-                backgroundColor: 'white',
-                backgroundOpacity: 0.9,
-                fontColor: fontColor.z,
-                borderThickness: 0.5,
-                borderColor: "black",
-                font: 'Arial',
-                fontSize: 20,
+            // add origin
+            viewer.addSphere({
+                center: {x: 0 ,y: 0 ,z: 0 },
+                radius: 0.1,
+                color: 'red'
             });
         }
 
@@ -913,8 +894,6 @@ H       6.191266096460      0.056590000000      0.132406663341
             currentLabels.forEach(label => viewer.removeLabel(label));
             currentLabels = [];
         }
-
-
 
         // Event handlers for new controls
         document.getElementById('toggleAxis').addEventListener('click', function () {
@@ -956,7 +935,7 @@ H       6.191266096460      0.056590000000      0.132406663341
             viewer.render();
         }
 
-        const FRAME_SWITCH_INTERVAL = 100;
+        const FRAME_SWITCH_INTERVAL = 80;
         const LONG_PRESS_DELAY = 500;
         let frameIntervalId = null;
         let longPressTimeoutId = null;
@@ -966,14 +945,8 @@ H       6.191266096460      0.056590000000      0.132406663341
             frameSlider.value = frame;
 
             viewer.setFrame(frame)
-                .then(() => {
-                    if (axisVisible) {
-                        addAxis();
-                    }
-
-                    viewer.render();
-                    updateFrameLabel(frame);
-                });
+            viewer.render();
+            updateFrameLabel(frame);
         }
 
         function startFrameChange(direction) {
