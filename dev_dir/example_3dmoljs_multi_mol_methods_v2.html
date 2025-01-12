@@ -6,7 +6,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/3Dmol/2.4.2/3Dmol-min.js"></script>
     <style>
-        /* Previous styles remain the same */
         .container {
             display: flex;
             flex-direction: column;
@@ -126,13 +125,6 @@
                     <option value="white">White</option>
                     <option value="black">Black</option>
                 </select>
-                <!-- <label for="labelSelect">Atom Labels:</label>
-                <select id="labelSelect">
-                    <option value="none">None</option>
-                    <option value="number">Number</option>
-                    <option value="symbol">Symbol</option>
-                    <option value="number_and_symbol">Number and Symbol</option>
-                </select> -->
             </div>
         </div>
         <div id="viewer" class="viewer"></div>
@@ -833,15 +825,13 @@ H       6.191266096460      0.056590000000      0.132406663341
         const frameCount = viewer.getNumFrames();
         const frameSlider = document.getElementById('frameSlider');
         frameSlider.max = frameCount - 1;
-        // frameSlider.max = frameCount;
-        // frameSlider.max = Math.max(0, frameCount - 1);
 
         let axisVisible = false;
         let currentLabels = [];
 
         function addAxis() {
             const axisLength = 5;
-            const axisRadius = 0.08;  // Cylinder radius
+            const axisRadius = 0.075;
             const axisColor = {
                 x: 'rgb(255, 120, 120)',
                 y: 'rgb(120, 255, 120)',
@@ -917,7 +907,6 @@ H       6.191266096460      0.056590000000      0.132406663341
         function removeAxis() {
             viewer.removeAllShapes();
             viewer.removeAllLabels();
-            // updateAtomLabels(document.getElementById('labelSelect').value);
         }
 
         function clearAtomLabels() {
@@ -925,46 +914,6 @@ H       6.191266096460      0.056590000000      0.132406663341
             currentLabels = [];
         }
 
-        // function updateAtomLabels(style) {
-        //     const atoms = viewer.selectedAtoms({});
-
-        //     // 既存のラベルを非表示にする
-        //     if (currentLabels.length > 0) {
-        //         currentLabels.forEach(label => viewer.removeLabel(label));
-        //         currentLabels = [];
-        //     }
-
-        //     if (style === 'none') return;
-
-        //     // 必要なラベルのみを作成
-        //     atoms.forEach((atom, index) => {
-        //         let labelText = '';
-        //         switch (style) {
-        //             case 'number':
-        //                 labelText = (index + 1).toString();
-        //                 break;
-        //             case 'symbol':
-        //                 labelText = atom.elem;
-        //                 break;
-        //             case 'number_and_symbol':
-        //                 labelText = `${atom.elem}${index + 1}`;
-        //                 break;
-        //         }
-
-        //         if (labelText) {
-        //             const label = viewer.addLabel(labelText, {
-        //                 position: { x: atom.x, y: atom.y, z: atom.z },
-        //                 backgroundColor: 'rgb(211, 211, 211)',
-        //                 backgroundOpacity: 0.8,
-        //                 fontColor: 'black',
-        //                 fontSize: 14,
-        //                 alignment: 'center', // ラベルを中央揃えに
-        //                 showBackground: true
-        //             });
-        //             currentLabels.push(label);
-        //         }
-        //     });
-        // }
 
 
         // Event handlers for new controls
@@ -979,11 +928,6 @@ H       6.191266096460      0.056590000000      0.132406663341
             }
             viewer.render();
         });
-
-        // document.getElementById('labelSelect').addEventListener('change', function (e) {
-        //     updateAtomLabels(e.target.value);
-        //     viewer.render();
-        // });
 
         // Previous event handlers and functions remain the same
         frameSlider.addEventListener('input', e => {
@@ -1023,11 +967,6 @@ H       6.191266096460      0.056590000000      0.132406663341
 
             viewer.setFrame(frame)
                 .then(() => {
-                    // const labelStyle = document.getElementById('labelSelect').value;
-                    // if (labelStyle !== 'none') {
-                    //     updateAtomLabels(labelStyle);
-                    // }
-
                     if (axisVisible) {
                         addAxis();
                     }
@@ -1036,34 +975,6 @@ H       6.191266096460      0.056590000000      0.132406663341
                     updateFrameLabel(frame);
                 });
         }
-
-        // const LabelManager = {
-        //     labels: [],
-
-        //     createLabel(atom, text, style) {
-        //         const label = viewer.addLabel(text, {
-        //             position: { x: atom.x, y: atom.y, z: atom.z },
-        //             ...style,
-        //             alignment: 'center'
-        //         });
-        //         this.labels.push(label);
-        //         return label;
-        //     },
-
-        //     hideAll() {
-        //         this.labels.forEach(label => label.hidden = true);
-        //     },
-
-        //     showAll() {
-        //         this.labels.forEach(label => label.hidden = false);
-        //     },
-
-        //     clear() {
-        //         this.labels.forEach(label => viewer.removeLabel(label));
-        //         this.labels = [];
-        //     }
-        // };
-
 
         function startFrameChange(direction) {
             if (frameIntervalId) return;
