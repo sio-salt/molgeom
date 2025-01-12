@@ -6,18 +6,27 @@
     <script src="${jquery_js_path}"></script>  <!-- placeholder to be replaced by python -->
     <script src="${mol_js_path}"></script>
     <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            background: #ffffff;
+        }
+
         .container {
             display: flex;
             flex-direction: column;
-            max-width: 800px;
+            align-items: center;
+            max-width: 1000px;
+            max-height: 750px;
             margin: 0 auto;
             padding: 20px;
             font-family: Arial, sans-serif;
         }
 
         .viewer {
-            width: 100%;
-            height: 500px;
+            width: 1000px;
+            height: 750px;
             position: relative;
             box-sizing: border-box;
             border: 1px solid rgba(0, 0, 0, 0.15);
@@ -30,6 +39,7 @@
         .controls {
             margin-bottom: 20px;
             display: flex;
+            width: 100%;
             flex-direction: column;
             gap: 15px;
             padding: 15px;
@@ -39,6 +49,7 @@
 
         .control-row {
             display: flex;
+            width: 100%;
             align-items: center;
             gap: 15px;
         }
