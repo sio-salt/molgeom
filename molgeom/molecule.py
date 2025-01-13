@@ -675,7 +675,7 @@ class Molecule:
         filepath: str | Path,
         properties: dict[str, dict[str, str]] | None = None,
     ) -> None:
-        """Write multiple molecules to SDF format file.
+        """Write multiple Molecule objects to SDF format file.
 
         Args:
             mols: list of Molecule objects to write
