@@ -17,7 +17,8 @@ A Simple Python library for molecular geometry manipulation.
   - Translation and rotation (including matrix and Rodrigues' rotation formula).
   - Cell replication using lattice vectors and symmetry operations (e.g., `-y, x + 1/2, -z + 1/2`).
   - Merge molecule geometries.
-  - View molecules in 3D with 3Dmol.js in Jupyter Notebook or Browser.
+- Visualize molecular geometries:
+  - Display molecules in your Jupyter Notebook or browser using 3Dmol.js.
 - Additional utilities:
   - Filter atoms by element.
   - Cluster fragments.
