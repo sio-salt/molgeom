@@ -1,5 +1,6 @@
 import os
 import re
+from pathlib import Path
 from collections import deque
 
 from molgeom import Vec3, Atom, Molecule, Mat3
@@ -10,7 +11,8 @@ from molgeom.utils.lattice_utils import lat_params_to_lat_vecs
 # http://www.physics.gov.az/book_I/S_R_Hall.pdf
 
 
-def cif_tag_parser(filepath: str) -> dict:
+def cif_tag_parser(filepath: str | Path) -> dict:
+    filepath = str(filepath)
     if not os.path.exists(filepath) or not os.path.isfile(filepath):
         raise FileNotFoundError(f"{filepath} do not exist")
 

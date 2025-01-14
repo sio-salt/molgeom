@@ -1,4 +1,4 @@
-from .utils import FancyIndexingList, Vec3, vec_type, mat_type, Mat3
+from .utils import FancyIndexingList, Vec3, Mat3, view_mol
 from .data import consts
 from .atom import Atom
 from .molecule import Molecule
@@ -23,7 +23,6 @@ __all__ = [
     "read_file",
     "FancyIndexingList",
     "Vec3",
-    "vec_type",
-    "mat_type",
     "Mat3",
+    "view_mol",
 ]
