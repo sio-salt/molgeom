@@ -34,7 +34,7 @@ where = ["."]
 include = ["molgeom*", "interfaces"]
 
 [tool.setuptools.package-data]
-"molgeom" = ["data/*.json", "data/*.yaml"]
+"molgeom" = ["data/*.json", "data/*.yaml", "templates/*.html"]
 
 
 [tool.uv]
