@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>3D Molecule Viewer</title>
+    <style>
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+        }
+
+        .container_${unique_id} {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            max-width: 1000px;
+            max-height: 750px;
+            margin: 0 auto;
+            border-radius: 8px;
+            padding-top: 20px;
+            padding-bottom: 10px;
+            padding-left: 37px;
+            padding-right: 37px;
+            background: #c6c6c6;
+            font-family: Arial, sans-serif;
+        }
+
+        .${unique_viewer} {
+            width: 1000px;
+            height: 750px;
+            position: relative;
+            box-sizing: border-box;
+            border: 1px solid rgba(0, 0, 0, 0.15);
+            border-radius: 8px;
+            margin-bottom: 15px;
+            padding: 10px;
+            background-clip: padding-box;
+            overflow: hidden;
+        }
+
+        .controls_${unique_id} {
+            margin-bottom: 20px;
+            display: flex;
+            width: 100%;
+            flex-direction: column;
+            gap: 15px;
+            padding: 15px;
+            background: rgb(240, 240, 240);
+            border-radius: 8px;
+        }
+
+        .control-row_${unique_id} {
+            display: flex;
+            width: 100%;
+            align-items: center;
+            gap: 15px;
+        }
+
+        select {
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            margin-right: 20px;
+        }
+
+        select:hover {
+            background: #e0e0e0;
+        }
+
+        input {
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+
+        label {
+            font-weight: bold;
+            color: black;
+        }
+
+        #frameLabel_${unique_id} {
+            font-family: monospace;
+            min-width: 7ch;
+            text-align: right;
+            color: black;
+        }
+
+        .nav-buttons_${unique_id} {
+            display: flex;
+            gap: 5px;
+            margin-left: 10px;
+        }
+
+        .nav-button_${unique_id},
+        .toggle-button {
+            padding: 5px 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            background: white;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .nav-button_${unique_id}:hover,
+        .toggle-button:hover {
+            background: #eaeaea;
+        }
+
+        .toggle-button.active {
+            box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.2);
+            background: #9c9c9c;
+            color: white;
+        }
+
+        .toggle-button.active:hover {
+            background: #6c6c6c;
+        }
+
+        .toggle-button {
+            margin-left: 15px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container_${unique_id}">
+        <div class="controls_${unique_id}">
+            <div class="control-row_${unique_id}">
+                <label for="frameSlider_${unique_id}">Frame:</label>
+                <input type="range" id="frameSlider_${unique_id}" min="0" value="0" step="1" style="width: 200px; padding:0;">
+                <span id="frameLabel_${unique_id}"></span>
+                <div class="nav-buttons_${unique_id}">
+                    <button class="nav-button_${unique_id}" id="prevFrame_${unique_id}">←</button>
+                    <button class="nav-button_${unique_id}" id="nextFrame_${unique_id}">→</button>
+                </div>
+                <button id="toggleAxis_${unique_id}" class="toggle-button">Show Axis</button>
+            </div>
+            <div class="control-row_${unique_id}">
+                <label for="styleSelect_${unique_id}">Style:</label>
+                <select id="styleSelect_${unique_id}">
+                    <option value="ball and stick">Ball and Stick</option>
+                    <option value="stick">Stick</option>
+                    <option value="sphere">Sphere</option>
+                    <option value="line">Line</option>
+                </select>
+                <label for="bgColor_${unique_id}">Background:</label>
+                <select id="bgColor_${unique_id}">
+                    <option value="#333333">Dark Gray</option>
+                    <option value="white">White</option>
+                    <option value="black">Black</option>
+                </select>
+            </div>
+        </div>
+        <div id="${unique_viewer}" class="${unique_viewer}"></div>
+    </div>
+
+    <script>
+        var loadScriptAsync = function (uri) {
+            return new Promise((resolve, reject) => {
+                //this is to ignore the existence of requirejs amd
+                var savedexports, savedmodule;
+                if (typeof exports !== 'undefined') savedexports = exports;
+                else exports = {}
+                if (typeof module !== 'undefined') savedmodule = module;
+                else module = {}
+
+                var tag = document.createElement('script');
+                tag.src = uri;
+                tag.async = true;
+                tag.onload = () => {
+                    exports = savedexports;
+                    module = savedmodule;
+                    resolve();
+                };
+                var firstScriptTag = document.getElementsByTagName('script')[0];
+                firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+            });
+        };
+
+        if (typeof $3Dmolpromise === 'undefined') {
+            $3Dmolpromise_${unique_id} = null;
+            $3Dmolpromise_${unique_id} = loadScriptAsync('${mol_js_uri}');  // placeholder to be replaced by python
+        }
+
+        $3Dmolpromise_${unique_id}.then(function () {
+            const molecule_data = `${xyz_mol_data}`;
+
+            // Initialize viewer and model
+            const ${unique_viewer} = $3Dmol.createViewer("${unique_viewer}"); //, { backgroundColor: "white" });
+            const model = ${unique_viewer}.addModelsAsFrames(molecule_data, "xyz");
+
+            // Get frame count and setup slider
+            const frameCount = ${unique_viewer}.getNumFrames();
+            const frameSlider_${unique_id} = document.getElementById('frameSlider_${unique_id}');
+            frameSlider_${unique_id}.max = frameCount - 1;
+
+            let axisVisible = false;
+            let currentLabels = [];
+
+            function addAxis() {
+                const axisConfig = {
+                    length: 5,
+                    radius: 0.075,
+                    bgColor: 'rgb(230, 230, 230)',
+                    bgOpacity: 0.95,
+                    colors: {
+                        x: 'rgb(255, 120, 120)',
+                        y: 'rgb(120, 255, 120)',
+                        z: 'rgb(120, 120, 255)'
+                    },
+                    fontColors: {
+                        x: 'rgb(220, 60, 60)',
+                        y: 'rgb(50, 200, 50)',
+                        z: 'rgb(60, 60, 230)'
+                    }
+                };
+
+                const axes = ['x', 'y', 'z'];
+                const positions = {
+                    x: { start: { x: 0, y: 0, z: 0 }, end: { x: axisConfig.length, y: 0, z: 0 }, label: { x: axisConfig.length + 0.5, y: 0, z: 0 } },
+                    y: { start: { x: 0, y: 0, z: 0 }, end: { x: 0, y: axisConfig.length, z: 0 }, label: { x: 0, y: axisConfig.length + 0.5, z: 0 } },
+                    z: { start: { x: 0, y: 0, z: 0 }, end: { x: 0, y: 0, z: axisConfig.length }, label: { x: 0, y: 0, z: axisConfig.length + 0.5 } }
+                };
+
+                axes.forEach(axis => {
+                    ${unique_viewer}.addCylinder({
+                        start: positions[axis].start,
+                        end: positions[axis].end,
+                        radius: axisConfig.radius,
+                        fromCap: true,
+                        toCap: true,
+                        color: axisConfig.colors[axis]
+                    });
+                    ${unique_viewer}.addLabel(axis.toUpperCase(), {
+                        position: positions[axis].label,
+                        backgroundColor: axisConfig.bgColor,
+                        backgroundOpacity: axisConfig.bgOpacity,
+                        fontColor: axisConfig.fontColors[axis],
+                        borderThickness: 0.5,
+                        borderColor: "black",
+                        font: 'Arial',
+                        fontSize: 20,
+                    });
+                });
+
+                // add origin
+                ${unique_viewer}.addSphere({
+                    center: { x: 0, y: 0, z: 0 },
+                    radius: 0.1,
+                    color: 'red'
+                });
+            }
+
+            function removeAxis() {
+                ${unique_viewer}.removeAllShapes();
+                ${unique_viewer}.removeAllLabels();
+            }
+
+            function clearAtomLabels() {
+                currentLabels.forEach(label => ${unique_viewer}.removeLabel(label));
+                currentLabels = [];
+            }
+
+            // Event handlers for new controls
+            document.getElementById('toggleAxis_${unique_id}').addEventListener('click', function () {
+                axisVisible = !axisVisible;
+                if (axisVisible) {
+                    addAxis();
+                    this.classList.add('active');
+                } else {
+                    removeAxis();
+                    this.classList.remove('active');
+                }
+                ${unique_viewer}.render();
+            });
+
+            // Previous event handlers and functions remain the same
+            frameSlider_${unique_id}.addEventListener('input', e => {
+                updateFrame(parseInt(e.target.value));
+            });
+
+            document.getElementById('styleSelect_${unique_id}').addEventListener('change', e => {
+                updateStyle(e.target.value);
+            });
+
+            document.getElementById('bgColor_${unique_id}').addEventListener('change', e => {
+                updateBgColor(e.target.value);
+            });
+
+            function updateStyle(style) {
+                const styleConfig = style === "ball and stick"
+                    ? { stick: { radius: 0.125 }, sphere: { scale: 0.22 } }
+                    : { [style]: {} };
+
+                model.setStyle({}, styleConfig);
+                ${unique_viewer}.render();
+            }
+
+            function updateBgColor(color) {
+                ${unique_viewer}.setBackgroundColor(color);
+                ${unique_viewer}.render();
+            }
+
+            const FRAME_SWITCH_INTERVAL = 80;
+            const LONG_PRESS_DELAY = 500;
+            let frameIntervalId = null;
+            let longPressTimeoutId = null;
+
+            function updateFrame(frame) {
+                frame = (frame + frameCount) % frameCount;
+                frameSlider_${unique_id}.value = frame;
+
+                ${unique_viewer}.setFrame(frame)
+                ${unique_viewer}.render();
+                updateFrameLabel(frame);
+            }
+
+            function startFrameChange(direction) {
+                if (frameIntervalId) return;
+
+                const currentFrame = parseInt(frameSlider_${unique_id}.value);
+                updateFrame(currentFrame + direction);
+
+                frameIntervalId = setInterval(() => {
+                    const currentFrame = parseInt(frameSlider_${unique_id}.value);
+                    updateFrame(currentFrame + direction);
+                }, FRAME_SWITCH_INTERVAL);
+            }
+
+            function stopFrameChange() {
+                if (frameIntervalId) {
+                    clearInterval(frameIntervalId);
+                    frameIntervalId = null;
+                }
+                if (longPressTimeoutId) {
+                    clearTimeout(longPressTimeoutId);
+                    longPressTimeoutId = null;
+                }
+            }
+
+            function updateFrameLabel(frame) {
+                document.getElementById('frameLabel_${unique_id}').textContent =
+                    `${frame + 1}/${frameCount}`;
+            }
+
+            document.getElementById('prevFrame_${unique_id}').addEventListener('mousedown', function () {
+                longPressTimeoutId = setTimeout(() => startFrameChange(-1), LONG_PRESS_DELAY);
+                const currentFrame = parseInt(frameSlider_${unique_id}.value);
+                updateFrame(currentFrame - 1);
+            });
+
+            document.getElementById('nextFrame_${unique_id}').addEventListener('mousedown', function () {
+                longPressTimeoutId = setTimeout(() => startFrameChange(1), LONG_PRESS_DELAY);
+                const currentFrame = parseInt(frameSlider_${unique_id}.value);
+                updateFrame(currentFrame + 1);
+            });
+
+            ['mouseup', 'mouseleave'].forEach(eventName => {
+                document.getElementById('prevFrame_${unique_id}').addEventListener(eventName, stopFrameChange);
+                document.getElementById('nextFrame_${unique_id}').addEventListener(eventName, stopFrameChange);
+            });
+
+            ['touchstart', 'touchend', 'touchcancel'].forEach(eventName => {
+                document.getElementById('prevFrame_${unique_id}').addEventListener(eventName, function (e) {
+                    e.preventDefault();
+                    if (eventName === 'touchstart') {
+                        longPressTimeoutId = setTimeout(() => startFrameChange(-1), LONG_PRESS_DELAY);
+                        const currentFrame = parseInt(frameSlider_${unique_id}.value);
+                        updateFrame(currentFrame - 1);
+                    } else {
+                        stopFrameChange();
+                    }
+                });
+
+                document.getElementById('nextFrame_${unique_id}').addEventListener(eventName, function (e) {
+                    e.preventDefault();
+                    if (eventName === 'touchstart') {
+                        longPressTimeoutId = setTimeout(() => startFrameChange(1), LONG_PRESS_DELAY);
+                        const currentFrame = parseInt(frameSlider_${unique_id}.value);
+                        updateFrame(currentFrame + 1);
+                    } else {
+                        stopFrameChange();
+                    }
+                });
+            });
+
+
+            // Set initial states
+            updateStyle("ball and stick");
+            updateBgColor("#333333");
+            ${unique_viewer}.zoomTo();
+            ${unique_viewer}.render();
+            updateFrameLabel(0);
+        });
+    </script>
+</body>
+
+</html>

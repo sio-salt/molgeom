@@ -10,6 +10,8 @@ from molgeom.parsers.gamess import gms_inp_parser
 from molgeom.parsers.gaussian import gau_inp_parser
 from molgeom.parsers.poscar import poscar_parser
 from molgeom.parsers.xyz import xyz_parser
+from molgeom.parsers.mol import mol_parser
+from molgeom.parsers.sdf import sdf_parser
 
 
 def read_file(filepath: str | Path) -> Molecule:
@@ -19,6 +21,8 @@ def read_file(filepath: str | Path) -> Molecule:
         ".gjf": gau_inp_parser,
         ".inp": gms_inp_parser,
         ".cif": cif_parser,
+        ".mol": mol_parser,
+        ".sdf": sdf_parser,
     }
 
     if not os.path.exists(filepath):

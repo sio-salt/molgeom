@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import re
+from pathlib import Path
 
 from molgeom.utils.vec3 import Vec3
 from molgeom.utils.mat3 import Mat3
@@ -11,13 +12,14 @@ from molgeom.data.consts import ATOMIC_MASSES
 from molgeom.molecule import Molecule
 
 
-def poscar_parser(filepath: str) -> Molecule:
+def poscar_parser(filepath: str | Path) -> Molecule:
     """
     Parse a POSCAR file and return a Molecule object.
 
     https://www.vasp.at/wiki/index.php/POSCAR#Full_format_specification
 
     """
+    filepath = str(filepath)
     if not os.path.exists(filepath) or not os.path.isfile(filepath):
         raise FileNotFoundError(f"{filepath} do not exist")
     if "poscar" not in os.path.basename(filepath).lower():

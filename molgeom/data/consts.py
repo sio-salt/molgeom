@@ -15,7 +15,7 @@ HARTREE2KCAL_GMS19 = 627.509469  # from GAMESS
 HARTREE2KCAL_WIKI = 627.5094740631  # from Wikipedia
 
 # fmt: off
-ATOMIC_NUMBER = {
+ATOMIC_NUMBERS = {
     "H" :  1, "He":  2, "Li":  3, "Be":  4, "B" :  5, "C" :  6,
     "N" :  7, "O" :  8, "F" :  9, "Ne": 10, "Na": 11, "Mg": 12,
     "Al": 13, "Si": 14, "P" : 15, "S" : 16, "Cl": 17, "Ar": 18,
@@ -32,7 +32,7 @@ ATOMIC_NUMBER = {
     # "Au": 79, "Hg": 80, "Tl": 81, "Pb": 82,
 }
 
-NUMBER_TO_SYMBOL = {v: k for k, v in ATOMIC_NUMBER.items()}
+NUMBER_TO_SYMBOL = {v: k for k, v in ATOMIC_NUMBERS.items()}
 
 SPECIAL_ELEMENTS = {
     "X", "Tv" 

@@ -1,4 +1,5 @@
 import re
+from pathlib import Path
 from collections import deque
 
 from molgeom import Vec3
@@ -86,9 +87,10 @@ def from_gau_inp_str(content: str) -> Molecule:
     return mole
 
 
-def gau_inp_head_tail(filepath: str) -> tuple[str, str]:
+def gau_inp_head_tail(filepath: str | Path) -> tuple[str, str]:
     file_head = []
     file_tail = []
+    filepath = str(filepath)
     with open(filepath, "r") as file:
         lines = deque(file.readlines())
 
