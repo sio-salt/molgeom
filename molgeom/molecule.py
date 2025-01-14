@@ -721,7 +721,7 @@ class Molecule:
 
         print(f"File written to {filepath}")
 
-    def show(self, cleanup: bool = True, prefer_notebook: bool = True) -> None:
+    def view_mol(self, cleanup: bool = True, prefer_notebook: bool = True) -> None:
         """
         View molecular geometry using 3Dmol.js in a browser.
         args:
@@ -734,7 +734,7 @@ class Molecule:
         view_mol(xyz_mol_data=xyz_data, cleanup=cleanup, prefer_notebook=prefer_notebook)
 
     @staticmethod
-    def show(mols: list[Molecule], cleanup: bool = True, prefer_notebook: bool = True) -> None:
+    def view_mols(mols: list[Molecule], cleanup: bool = True, prefer_notebook: bool = True) -> None:
         """
         View multiple molecular geometries using 3Dmol.js in a browser.
         args:
