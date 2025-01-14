@@ -1,12 +1,14 @@
 # molgeom ⌬  
 A Simple Python library for molecular geometry manipulation.
 
-
 > **Note**: `molgeom` is under active development. The implemented features and method names may change in future updates. Please check the repository regularly for the latest information.
+
+![molgeom_view_mols_example_1](https://github.com/user-attachments/assets/c6e7775c-6e07-4c99-8760-e4f7b7cc2679)
+
 
 ## ✨ Key Features
 - Read and write molecular geometries:
-  - Formats supported: XYZ, Gaussian input, GAMESS input, CIF, POSCAR.
+  - Formats supported: XYZ, Gaussian input, GAMESS input, MOL, SDF, CIF, VASP POSCAR.
 - Calculate molecular properties:
   - Nuclear repulsion energy.
   - Center of mass.
@@ -15,6 +17,7 @@ A Simple Python library for molecular geometry manipulation.
   - Translation and rotation (including matrix and Rodrigues' rotation formula).
   - Cell replication using lattice vectors and symmetry operations (e.g., `-y, x + 1/2, -z + 1/2`).
   - Merge molecule geometries.
+  - View molecules in 3D with 3Dmol.js in Jupyter Notebook or Browser.
 - Additional utilities:
   - Filter atoms by element.
   - Cluster fragments.
@@ -44,11 +47,13 @@ pip install -e .
 ```
 The minimum Python version required is 3.9 for the main branch.
 
+
 ## 🛠️ Future Plans
 - Support Z-matrix format.
 - Add more symmetry utilities.
 - Handle multi-molecule systems.
 - Additional features and improvements.
+
 
 ## 🔗 Links
 - [main branch](https://github.com/sio-salt/molgeom/tree/main)
