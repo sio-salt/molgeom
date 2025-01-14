@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "molgeom"
-version = "0.4.0"
+version = "0.5.0"
 description = "A simple molecular geometry manipulation module"
 readme = "README.md"
 requires-python = ">=3.9"
@@ -24,6 +24,7 @@ mol-bonds = "interfaces.mol_bonds:main"
 geom-modifier = "interfaces.geom_modifier:main"
 poscar2xyz = "interfaces.poscar2xyz:main"
 split-mol-clusters = "interfaces.split_mol_clusters:main"
+view-mol = "interfaces.view_mol_file:main"
 
 [tool.setuptools]
 include-package-data = true
