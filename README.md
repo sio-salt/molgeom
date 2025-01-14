@@ -1,8 +1,10 @@
 # molgeom ⌬  
 A Simple Python library for molecular geometry manipulation.
 
-
 > **Note**: `molgeom` is under active development. The implemented features and method names may change in future updates. Please check the repository regularly for the latest information.
+
+![molgeom_view_mols_example_1](https://github.com/user-attachments/assets/0c5a02c6-645d-4b32-94f7-1411ef944aaa)
+
 
 ## ✨ Key Features
 - Read and write molecular geometries:
