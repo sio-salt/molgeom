@@ -31,7 +31,7 @@ def main():
         print("No valid molecular geometry files were provided.")
         return
 
-    Molecule.show(molecules)
+    Molecule.view_mols(molecules)
 
 
 if __name__ == "__main__":
