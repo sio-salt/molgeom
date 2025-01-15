@@ -49,4 +49,3 @@ line-length = 88
 
 [tool.ruff.lint]
 ignore = ["F841"]
-pydocstyle.convention = "google"
