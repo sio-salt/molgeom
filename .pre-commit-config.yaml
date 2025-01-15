@@ -2,11 +2,9 @@ exclude: ^(docs|tests/files|tasks.py)
 
 repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: 'v0.0.242'
+    rev: "main"
     hooks:
       - id: ruff
-        # args: [--fix, --unsafe-fixes]
-      - id: ruff-format
 
   - repo: local
     hooks:
