@@ -4,7 +4,7 @@ import click
 from molgeom import Molecule, Vec3, read_file, poscar_parser
 
 
-def validate_files(_, __, value):
+def validate_files(ctx, param, value):
     """Validate existence of input files."""
     files = []
     for file in value:
@@ -166,9 +166,14 @@ def modify(file, operation):
 @click.argument("file", type=click.Path(exists=True))
 @click.argument("cell_range", nargs=6, type=int)
 def poscar2xyz(file, cell_range):
-    """Convert POSCAR to XYZ format with cell repetition.
+    """
+    Convert POSCAR to XYZ format with cell repetition.
 
-    Cell range should be specified as: a_min a_max b_min b_max c_min c_max
+    Provide 6 integers: a_min a_max b_min b_max c_min c_max
+
+    Example:
+        # 3x3x3 with original cell at center:
+        molgeom poscar2xyz POSCAR -1 2 -1 2 -1 2
     """
     mole = poscar_parser(file)
     mole.replicate(
