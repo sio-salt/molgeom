@@ -2,7 +2,7 @@ exclude: ^(tests/files|build|dist|exclude_git)
 
 repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: "main"
+    rev: "v0.9.1"
     hooks:
       - id: ruff
 
