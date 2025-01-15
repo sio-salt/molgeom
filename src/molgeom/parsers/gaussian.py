@@ -1,3 +1,4 @@
+import os
 import re
 from pathlib import Path
 from collections import deque
@@ -34,18 +35,14 @@ def from_gau_inp_str(content: str) -> Molecule:
     # title section
     if not lines[0].strip() or lines[1].strip():
         raise ValueError(
-            "Expected title section.\n"
-            + f"Found: {lines[0]}\n"
-            + f"Found: {lines[1]}\n"
+            "Expected title section.\n" + f"Found: {lines[0]}\n" + f"Found: {lines[1]}\n"
         )
     _title = lines.popleft().strip()
     lines.popleft()
 
     # molecule Specification section
     if not lines[0].strip():
-        raise ValueError(
-            "Expected molecule specification section.\n" + f"Found: {lines[0]}\n"
-        )
+        raise ValueError("Expected molecule specification section.\n" + f"Found: {lines[0]}\n")
 
     try:
         charge, multiplicity = map(int, lines.popleft().strip().split())
@@ -56,30 +53,24 @@ def from_gau_inp_str(content: str) -> Molecule:
     while lines and lines[0].strip():
         if not is_valid_xyz_line(lines[0]):
             raise ValueError(
-                "Expected atom symbol and cartesian coordinates.\n"
-                + f"Found: {lines[0]}\n"
+                "Expected atom symbol and cartesian coordinates.\n" + f"Found: {lines[0]}\n"
             )
         data = lines.popleft().strip().split()
         if data[0] == "Tv":
-            if not (
-                lines[0].strip().startswith("Tv") and lines[1].strip().startswith("Tv")
-            ):
+            if not (lines[0].strip().startswith("Tv") and lines[1].strip().startswith("Tv")):
                 raise ValueError("Expected 3 lines of Tv lattice vectors.")
 
             lat_vec = [data[1:4]]
             for _ in range(2):
                 if not is_valid_xyz_line(lines[0]):
                     raise ValueError(
-                        "Expected atom symbol and cartesian coordinates.\n"
-                        + f"Found: {lines[0]}\n"
+                        "Expected atom symbol and cartesian coordinates.\n" + f"Found: {lines[0]}\n"
                     )
                 data = lines.popleft().strip().split()
                 lat_vec.append(data[1:4])
             mole.lattice_vecs = [Vec3(*map(float, vec)) for vec in lat_vec]
         else:
-            atom = Atom(
-                symbol=data[0], x=float(data[1]), y=float(data[2]), z=float(data[3])
-            )
+            atom = Atom(symbol=data[0], x=float(data[1]), y=float(data[2]), z=float(data[3]))
             mole.add_atom(atom)
     if not mole:
         raise ValueError("No atoms found in file.")
@@ -116,9 +107,7 @@ def gau_inp_head_tail(filepath: str | Path) -> tuple[str, str]:
         # title section
         if not lines[0].strip() or lines[1].strip():
             raise ValueError(
-                "Expected title section.\n"
-                + f"Found: {lines[0]}\n"
-                + f"Found: {lines[1]}\n"
+                "Expected title section.\n" + f"Found: {lines[0]}\n" + f"Found: {lines[1]}\n"
             )
         title = lines.popleft().strip()
         file_head.append("\n" + title)
@@ -126,9 +115,7 @@ def gau_inp_head_tail(filepath: str | Path) -> tuple[str, str]:
 
         # molecule Specification section
         if not lines[0].strip():
-            raise ValueError(
-                "Expected molecule specification section.\n" + f"Found: {lines[0]}\n"
-            )
+            raise ValueError("Expected molecule specification section.\n" + f"Found: {lines[0]}\n")
 
         try:
             charge, multiplicity = map(int, lines.popleft().strip().split())
@@ -140,8 +127,7 @@ def gau_inp_head_tail(filepath: str | Path) -> tuple[str, str]:
         while lines and lines[0].strip():
             if not is_valid_xyz_line(lines[0]):
                 raise ValueError(
-                    "Expected atom symbol and cartesian coordinates.\n"
-                    + f"Found: {lines[0]}\n"
+                    "Expected atom symbol and cartesian coordinates.\n" + f"Found: {lines[0]}\n"
                 )
             lines.popleft().strip().split()
 
@@ -156,4 +142,6 @@ def gau_inp_head_tail(filepath: str | Path) -> tuple[str, str]:
 def gau_inp_parser(filepath: str) -> Molecule:
     with open(filepath, "r") as file:
         content = file.read()
-    return from_gau_inp_str(content)
+    mol = from_gau_inp_str(content)
+    mol.name = os.path.basename(filepath)
+    return mol

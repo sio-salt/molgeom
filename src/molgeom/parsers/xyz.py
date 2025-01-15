@@ -36,9 +36,7 @@ def from_xyz_str(content: str) -> Molecule:
             raise ValueError(f"Invalid line format: \n{line}")
 
         data = line.strip().split()
-        atom = Atom(
-            symbol=data[0], x=float(data[1]), y=float(data[2]), z=float(data[3])
-        )
+        atom = Atom(symbol=data[0], x=float(data[1]), y=float(data[2]), z=float(data[3]))
         mole.atoms.append(atom)
 
     if num_atoms != len(mole):
@@ -51,7 +49,9 @@ def from_xyz_str(content: str) -> Molecule:
 
 
 def xyz_parser(filepath: str | Path) -> Molecule:
-    filepath = str(filepath)
+    filepath = Path(filepath)
     with open(filepath, "r") as file:
         content = file.read()
-    return from_xyz_str(content)
+    mol = from_xyz_str(content)
+    mol.name = filepath.stem
+    return mol

@@ -30,7 +30,9 @@ def from_sdf_str(content: str) -> list[Molecule]:
 
 def sdf_parser(filepath: str | Path) -> list[Molecule]:
     """Read SDF file and return list of Molecule objects."""
-    filepath = str(filepath)
+    filepath = Path(filepath)
     with open(filepath, "r") as f:
         content = f.read()
-    return from_sdf_str(content)
+    mol = from_sdf_str(content)
+    mol.name = filepath.stem
+    return mol

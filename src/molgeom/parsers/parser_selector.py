@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import os
 import sys
 from pathlib import Path
 
@@ -15,6 +14,9 @@ from molgeom.parsers.sdf import sdf_parser
 
 
 def read_file(filepath: str | Path) -> Molecule:
+    """Read file and return Molecule object."""
+    filepath = Path(filepath)
+
     ext_parser_map = {
         ".xyz": xyz_parser,
         ".com": gau_inp_parser,
@@ -25,19 +27,18 @@ def read_file(filepath: str | Path) -> Molecule:
         ".sdf": sdf_parser,
     }
 
-    if not os.path.exists(filepath):
+    if not filepath.exists():
         raise FileNotFoundError(f"{filepath} do not exist")
 
     for ext in ext_parser_map:
-        if str(filepath).endswith(ext):
+        if filepath.suffix == ext:
             return ext_parser_map[ext](filepath)
 
     if "poscar" in str(filepath).lower():
         return poscar_parser(filepath)
 
     raise RuntimeError(
-        f'file extension for "{os.path.basename(filepath)}" '
-        + "is not supported or extensionless file"
+        f'file extension for "{filepath.name}" ' + "is not supported or extensionless file"
     )
 
 

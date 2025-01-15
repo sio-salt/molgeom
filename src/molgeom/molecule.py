@@ -27,10 +27,11 @@ class Molecule:
     A class to represent a molecule.
     """
 
-    def __init__(self, *atoms: Atom, lattice_vecs: mat_type | None = None):
+    def __init__(self, *atoms: Atom, lattice_vecs: mat_type | None = None, name: str | None = None):
         self.atoms: FancyIndexingList[Atom] = FancyIndexingList()
         if atoms:
             self.add_atoms_from(atoms)
+        self.name: str | None = name
         self._lattice_vecs: list[Vec3] | None = None
         self.lattice_vecs = lattice_vecs
         self._cache = LRUCache(maxsize=10)

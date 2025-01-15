@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import os
 import re
 from pathlib import Path
 
@@ -19,13 +18,15 @@ def poscar_parser(filepath: str | Path) -> Molecule:
     https://www.vasp.at/wiki/index.php/POSCAR#Full_format_specification
 
     """
-    filepath = str(filepath)
-    if not os.path.exists(filepath) or not os.path.isfile(filepath):
+    filepath = Path(filepath)
+    if not filepath.exists():
         raise FileNotFoundError(f"{filepath} do not exist")
-    if "poscar" not in os.path.basename(filepath).lower():
+    if not filepath.is_file():
+        raise ValueError(f"{filepath} is not a file")
+    if "poscar" not in filepath.stem.lower():
         raise ValueError(f"{filepath} is not a POSCAR file")
 
-    mole = Molecule()
+    mol = Molecule()
     with open(filepath, "r") as file:
 
         # replace tabs, non-breaking spaces, and multiple spaces with single space
@@ -49,7 +50,7 @@ def poscar_parser(filepath: str | Path) -> Molecule:
         lattice_vec_b = Vec3(*map(float, next(lines_gen).split()[:3]))
         lattice_vec_c = Vec3(*map(float, next(lines_gen).split()[:3]))
         lattice_vecs = Mat3([lattice_vec_a, lattice_vec_b, lattice_vec_c])
-        mole.lattice_vecs = lattice_vecs
+        mol.lattice_vecs = lattice_vecs
 
         if len(scale) == 1:
             # Negative scaling factor corresponds to the cell volume.
@@ -91,7 +92,7 @@ def poscar_parser(filepath: str | Path) -> Molecule:
                         y=cart_coords[1],
                         z=cart_coords[2],
                     )
-                    mole.add_atom(atom)
+                    mol.add_atom(atom)
         elif coord_type == "cartesian":
             for i in range(len(atom_symbols)):
                 for _ in range(num_atoms_per_symbol[i]):
@@ -102,8 +103,8 @@ def poscar_parser(filepath: str | Path) -> Molecule:
                         y=cart_coords[1],
                         z=cart_coords[2],
                     )
-                    mole.add_atom(atom)
+                    mol.add_atom(atom)
         else:
             raise ValueError(f"Expected 'Direct' or 'Cartesian', got {coord_type=}")
 
-    return mole
+    return mol

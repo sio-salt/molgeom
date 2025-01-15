@@ -47,7 +47,9 @@ def from_mol_str(content: str) -> Molecule:
 
 def mol_parser(filepath: str | Path) -> Molecule:
     """Read MOL file and return Molecule object."""
-    filepath = str(filepath)
+    filepath = Path(filepath)
     with open(filepath, "r") as f:
         content = f.read()
-    return from_mol_str(content)
+    mol = from_mol_str(content)
+    mol.name = filepath.stem
+    return mol

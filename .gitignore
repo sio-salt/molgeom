@@ -19,3 +19,5 @@ exclude_git/
 .ruff_cache
 .mypy_cache
 
+# vscode
+.vscode/
