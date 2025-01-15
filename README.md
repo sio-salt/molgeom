@@ -28,7 +28,6 @@ A Simple Python library for molecular geometry manipulation.
   - Identify bond cycles.
 
 
-
 ## 🚀 Getting Started
 
 You can try out example of `molgeom` in Jupyter Notebook:
@@ -37,6 +36,7 @@ You can try out example of `molgeom` in Jupyter Notebook:
 For a version with NumPy, see the [**numpyfy branch**](https://github.com/sio-salt/molgeom/tree/numpyfy).
 
 ---
+
 
 ## 🔽 Installation
 Install `molgeom` using pip:
@@ -51,6 +51,7 @@ cd molgeom
 pip install -e .
 ```
 The minimum Python version required is 3.9 for the main branch.
+
 
 ## 📟 Command Line Usage
 After installation, the `molgeom` command becomes available. Enable shell completion by copying and pasting the following command into your terminal:
@@ -88,6 +89,7 @@ molgeom view <file1> <file2> ...           # View multiple structures in browser
 molgeom --help
 molgeom <command> --help
 ```
+
 
 ## 🛠️ Future Plans
 - Support Z-matrix format.
