@@ -27,11 +27,15 @@ build-backend = "setuptools.build_meta"
 include-package-data = true
 
 [tool.setuptools.packages.find]
-where = ["."]
-include = ["molgeom*", "interfaces"]
+where = ["src"]
+include = ["molgeom*"]
 
 [tool.setuptools.package-data]
-"molgeom" = ["data/*.json", "data/*.yaml", "templates/*.html"]
+"molgeom" = [
+    "data/*.json",
+    "data/*.yaml",
+    "templates/*.html"
+]
 
 [tool.uv]
 dev-dependencies = [
