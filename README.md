@@ -30,7 +30,7 @@ A Simple Python library for molecular geometry manipulation.
 
 ## 🚀 Getting Started
 
-You can try out example of `molgeom` in Jupyter Notebook:
+You can try out example of `molgeom` in Jupyter Notebook:  
 👉 [**Try Example Code in Jupyter Notebook**](https://mybinder.org/v2/gh/sio-salt/molgeom-examples/main?urlpath=lab/tree/notebooks/tutorial1.ipynb)
 
 For a version with NumPy, see the [**numpyfy branch**](https://github.com/sio-salt/molgeom/tree/numpyfy).

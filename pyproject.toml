@@ -14,7 +14,9 @@ dependencies = [
 ]
 
 [project.urls]
-Source = "https://github.com/sio-salt/molgeom"
+Homepage = "https://github.com/sio-salt/molgeom"
+Repository = "https://github.com/sio-salt/molgeom"
+Documentation = "https://github.com/sio-salt/molgeom-examples"
 
 [project.scripts]
 molgeom = "molgeom.cli.cli_main:cli"
