@@ -1,21 +1,19 @@
-[build-system]
-requires = ["setuptools>=42", "wheel"]
-build-backend = "setuptools.build_meta"
-
 [project]
 name = "molgeom"
+description = "A simple molecular geometry manipulation library."
 version = "0.5.0"
-description = "A simple molecular geometry manipulation module"
 readme = "README.md"
+license = {file = "LICENSE"}
+authors = [{ name = "sio-salt", email = "saltinthedesertyou@gmail.com" }]
 requires-python = ">=3.9"
 dependencies = [
     "cachetools>=5.5.0",
     "networkx>=2.6.3",
-    "pyyaml>=6.0.1",
+    "pyyaml>=6.0.1"
 ]
-authors = [
-    { name = "sio-salt", email = "saltinthedesertyou@gmail.com" }
-]
+
+[project.urls]
+Source = "https://github.com/sio-salt/molgeom"
 
 [project.scripts]
 mass-center = "interfaces.mass_center:main"
@@ -26,6 +24,10 @@ poscar2xyz = "interfaces.poscar2xyz:main"
 split-mol-clusters = "interfaces.split_mol_clusters:main"
 view-mol = "interfaces.view_mol_file:main"
 
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
+
 [tool.setuptools]
 include-package-data = true
 
@@ -35,7 +37,6 @@ include = ["molgeom*", "interfaces"]
 
 [tool.setuptools.package-data]
 "molgeom" = ["data/*.json", "data/*.yaml", "templates/*.html"]
-
 
 [tool.uv]
 dev-dependencies = [
