@@ -1,4 +1,4 @@
-exclude: ^(docs|tests/files|tasks.py)
+exclude: ^(tests/files|build|dist|exclude_git)
 
 repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
