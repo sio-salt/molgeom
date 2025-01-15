@@ -8,21 +8,16 @@ authors = [{ name = "sio-salt", email = "saltinthedesertyou@gmail.com" }]
 requires-python = ">=3.9"
 dependencies = [
     "cachetools>=5.5.0",
+    "click>=8.1.8",
     "networkx>=2.6.3",
-    "pyyaml>=6.0.1"
+    "pyyaml>=6.0.1",
 ]
 
 [project.urls]
 Source = "https://github.com/sio-salt/molgeom"
 
 [project.scripts]
-mass-center = "interfaces.mass_center:main"
-nuclear-repulsion = "interfaces.nuclear_repulsion:main"
-mol-bonds = "interfaces.mol_bonds:main"
-geom-modifier = "interfaces.geom_modifier:main"
-poscar2xyz = "interfaces.poscar2xyz:main"
-split-mol-clusters = "interfaces.split_mol_clusters:main"
-view-mol = "interfaces.view_mol_file:main"
+molgeom = "molgeom.cli.cli_main:cli"
 
 [build-system]
 requires = ["setuptools>=42", "wheel"]
