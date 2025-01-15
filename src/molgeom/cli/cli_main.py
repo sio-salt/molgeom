@@ -204,7 +204,7 @@ def split(file):
     "files", nargs=-1, type=click.Path(exists=True), required=True, callback=validate_files
 )
 def view(files):
-    """View molecular structure(s)."""
+    """View molecular structure(s) in your browser."""
     molecules = []
     for file_path in files:
         try:
