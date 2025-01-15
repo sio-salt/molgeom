@@ -1,4 +1,3 @@
-import os
 import re
 from pathlib import Path
 from collections import deque
@@ -12,11 +11,12 @@ from molgeom.utils.lattice_utils import lat_params_to_lat_vecs
 
 
 def cif_tag_parser(filepath: str | Path) -> dict:
-    filepath = str(filepath)
-    if not os.path.exists(filepath) or not os.path.isfile(filepath):
+    filepath = Path(filepath)
+    if not filepath.exists() or not filepath.is_file():
         raise FileNotFoundError(f"{filepath} do not exist")
 
     cif_tags = dict()
+    cif_tags["filename"] = filepath.stem
     with open(filepath, "r") as file:
         lines = deque()
         # add empty line before loop_ block to separate tags
@@ -102,14 +102,7 @@ def cif_tag_parser(filepath: str | Path) -> dict:
                 )
                 > 0
             ) and (
-                len(
-                    {
-                        atom_tag
-                        for atom_tag in atom_fract_tags
-                        if atom_tag in loop_tags_idx
-                    }
-                )
-                == 3
+                len({atom_tag for atom_tag in atom_fract_tags if atom_tag in loop_tags_idx}) == 3
             ):
                 cif_tags["atoms"] = []
                 while len(line.split()) == len(loop_tags_idx):
@@ -167,6 +160,7 @@ def ciftag2mol(cif_tags: dict) -> Molecule:
         angle_in_degrees=True,
     )
     mol = Molecule()
+    mol.name = cif_tags["filename"]
     for atom in cif_tags["atoms"]:
         fract_vec = Vec3(atom["fract_x"], atom["fract_y"], atom["fract_z"])
         cart_vec = frac_to_cart_mat @ fract_vec
@@ -179,7 +173,7 @@ def ciftag2mol(cif_tags: dict) -> Molecule:
     return mol
 
 
-def cif_parser(filepath: str, apply_symop: bool = True) -> Molecule:
+def cif_parser(filepath: str | Path, apply_symop: bool = True) -> Molecule:
     cif_tags = cif_tag_parser(filepath)
     mol = ciftag2mol(cif_tags)
     rep_mol = Molecule()

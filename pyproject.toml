@@ -1,46 +1,51 @@
-[build-system]
-requires = ["setuptools>=42", "wheel"]
-build-backend = "setuptools.build_meta"
-
 [project]
 name = "molgeom"
-version = "0.5.0"
-description = "A simple molecular geometry manipulation module"
+description = "A simple molecular geometry manipulation library."
+version = "0.6.2"
 readme = "README.md"
+license = {file = "LICENSE"}
+authors = [{ name = "sio-salt", email = "saltinthedesertyou@gmail.com" }]
 requires-python = ">=3.9"
 dependencies = [
     "cachetools>=5.5.0",
+    "click>=8.1.8",
     "networkx>=2.6.3",
     "pyyaml>=6.0.1",
 ]
-authors = [
-    { name = "sio-salt", email = "saltinthedesertyou@gmail.com" }
-]
+
+[project.urls]
+Source = "https://github.com/sio-salt/molgeom"
 
 [project.scripts]
-mass-center = "interfaces.mass_center:main"
-nuclear-repulsion = "interfaces.nuclear_repulsion:main"
-mol-bonds = "interfaces.mol_bonds:main"
-geom-modifier = "interfaces.geom_modifier:main"
-poscar2xyz = "interfaces.poscar2xyz:main"
-split-mol-clusters = "interfaces.split_mol_clusters:main"
-view-mol = "interfaces.view_mol_file:main"
+molgeom = "molgeom.cli.cli_main:cli"
+
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
 include-package-data = true
 
 [tool.setuptools.packages.find]
-where = ["."]
-include = ["molgeom*", "interfaces"]
+where = ["src"]
+include = ["molgeom*"]
 
 [tool.setuptools.package-data]
-"molgeom" = ["data/*.json", "data/*.yaml", "templates/*.html"]
-
+"molgeom" = [
+    "data/*.json",
+    "data/*.yaml",
+    "templates/*.html"
+]
 
 [tool.uv]
 dev-dependencies = [
-    "icecream>=2.1.3",
-    "pytest-timeout>=2.3.1",
-    "pytest>=7.4.4",
-    "isort>=5.13.2",
+    "pre-commit>=4.0.1",
+    "pytest>=8.3.4",
+    "ruff>=0.9.1",
 ]
+
+[tool.ruff]
+line-length = 88
+
+[tool.ruff.lint]
+ignore = ["F841"]
