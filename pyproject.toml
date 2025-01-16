@@ -11,7 +11,7 @@ license = {file = "LICENSE"}
 authors = [{ name = "sio-salt", email = "saltinthedesertyou@gmail.com" }]
 requires-python = ">=3.10"
 dependencies = [
-    "cachetools>=5.5.0",
+    "cachetools>=5.2.0",
     "click>=8.1.8",
     "networkx>=2.6.3",
     "pyyaml>=6.0.1",
