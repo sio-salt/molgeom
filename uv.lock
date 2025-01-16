@@ -87,13 +87,12 @@ wheels = [
 
 [[package]]
 name = "molgeom"
-version = "0.6.4"
+version = "0.6.5"
 source = { editable = "." }
 dependencies = [
     { name = "cachetools" },
     { name = "click" },
     { name = "networkx" },
-    { name = "pyyaml" },
 ]
 
 [package.dev-dependencies]
@@ -108,7 +107,6 @@ requires-dist = [
     { name = "cachetools", specifier = ">=5.2.0" },
     { name = "click", specifier = ">=8.1.7" },
     { name = "networkx", specifier = ">=2.6.3" },
-    { name = "pyyaml", specifier = ">=6.0.1" },
 ]
 
 [package.metadata.requires-dev]

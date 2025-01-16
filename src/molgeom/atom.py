@@ -6,8 +6,6 @@ import threading
 from importlib.resources import files
 from typing import Any
 
-import yaml
-
 from molgeom.utils.vec3 import Vec3, mat_type
 from molgeom.utils.mat3 import Mat3, is_mat_type
 from molgeom.utils.lattice_utils import cart2frac
@@ -32,9 +30,9 @@ def _load_atomic_data():
                 pt_path = files("molgeom.data").joinpath("periodic_table.json")
                 with open(pt_path, "r") as f:
                     _pt_data = json.load(f)
-                bonds_path = files("molgeom.data").joinpath("bonds_jmol_ob.yaml")
+                bonds_path = files("molgeom.data").joinpath("bonds_jmol_ob.json")
                 with open(bonds_path, "r") as f:
-                    _bond_rad_data = yaml.safe_load(f)
+                    _bond_rad_data = json.load(f)
     return _pt_data, _bond_rad_data
 
 
