@@ -50,7 +50,7 @@ git clone https://github.com/sio-salt/molgeom.git
 cd molgeom
 pip install -e .
 ```
-The minimum Python version required is 3.9 for the main branch.
+The minimum Python version required is 3.10 for the main branch.
 
 
 ## 📟 Command Line Usage

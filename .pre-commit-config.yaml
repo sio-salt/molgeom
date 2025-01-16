@@ -1,4 +1,4 @@
-exclude: ^(tests/files|build|dist|exclude_git)
+exclude: ^(.*\.md|tests/files|build|dist|exclude_git)
 
 repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit

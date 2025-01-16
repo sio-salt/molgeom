@@ -5,7 +5,7 @@ version = "0.6.2"
 readme = "README.md"
 license = {file = "LICENSE"}
 authors = [{ name = "sio-salt", email = "saltinthedesertyou@gmail.com" }]
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 dependencies = [
     "cachetools>=5.5.0",
     "click>=8.1.8",
