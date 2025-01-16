@@ -41,7 +41,7 @@ For a version with NumPy, see the [**numpyfy branch**](https://github.com/sio-sa
 ## 🔽 Installation
 Install `molgeom` using pip:
 ```bash
-pip install -U git+https://github.com/sio-salt/molgeom@main
+pip install molgeom
 ```
 Alternatively, clone the repository for development:
 
@@ -101,5 +101,6 @@ molgeom <command> --help
 ## 🔗 Links
 - [main branch](https://github.com/sio-salt/molgeom/tree/main)
 - [numpyfy branch](https://github.com/sio-salt/molgeom/tree/numpyfy)
+- [PyPI](https://pypi.org/project/molgeom/)
 - [molgeom examples repo](https://github.com/sio-salt/molgeom-examples/tree/main)
 - [molgeom examples Binder](https://mybinder.org/v2/gh/sio-salt/molgeom-examples/main?urlpath=lab/tree/notebooks/tutorial1.ipynb)
