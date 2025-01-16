@@ -1,4 +1,4 @@
-name: Publish molgeom distribution to TestPyPI
+name: Publish molgeom to PyPI
 
 on:
   release:
@@ -6,7 +6,7 @@ on:
 
 jobs:
   run:
-    name: "Build and publish to TestPyPI"
+    name: "Build and publish to PyPI"
     runs-on: ubuntu-latest
 
     steps:
@@ -27,4 +27,4 @@ jobs:
         run: uv build
 
       - name: Publish
-        run: uv publish --publish-url https://test.pypi.org/legacy/ --token ${{ secrets.TEST_PYPI_TOKEN }}
+        run: uv publish --token ${{ secrets.molgeom_PYPI_TOKEN }}
