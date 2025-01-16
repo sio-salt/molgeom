@@ -3,7 +3,7 @@ name: Publish molgeom distribution to TestPyPI
 on:
   # release:
   #   types: ["published"]
-    push:
+  push:
     branches:
       - main
 
