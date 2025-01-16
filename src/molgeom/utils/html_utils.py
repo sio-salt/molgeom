@@ -68,7 +68,7 @@ def gen_mol_view_html(xyz_mol_data: str) -> str:
     """
 
     html_template_path = files("molgeom").joinpath("templates/mol_view_template.html")
-    with open(html_template_path, "r") as f:
+    with open(html_template_path, "r", encoding="utf-8") as f:
         html_template = Template(f.read())
 
     mol_js_uri = "https://cdnjs.cloudflare.com/ajax/libs/3Dmol/2.4.2/3Dmol-min.js"
@@ -113,7 +113,9 @@ def open_html_in_browser(html_str: str, cleanup: bool = True) -> None:
         shutil.rmtree(tmp_dir)
 
 
-def view_mol(xyz_mol_data: str, cleanup: bool = True, prefer_notebook: bool = True) -> None:
+def view_mol(
+    xyz_mol_data: str, cleanup: bool = True, prefer_notebook: bool = True
+) -> None:
     """
     View molecular geometry using 3Dmol.js in a browser.
     args:

@@ -28,10 +28,10 @@ def _load_atomic_data():
         with _atomic_data_lock:
             if _pt_data is None:
                 pt_path = files("molgeom.data").joinpath("periodic_table.json")
-                with open(pt_path, "r") as f:
+                with open(pt_path, "r", encoding="utf-8") as f:
                     _pt_data = json.load(f)
                 bonds_path = files("molgeom.data").joinpath("bonds_jmol_ob.json")
-                with open(bonds_path, "r") as f:
+                with open(bonds_path, "r", encoding="utf-8") as f:
                     _bond_rad_data = json.load(f)
     return _pt_data, _bond_rad_data
 
@@ -46,7 +46,7 @@ def _load_bond_pair_data():
         with _atomic_data_lock:
             if _bond_pair_data is None:
                 bond_pair_path = files("molgeom.data").joinpath("bond_pairs_len.json")
-                with open(bond_pair_path, "r") as f:
+                with open(bond_pair_path, "r", encoding="utf-8") as f:
                     _bond_pair_data = json.load(f)
     return _bond_pair_data
 
@@ -96,7 +96,9 @@ class Atom(Vec3):
             return self.mass < other.mass
 
     def __str__(self) -> str:
-        return f"Atom({self.symbol:2s}, {self.x:19.12f}, {self.y:19.12f}, {self.z:19.12f})"
+        return (
+            f"Atom({self.symbol:2s}, {self.x:19.12f}, {self.y:19.12f}, {self.z:19.12f})"
+        )
 
     def __repr__(self) -> str:
         return f"Atom({self.symbol!r}, {self.x:.12f}, {self.y:.12f}, {self.z:.12f})"
@@ -141,7 +143,9 @@ class Atom(Vec3):
         dist_angst = self.distance_to(other)
         _bond_pair_data = _load_bond_pair_data()
         estimated_bond_len = self._std_bond_rad + other._std_bond_rad
-        std_bond_lens = _bond_pair_data.get(self.symbol, {}).get(other.symbol, [estimated_bond_len])
+        std_bond_lens = _bond_pair_data.get(self.symbol, {}).get(
+            other.symbol, [estimated_bond_len]
+        )
 
         # if lower_bound is not None and upper_bound is not None:
         #     for std_bond_len in std_bond_lens:
