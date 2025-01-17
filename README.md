@@ -1,4 +1,4 @@
-# molgeom
+# molgeom ⌬
 A Simple Python library for molecular geometry manipulation.
 
 > **Note**: `molgeom` is under active development. The implemented features and method names may change in future updates. Please check the repository regularly for the latest information.
@@ -30,7 +30,7 @@ A Simple Python library for molecular geometry manipulation.
 
 ## 🚀 Getting Started
 
-You can try out example of `molgeom` in Jupyter Notebook:  
+You can try out example of `molgeom` in Jupyter Notebook:
 👉 [**Try Example Code in Jupyter Notebook**](https://mybinder.org/v2/gh/sio-salt/molgeom-examples/main?urlpath=lab/tree/notebooks/tutorial1.ipynb)
 
 For a version with NumPy, see the [**numpyfy branch**](https://github.com/sio-salt/molgeom/tree/numpyfy).
@@ -41,7 +41,7 @@ For a version with NumPy, see the [**numpyfy branch**](https://github.com/sio-sa
 ## 🔽 Installation
 Install `molgeom` using pip:
 ```bash
-pip install molgeom
+pip install -U git+https://github.com/sio-salt/molgeom@main
 ```
 Alternatively, clone the repository for development:
 
@@ -50,7 +50,7 @@ git clone https://github.com/sio-salt/molgeom.git
 cd molgeom
 pip install -e .
 ```
-The minimum Python version required is 3.10 for the main branch.
+The minimum Python version required is 3.9 for the main branch.
 
 
 ## 📟 Command Line Usage
@@ -77,7 +77,7 @@ Available commands:
 molgeom modify <file> [-op <op>]   # Transform structure (translate/reflect/rotate)
 molgeom split <file>               # Split into molecular clusters
 molgeom poscar2xyz <file> <ranges> # Convert POSCAR with cell replication
-                                   # ( e.g., molgeom poscar2xyz POSCAR -1 2 -1 2 -1 2 )
+                                   # ( e.g., molgeom poscar2xyz POSCAR_H2O -1 2 -1 0 1 2 )
 
 # Multiple file commands (space-separated)
 molgeom center <file1> <file2> ...         # Print center of mass for multiple files
@@ -101,6 +101,5 @@ molgeom <command> --help
 ## 🔗 Links
 - [main branch](https://github.com/sio-salt/molgeom/tree/main)
 - [numpyfy branch](https://github.com/sio-salt/molgeom/tree/numpyfy)
-- [PyPI](https://pypi.org/project/molgeom/)
 - [molgeom examples repo](https://github.com/sio-salt/molgeom-examples/tree/main)
 - [molgeom examples Binder](https://mybinder.org/v2/gh/sio-salt/molgeom-examples/main?urlpath=lab/tree/notebooks/tutorial1.ipynb)

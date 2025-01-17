@@ -1,7 +1,15 @@
+import sys
 from pathlib import Path
 
 import click
 from molgeom import Molecule, Vec3, read_file, poscar_parser
+
+if "poscar2xyz" in sys.argv:
+    if "--" not in sys.argv:
+        idx = sys.argv.index("poscar2xyz") + 2
+        if len(sys.argv) > idx:
+            sys.argv.insert(idx, "--")
+    print("edited", sys.argv)
 
 
 def validate_files(ctx, param, value):
@@ -175,11 +183,12 @@ def poscar2xyz(file, cell_range):
         # 3x3x3 with original cell at center:
         molgeom poscar2xyz POSCAR -1 2 -1 2 -1 2
     """
+    print(file, cell_range)
     mole = poscar_parser(file)
     mole.replicate(
-        cell_range[0:2],
-        cell_range[2:4],
-        cell_range[4:6],
+        list(cell_range[0:2]),
+        list(cell_range[2:4]),
+        list(cell_range[4:6]),
     )
     click.echo(mole.to_xyz())
 
@@ -219,7 +228,3 @@ def view(files):
         return
 
     Molecule.view_mols(molecules)
-
-
-if __name__ == "__main__":
-    cli()
