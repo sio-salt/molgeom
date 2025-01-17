@@ -719,7 +719,7 @@ class Molecule:
             prefer_notebook: bool
                 If True, opens in Jupyter notebook if available (default: True)
         """
-        xyz_data = f"{len(self)}\n{str(self)}\n{self.to_xyz()}"
+        xyz_data = f"{len(self)}\n{self.name or str(self)}\n{self.to_xyz()}"
         view_mol(xyz_mol_data=xyz_data, cleanup=cleanup, prefer_notebook=prefer_notebook)
 
     @staticmethod
