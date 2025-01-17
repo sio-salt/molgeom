@@ -391,18 +391,6 @@ class Molecule:
         U = atom.get_frac_coords(self.lattice_vecs)
         return all(0 <= u < 1 for u in U)
 
-    # def remove_duplicates(self, tol: float = default_tol) -> None:
-    #     """
-    #     Remove duplicate atoms (close atoms) from the molecule.
-    #     finds too close clusters of same elements
-    #     and combines them into one atom at the center of mass
-    #     """
-    #     clusters = self.get_clusters(tol)
-    #     for cluster in clusters:
-    #         if len(cluster) > 1:
-    #             com = cluster.center_of_mass()
-    #             cluster[:] = [Atom("C", com.x, com.y, com.z)]
-
     def remove_duplicates(self, tol: float = default_tol) -> None:
         """
         Remove duplicate atoms by combining close atoms with the same symbol
@@ -682,7 +670,7 @@ class Molecule:
             mols: list of Molecule objects to write
             filepath: Output file path
             properties: Optional dictionary of molecular properties
-                       Format: {mol_index: {property_name: property_value}}
+                        Format: {mol_index: {property_name: property_value}}
         """
         with open(filepath, "w") as f:
             for i, mol in enumerate(mols):
@@ -746,5 +734,7 @@ class Molecule:
             prefer_notebook: bool
                 If True, opens in Jupyter notebook if available (default: True)
         """
-        xyz_data = "\n".join([f"{len(mol)}\n{str(mol)}\n{mol.to_xyz()}" for mol in mols])
+        xyz_data = "\n".join(
+            [f"{len(mol)}\n{mol.name or str(mol)}\n{mol.to_xyz()}" for mol in mols]
+        )
         view_mol(xyz_mol_data=xyz_data, cleanup=cleanup, prefer_notebook=prefer_notebook)
