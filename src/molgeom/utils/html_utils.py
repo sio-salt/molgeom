@@ -73,12 +73,10 @@ def gen_mol_view_html(xyz_mol_data: str) -> str:
 
     mol_js_uri = "https://cdnjs.cloudflare.com/ajax/libs/3Dmol/2.4.2/3Dmol-min.js"
     unique_id = str(time.time()).replace(".", "")
-    unique_viewer = f"viewer_{unique_id}"
     return html_template.safe_substitute(
         {
             "mol_js_uri": mol_js_uri,
             "xyz_mol_data": xyz_mol_data,
-            "unique_viewer": unique_viewer,
             "unique_id": unique_id,
         }
     )

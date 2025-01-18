@@ -28,7 +28,7 @@
             font-family: Arial, sans-serif;
         }
 
-        .${unique_viewer} {
+        .viewer_${unique_id} {
             width: 1000px;
             height: 750px;
             position: relative;
@@ -154,7 +154,7 @@
                 </select>
             </div>
         </div>
-        <div id="${unique_viewer}" class="${unique_viewer}"></div>
+        <div id="viewer_${unique_id}" class="viewer_${unique_id}"></div>
     </div>
 
     <script>
@@ -189,11 +189,11 @@
             const molecule_data = `${xyz_mol_data}`;
 
             // Initialize viewer and model
-            const ${unique_viewer} = $3Dmol.createViewer("${unique_viewer}"); //, { backgroundColor: "white" });
-            const model = ${unique_viewer}.addModelsAsFrames(molecule_data, "xyz");
+            const viewer_${unique_id} = $3Dmol.createViewer("viewer_${unique_id}"); //, { backgroundColor: "white" });
+            const model = viewer_${unique_id}.addModelsAsFrames(molecule_data, "xyz");
 
             // Get frame count and setup slider
-            const frameCount = ${unique_viewer}.getNumFrames();
+            const frameCount = viewer_${unique_id}.getNumFrames();
             const frameSlider_${unique_id} = document.getElementById('frameSlider_${unique_id}');
             frameSlider_${unique_id}.max = frameCount - 1;
 
@@ -226,7 +226,7 @@
                 };
 
                 axes.forEach(axis => {
-                    ${unique_viewer}.addCylinder({
+                    viewer_${unique_id}.addCylinder({
                         start: positions[axis].start,
                         end: positions[axis].end,
                         radius: axisConfig.radius,
@@ -234,7 +234,7 @@
                         toCap: true,
                         color: axisConfig.colors[axis]
                     });
-                    ${unique_viewer}.addLabel(axis.toUpperCase(), {
+                    viewer_${unique_id}.addLabel(axis.toUpperCase(), {
                         position: positions[axis].label,
                         backgroundColor: axisConfig.bgColor,
                         backgroundOpacity: axisConfig.bgOpacity,
@@ -247,7 +247,7 @@
                 });
 
                 // add origin
-                ${unique_viewer}.addSphere({
+                viewer_${unique_id}.addSphere({
                     center: { x: 0, y: 0, z: 0 },
                     radius: 0.1,
                     color: 'red'
@@ -255,12 +255,12 @@
             }
 
             function removeAxis() {
-                ${unique_viewer}.removeAllShapes();
-                ${unique_viewer}.removeAllLabels();
+                viewer_${unique_id}.removeAllShapes();
+                viewer_${unique_id}.removeAllLabels();
             }
 
             function clearAtomLabels() {
-                currentLabels.forEach(label => ${unique_viewer}.removeLabel(label));
+                currentLabels.forEach(label => viewer_${unique_id}.removeLabel(label));
                 currentLabels = [];
             }
 
@@ -274,7 +274,7 @@
                     removeAxis();
                     this.classList.remove('active');
                 }
-                ${unique_viewer}.render();
+                viewer_${unique_id}.render();
             });
 
             // Previous event handlers and functions remain the same
@@ -296,12 +296,12 @@
                     : { [style]: {} };
 
                 model.setStyle({}, styleConfig);
-                ${unique_viewer}.render();
+                viewer_${unique_id}.render();
             }
 
             function updateBgColor(color) {
-                ${unique_viewer}.setBackgroundColor(color);
-                ${unique_viewer}.render();
+                viewer_${unique_id}.setBackgroundColor(color);
+                viewer_${unique_id}.render();
             }
 
             const FRAME_SWITCH_INTERVAL = 80;
@@ -313,8 +313,8 @@
                 frame = (frame + frameCount) % frameCount;
                 frameSlider_${unique_id}.value = frame;
 
-                ${unique_viewer}.setFrame(frame)
-                ${unique_viewer}.render();
+                viewer_${unique_id}.setFrame(frame)
+                viewer_${unique_id}.render();
                 updateFrameLabel(frame);
             }
 
@@ -391,8 +391,8 @@
             // Set initial states
             updateStyle("ball and stick");
             updateBgColor("#333333");
-            ${unique_viewer}.zoomTo();
-            ${unique_viewer}.render();
+            viewer_${unique_id}.zoomTo();
+            viewer_${unique_id}.render();
             updateFrameLabel(0);
         });
     </script>
