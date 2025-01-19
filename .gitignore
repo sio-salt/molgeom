@@ -18,6 +18,7 @@ exclude_git/
 .pytest_cache
 .ruff_cache
 .mypy_cache
+.coverage
 
 # vscode
 .vscode/
