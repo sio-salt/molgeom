@@ -189,7 +189,7 @@ def poscar2xyz(file, cell_range):
         list(cell_range[4:6]),
     )
     click.echo(len(mol))
-    click.echo(f"{Path(file).stem}, rep: {cell_range}, Molecule: {str(mol)}")
+    click.echo(f"{Path(file).stem}, rep: {cell_range}, {str(mol)}")
     click.echo(mol.to_xyz())
 
 
