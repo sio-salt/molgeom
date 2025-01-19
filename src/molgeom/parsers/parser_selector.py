@@ -4,6 +4,7 @@ import sys
 from pathlib import Path
 
 from molgeom.molecule import Molecule
+from molgeom.parsers.parser_tools import validate_filepath
 from molgeom.parsers.cif import cif_parser
 from molgeom.parsers.gamess import gms_inp_parser
 from molgeom.parsers.gaussian import gau_inp_parser
@@ -15,7 +16,7 @@ from molgeom.parsers.sdf import sdf_parser
 
 def read_file(filepath: str | Path) -> Molecule:
     """Read file and return Molecule object."""
-    filepath = Path(filepath)
+    filepath = validate_filepath(filepath)
 
     ext_parser_map = {
         ".xyz": xyz_parser,
@@ -26,9 +27,6 @@ def read_file(filepath: str | Path) -> Molecule:
         ".mol": mol_parser,
         ".sdf": sdf_parser,
     }
-
-    if not filepath.exists():
-        raise FileNotFoundError(f"{filepath} do not exist")
 
     for ext in ext_parser_map:
         if filepath.suffix == ext:

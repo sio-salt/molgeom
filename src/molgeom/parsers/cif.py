@@ -3,7 +3,8 @@ from pathlib import Path
 from collections import deque
 
 from molgeom import Vec3, Atom, Molecule, Mat3
-from molgeom.parsers.parser_tools import remove_trailing_empty_lines
+from molgeom.parsers.parser_tools import remove_trailing_empty_lines, validate_filepath
+
 from molgeom.utils.lattice_utils import lat_params_to_lat_vecs
 
 # CIF format specification:
@@ -11,10 +12,7 @@ from molgeom.utils.lattice_utils import lat_params_to_lat_vecs
 
 
 def cif_tag_parser(filepath: str | Path) -> dict:
-    filepath = Path(filepath)
-    if not filepath.exists() or not filepath.is_file():
-        raise FileNotFoundError(f"{filepath} do not exist")
-
+    filepath = validate_filepath(filepath)
     cif_tags = dict()
     cif_tags["filename"] = filepath.stem
     with open(filepath, "r") as file:
@@ -174,6 +172,7 @@ def ciftag2mol(cif_tags: dict) -> Molecule:
 
 
 def cif_parser(filepath: str | Path, apply_symop: bool = True) -> Molecule:
+    filepath = validate_filepath(filepath)
     cif_tags = cif_tag_parser(filepath)
     mol = ciftag2mol(cif_tags)
     rep_mol = Molecule()

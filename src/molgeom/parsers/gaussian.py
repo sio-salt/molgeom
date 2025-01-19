@@ -1,4 +1,3 @@
-import os
 import re
 from pathlib import Path
 from collections import deque
@@ -6,7 +5,7 @@ from collections import deque
 from molgeom import Vec3
 from molgeom.atom import Atom
 from molgeom.molecule import Molecule
-from molgeom.parsers.parser_tools import is_valid_xyz_line, remove_trailing_empty_lines
+from molgeom.parsers.parser_tools import is_valid_xyz_line, remove_trailing_empty_lines, validate_filepath
 
 
 def from_gau_inp_str(content: str) -> Molecule:
@@ -91,7 +90,11 @@ def from_gau_inp_str(content: str) -> Molecule:
 def gau_inp_head_tail(filepath: str | Path) -> tuple[str, str]:
     file_head = []
     file_tail = []
-    filepath = str(filepath)
+    filepath = Path(filepath)
+    if not filepath.exists():
+        raise FileNotFoundError(f"{filepath} do not exist")
+    if not filepath.is_file():
+        raise ValueError(f"{filepath} is not a file")
     with open(filepath, "r") as file:
         lines = deque(file.readlines())
 
@@ -154,9 +157,10 @@ def gau_inp_head_tail(filepath: str | Path) -> tuple[str, str]:
 
 
 # Gaussian input file parser (com, gjf)
-def gau_inp_parser(filepath: str) -> Molecule:
+def gau_inp_parser(filepath: str | Path) -> Molecule:
+    filepath = validate_filepath(filepath)
     with open(filepath, "r") as file:
         content = file.read()
     mol = from_gau_inp_str(content)
-    mol.name = os.path.basename(filepath)
+    mol.name = filepath.stem
     return mol

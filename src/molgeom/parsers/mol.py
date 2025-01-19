@@ -1,7 +1,9 @@
 from pathlib import Path
 from collections import deque
+
 from molgeom.atom import Atom
 from molgeom.molecule import Molecule
+from molgeom.parsers.parser_tools import remove_trailing_empty_lines, validate_filepath
 
 
 def from_mol_str(content: str) -> Molecule:
@@ -11,7 +13,7 @@ def from_mol_str(content: str) -> Molecule:
     Bonds are ignored as per requirements.
     """
     mol = Molecule()
-    lines = deque(content.strip().split("\n"))
+    lines = deque(remove_trailing_empty_lines(content.strip().split("\n")))
 
     # Skip header (3 lines: ID, program info, comment)
     for _ in range(3):
@@ -47,7 +49,7 @@ def from_mol_str(content: str) -> Molecule:
 
 def mol_parser(filepath: str | Path) -> Molecule:
     """Read MOL file and return Molecule object."""
-    filepath = Path(filepath)
+    filepath = validate_filepath(filepath)
     with open(filepath, "r") as f:
         content = f.read()
     mol = from_mol_str(content)

@@ -7,6 +7,7 @@ from molgeom.parsers.parser_tools import (
     symbol_xyz_regex,
     is_valid_xyz_line,
     remove_trailing_empty_lines,
+    validate_filepath,
 )
 
 
@@ -49,7 +50,7 @@ def from_xyz_str(content: str) -> Molecule:
 
 
 def xyz_parser(filepath: str | Path) -> Molecule:
-    filepath = Path(filepath)
+    filepath = validate_filepath(filepath)
     with open(filepath, "r") as file:
         content = file.read()
     mol = from_xyz_str(content)

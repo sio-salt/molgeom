@@ -9,6 +9,8 @@ from molgeom.utils.lattice_utils import frac2cart
 from molgeom.atom import Atom
 from molgeom.data.consts import ATOMIC_MASSES
 from molgeom.molecule import Molecule
+from molgeom.parsers.parser_tools import validate_filepath
+
 
 
 def poscar_parser(filepath: str | Path) -> Molecule:
@@ -18,11 +20,7 @@ def poscar_parser(filepath: str | Path) -> Molecule:
     https://www.vasp.at/wiki/index.php/POSCAR#Full_format_specification
 
     """
-    filepath = Path(filepath)
-    if not filepath.exists():
-        raise FileNotFoundError(f"{filepath} do not exist")
-    if not filepath.is_file():
-        raise ValueError(f"{filepath} is not a file")
+    filepath = validate_filepath(filepath)
     if "poscar" not in filepath.stem.lower():
         raise ValueError(f"{filepath} is not a POSCAR file")
 

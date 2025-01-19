@@ -1,4 +1,5 @@
 import re
+from pathlib import Path
 
 from molgeom.data.consts import ATOMIC_MASSES, SPECIAL_ELEMENTS
 
@@ -37,3 +38,11 @@ def is_valid_gms_xyz_line(line: str) -> bool:
     if data[0] not in ATOMIC_MASSES:
         return False
     return True
+
+def validate_filepath(filepath: str | Path) -> Path:
+    filepath = Path(filepath)
+    if not filepath.exists():
+        raise FileNotFoundError(f"{filepath} do not exist")
+    if not filepath.is_file():
+        raise ValueError(f"{filepath} is not a file")
+    return filepath

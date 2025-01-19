@@ -8,6 +8,7 @@ from molgeom.molecule import Molecule
 from molgeom.parsers.parser_tools import (
     is_valid_gms_xyz_line,
     remove_trailing_empty_lines,
+    validate_filepath,
 )
 
 
@@ -50,7 +51,7 @@ def from_gms_inp_str(content: str) -> Molecule:
 
 # GAMESS input file parser
 def gms_inp_parser(filepath: str | Path) -> Molecule:
-    filepath = Path(filepath)
+    filepath = validate_filepath(filepath)
     with open(filepath, "r") as file:
         content = file.read()
     mol = from_gms_inp_str(content)
