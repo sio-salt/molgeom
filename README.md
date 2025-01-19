@@ -1,4 +1,4 @@
-# molgeom ⌬
+# molgeom
 A Simple Python library for molecular geometry manipulation.
 
 > **Note**: `molgeom` is under active development. The implemented features and method names may change in future updates. Please check the repository regularly for the latest information.
