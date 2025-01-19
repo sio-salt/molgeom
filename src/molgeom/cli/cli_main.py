@@ -36,8 +36,8 @@ def center(files):
     """Calculate center of mass for molecular structures."""
     for filepath in files:
         click.echo(f"\n{filepath}")
-        mole = read_file(filepath)
-        com = mole.center_of_mass()
+        mol = read_file(filepath)
+        com = mol.center_of_mass()
         click.echo(str(com))
 
 
@@ -49,8 +49,8 @@ def nuclrep(files):
     """Calculate nuclear repulsion energy."""
     for filepath in files:
         click.echo(f"\n{filepath}")
-        mole = read_file(filepath)
-        energy = mole.nuclear_repulsion()
+        mol = read_file(filepath)
+        energy = mol.nuclear_repulsion()
         click.echo(f" {energy}")
 
 
@@ -67,8 +67,8 @@ def bonds(files, tol):
 
     for filepath in files:
         click.echo(f"\n{filepath}")
-        mole = read_file(filepath)
-        bonds = mole.get_bonds(tolerance)
+        mol = read_file(filepath)
+        bonds = mol.get_bonds(tolerance)
         click.echo(f"Number of bonds: {len(bonds)}")
         click.echo(f"Bond tolerance: {tolerance}")
         click.echo(
@@ -77,14 +77,14 @@ def bonds(files, tol):
         )
         for label, bond_dict in enumerate(bonds):
             i, j = bond_dict["pair"]
-            ai, aj = mole[(i, j)]
+            ai, aj = mol[(i, j)]
             dist_angst = ai.distance_to(aj)
             click.echo(
                 f"{label:3d}          {dist_angst:.9f}           {i+1:3d}   {ai}    -   {j+1:3d}   {aj}"
             )
 
 
-def translate_molecule(mole):
+def translate_molecule(mol):
     """Translate molecule from point A to B."""
     click.echo("\n--- Translation ---")
     pA = click.prompt("Coordinate A", type=str)
@@ -93,34 +93,34 @@ def translate_molecule(mole):
         pA = Vec3(*map(float, pA.split()))
         pB = Vec3(*map(float, pB.split()))
         trans_vec = pB - pA
-        mole.translate(trans_vec)
-        return mole
+        mol.translate(trans_vec)
+        return mol
     except (ValueError, TypeError) as e:
         raise click.BadParameter(f"Invalid coordinates: {e}")
 
 
-def mirror_molecule(mole):
+def mirror_molecule(mol):
     """Mirror molecule by plane defined by three points."""
     click.echo("\n--- Reflection ---")
     try:
         p1 = Vec3(*map(float, click.prompt("Point 1", type=str).split()))
         p2 = Vec3(*map(float, click.prompt("Point 2", type=str).split()))
         p3 = Vec3(*map(float, click.prompt("Point 3", type=str).split()))
-        mole.mirror_by_plane(p1, p2, p3)
-        return mole
+        mol.mirror_by_plane(p1, p2, p3)
+        return mol
     except (ValueError, TypeError) as e:
         raise click.BadParameter(f"Invalid points: {e}")
 
 
-def rotate_molecule(mole):
+def rotate_molecule(mol):
     """Rotate molecule around axis by angle."""
     click.echo("\n--- Rotation ---")
     try:
         p1 = Vec3(*map(float, click.prompt("Axis point 1", type=str).split()))
         p2 = Vec3(*map(float, click.prompt("Axis point 2", type=str).split()))
         angle = click.prompt("Rotation angle (degrees)", type=float)
-        mole.rotate_by_axis(p1, p2, angle)
-        return mole
+        mol.rotate_by_axis(p1, p2, angle)
+        return mol
     except (ValueError, TypeError) as e:
         raise click.BadParameter(f"Invalid input: {e}")
 
@@ -142,11 +142,11 @@ OP_FUNCS = {
 )
 def modify(file, operation):
     """Modify molecular geometry interactively."""
-    mole = read_file(file)
+    mol = read_file(file)
     click.echo(f"\n{file}")
 
     if operation:
-        mole = OP_FUNCS[operation](mole)
+        mol = OP_FUNCS[operation](mol)
     else:
         # Get operation order
         operations = click.prompt(
@@ -161,12 +161,12 @@ def modify(file, operation):
             for i in range(1, 4):
                 for op, order in op_order.items():
                     if order == i:
-                        mole = OP_FUNCS[op](mole)
+                        mol = OP_FUNCS[op](mol)
         except ValueError:
             raise click.BadParameter("Invalid operation order format")
 
     click.echo("\nFinal molecule geometry:\n")
-    click.echo(mole.to_xyz())
+    click.echo(mol.to_xyz())
 
 
 @cli.command()
@@ -182,13 +182,15 @@ def poscar2xyz(file, cell_range):
         # 3x3x3 with original cell at center:
         molgeom poscar2xyz POSCAR -1 2 -1 2 -1 2
     """
-    mole = poscar_parser(file)
-    mole.replicate(
+    mol = poscar_parser(file)
+    mol.replicate(
         list(cell_range[0:2]),
         list(cell_range[2:4]),
         list(cell_range[4:6]),
     )
-    click.echo(mole.to_xyz())
+    click.echo(len(mol))
+    click.echo(f"{Path(file).stem}, rep: {cell_range}, Molecule: {str(mol)}")
+    click.echo(mol.to_xyz())
 
 
 @cli.command()
@@ -196,8 +198,8 @@ def poscar2xyz(file, cell_range):
 def split(file):
     """Split molecular clusters."""
     click.echo(f"\n{file}")
-    mole = read_file(file)
-    clusters = mole.get_clusters()
+    mol = read_file(file)
+    clusters = mol.get_clusters()
     click.echo(f"clusters: {clusters}")
     for cluster in clusters:
         if len(cluster) >= 3:
@@ -212,17 +214,17 @@ def split(file):
 )
 def view(files):
     """View molecular structure(s) in your browser."""
-    molecules = []
+    mols = []
     for file_path in files:
         try:
             mol = Molecule.from_file(file_path)
-            molecules.append(mol)
+            mols.append(mol)
         except Exception as e:
             click.echo(f"Error reading {file_path}: {str(e)}", err=True)
             continue
 
-    if not molecules:
+    if not mols:
         click.echo("No valid molecular geometry files were provided.", err=True)
         return
 
-    Molecule.view_mols(molecules)
+    Molecule.view_mols(mols)
