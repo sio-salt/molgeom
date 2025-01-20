@@ -125,7 +125,7 @@ def gau_inp_head_tail(filepath: str | Path) -> tuple[str, str]:
                 + f"Found: {lines[1]}\n"
             )
         title = lines.popleft().strip()
-        file_head.append("\n" + title)
+        file_head.append(f"\n{title}\n")
         lines.popleft()
 
         # molecule Specification section
