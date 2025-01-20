@@ -559,7 +559,7 @@ class Molecule:
         with open(filepath, "w") as f:
             if head is not None:
                 f.write(head)
-                f.write("\n\n")
+                f.write("\n")
             else:
                 f.write("#p B3LYP\n")
                 f.write("\n")
