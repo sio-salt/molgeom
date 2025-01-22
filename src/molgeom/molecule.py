@@ -536,7 +536,7 @@ class Molecule:
         return mol_dict
 
     def write_to_xyz(self, filepath: str) -> None:
-        filepath = os.path.expanduser(filepath)
+        filepath = os.path.expanduser(filepath.strip())
         with open(filepath, "w") as f:
             f.write(f"{len(self)}\n")
             f.write(self.get_formula() + "\n")
@@ -548,7 +548,7 @@ class Molecule:
         mols: list[Molecule],
         filepath: str | Path,
     ) -> None:
-        filepath = os.path.expanduser(filepath)
+        filepath = os.path.expanduser(filepath.strip())
         with open(filepath, "w") as f:
             for mol in mols:
                 f.write(f"{len(mol)}\n")
@@ -559,7 +559,7 @@ class Molecule:
     def write_to_gaussian_input(
         self, filepath: str, head: str | None = None, tail: str | None = None
     ) -> None:
-        filepath = os.path.expanduser(filepath)
+        filepath = os.path.expanduser(filepath.strip())
         with open(filepath, "w") as f:
             if head is not None:
                 f.write(head)
@@ -582,7 +582,7 @@ class Molecule:
         print(f"File written to {filepath}")
 
     def write_to_gamess_input(self, filepath: str) -> None:
-        filepath = os.path.expanduser(filepath)
+        filepath = os.path.expanduser(filepath.strip())
         with open(filepath, "w") as f:
             f.write("$DATA\n")
             f.write(f"{self.get_formula()}\n")
@@ -596,7 +596,7 @@ class Molecule:
     def write_to_poscar(
         self, filepath: str, frac: bool = True, wrap: bool = False
     ) -> None:
-        filepath = os.path.expanduser(filepath)
+        filepath = os.path.expanduser(filepath.strip())
         with open(filepath, "w") as f:
             f.write(f"{self.get_formula()}\n")
             f.write("1.0\n")
@@ -629,7 +629,7 @@ class Molecule:
         print(f"File written to {filepath}")
 
     def write_to_cif(self, filepath: str, wrap: bool = False) -> None:
-        filepath = os.path.expanduser(filepath)
+        filepath = os.path.expanduser(filepath.strip())
         with open(filepath, "w") as f:
             f.write("data_molecule\n")
             f.write("########################\n")
@@ -669,7 +669,7 @@ class Molecule:
         """
         bonds = self.get_bonds()
 
-        filepath = os.path.expanduser(filepath)
+        filepath = os.path.expanduser(filepath.strip())
         with open(filepath, "w") as f:
             # Header block
             f.write(f"{self.get_formula()}\n")
@@ -712,7 +712,7 @@ class Molecule:
             properties: Optional dictionary of molecular properties
                         Format: {mol_index: {property_name: property_value}}
         """
-        filepath = os.path.expanduser(filepath)
+        filepath = os.path.expanduser(filepath.strip())
         with open(filepath, "w") as f:
             for i, mol in enumerate(mols):
                 bonds = mol.get_bonds()

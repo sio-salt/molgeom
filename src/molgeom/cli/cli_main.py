@@ -15,7 +15,7 @@ def validate_files(ctx, param, value):
     """Validate existence of input files."""
     files = []
     for file in value:
-        path = Path(file)
+        path = Path(file.strip()).expanduser().resolve(strict=True)
         if not path.exists():
             raise click.BadParameter(f"File {file} does not exist")
         files.append(str(path))
