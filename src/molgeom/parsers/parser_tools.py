@@ -39,8 +39,9 @@ def is_valid_gms_xyz_line(line: str) -> bool:
         return False
     return True
 
+
 def validate_filepath(filepath: str | Path) -> Path:
-    filepath = Path(filepath)
+    filepath = Path(filepath).expanduser().resolve(strict=True)
     if not filepath.exists():
         raise FileNotFoundError(f"{filepath} do not exist")
     if not filepath.is_file():
