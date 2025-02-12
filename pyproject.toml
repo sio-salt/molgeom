@@ -7,14 +7,47 @@ name = "molgeom"
 description = "A simple molecular geometry manipulation library."
 version = "0.6.10"
 readme = "README.md"
-license = {file = "LICENSE"}
+license = { file = "LICENSE" }
 authors = [{ name = "sio-salt", email = "saltinthedesertyou@gmail.com" }]
 requires-python = ">=3.10"
-dependencies = [
-    "cachetools>=5.2.0",
-    "click>=8.1.7",
-    "networkx>=2.6.3",
+dependencies = ["cachetools>=5.2.0", "click>=8.1.7", "networkx>=2.6.3"]
+keywords = [
+    "molecular",
+    "geometry",
+    "chemistry",
+    "quantum",
+    "computation",
+    "VASP",
+    "CIF",
+    "gaussian",
+    "GAMESS",
+    "xyz",
+    "analysis",
+    "crystal",
+    "qchem",
+    "science",
+    "structure",
 ]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "License :: OSI Approved :: MIT License",
+    "Intended Audience :: Science/Research",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3 :: Only",
+    "Operating System :: OS Independent",
+    "Topic :: Scientific/Engineering :: Chemistry",
+    "Topic :: Scientific/Engineering :: Information Analysis",
+    "Topic :: Scientific/Engineering :: Physics",
+    "Topic :: Scientific/Engineering :: Quantum Computing",
+    "Topic :: Scientific/Engineering :: Visualization",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+
 
 [project.urls]
 Homepage = "https://github.com/sio-salt/molgeom"
@@ -32,18 +65,10 @@ where = ["src"]
 include = ["molgeom*"]
 
 [tool.setuptools.package-data]
-"molgeom" = [
-    "data/*.json",
-    "data/*.yaml",
-    "templates/*.html"
-]
+"molgeom" = ["data/*.json", "data/*.yaml", "templates/*.html"]
 
 [tool.uv]
-dev-dependencies = [
-    "pre-commit>=4.0.1",
-    "pytest>=8.3.4",
-    "ruff>=0.9.1",
-]
+dev-dependencies = ["pre-commit>=4.0.1", "pytest>=8.3.4", "ruff>=0.9.1"]
 
 [tool.ruff]
 line-length = 88
