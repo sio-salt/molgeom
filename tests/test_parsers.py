@@ -2,7 +2,7 @@ import gzip
 import bz2
 import shutil
 from pathlib import Path
-from molgeom import read_file
+from molgeom import read_file, Molecule
 from molgeom.parsers import (
     extract_head_tail_from_gau_inp,
     extract_head_tail_from_gms_inp,
@@ -21,6 +21,9 @@ def test_read_file():
         assert mole is not None
         assert mole.atoms is not None
         assert len(mole.atoms) > 0
+
+        mole_2 = Molecule.from_file(filename)
+        assert mole == mole_2
 
         file_suffix = filename.suffix
 
@@ -101,7 +104,7 @@ D    1   1.00
 
 
 def test_extract_head_tail_from_gms_inp():
-    gms_file = Path(__file__).parent / "files" / "I5_mp2.inp"
+    gms_file = Path(__file__).parent / "files" / "I2_mp2.inp"
     head, tail = extract_head_tail_from_gms_inp(gms_file)
     file_head = """ $SYSTEM MWORDS= 2602 TIMLIM=2000000 $END
  $CONTRL SCFTYP=RHF RUNTYP=ENERGY ICHARG=0 MULT=1
@@ -110,9 +113,10 @@ def test_extract_head_tail_from_gms_inp():
  $SCF    DIRSCF=.F. DIIS=.T. SOSCF=.F.                  $END
  $MP2    CODE=IMS                                       $END
  $DATA
-nnnA / MP2 / origin
+test GAMESS input file
 C1
 """
+
     file_tail = """ $END
  $I
 S   11
@@ -211,12 +215,38 @@ I-ECP GEN    28    4
      -0.22043400      2       7.55790100
      -0.22164600      2       7.59740400
 I-ECP
-I-ECP
-I-ECP
-I-ECP
  $END
-
 
 """
     assert head == file_head
     assert tail == file_tail
+
+
+def test_reproduce_from_gau_head_tail():
+    gau_file = Path(__file__).parent / "files" / "CH2_opt.com"
+    mol = Molecule.from_file(gau_file)
+    head, tail = extract_head_tail_from_gau_inp(gau_file)
+    new_gau_file = Path(__file__).parent / "files" / "CH2_opt_new.com"
+    mol.write_to_gaussian_input(filepath=new_gau_file, head=head, tail=tail)
+
+    gau_file_content = gau_file.read_text()
+    new_gau_file_content = new_gau_file.read_text()
+    try:
+        assert gau_file_content == new_gau_file_content
+    finally:
+        new_gau_file.unlink()
+
+
+def test_reproduce_from_gms_head_tail():
+    gms_file = Path(__file__).parent / "files" / "I2_mp2.inp"
+    mol = Molecule.from_file(gms_file)
+    head, tail = extract_head_tail_from_gms_inp(gms_file)
+    new_gms_file = Path(__file__).parent / "files" / "I2_mp2_new.inp"
+    mol.write_to_gamess_input(filepath=new_gms_file, head=head, tail=tail)
+
+    gms_file_content = gms_file.read_text()
+    new_gms_file_content = new_gms_file.read_text()
+    try:
+        assert gms_file_content == new_gms_file_content
+    finally:
+        new_gms_file.unlink()
