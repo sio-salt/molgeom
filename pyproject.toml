@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "molgeom"
 description = "A simple molecular geometry manipulation library."
-version = "0.6.10"
+version = "0.7.0"
 readme = "README.md"
 license = { file = "LICENSE" }
 authors = [{ name = "sio-salt", email = "saltinthedesertyou@gmail.com" }]
