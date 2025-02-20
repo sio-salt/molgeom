@@ -24,7 +24,7 @@ def poscar_parser(filepath: str | Path) -> Molecule:
         raise ValueError(f"{filepath} is not a POSCAR file")
 
     mol = Molecule()
-    with zopen(filepath, "rt") as file:
+    with zopen(filepath, mode="rt", encoding="utf-8") as file:
 
         # replace tabs, non-breaking spaces, and multiple spaces with single space
         lines = file.readlines()

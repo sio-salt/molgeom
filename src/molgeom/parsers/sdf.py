@@ -32,7 +32,7 @@ def from_sdf_str(content: str) -> list[Molecule]:
 def sdf_parser(filepath: str | Path) -> list[Molecule]:
     """Read SDF file and return list of Molecule objects."""
     filepath = validate_filepath(filepath)
-    with zopen(filepath, "rt") as f:
+    with zopen(filepath, mode="rt", encoding="utf-8") as f:
         content = f.read()
     mol = from_sdf_str(content)
     mol.name = filepath.stem

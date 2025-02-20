@@ -11,33 +11,42 @@ from molgeom.parsers import (
 
 def test_read_file():
     basepath = Path(__file__).parent / "files"
-    filenames = basepath.iterdir()
+    filenames = [f for f in basepath.iterdir() if f.is_file()]
+
     for filename in filenames:
+        if filename.suffix in [".gz", ".bz2", ".xz", ".lzma"]:
+            continue
+
         mole = read_file(filename)
         assert mole is not None
         assert mole.atoms is not None
         assert len(mole.atoms) > 0
 
-        # test if file is read correctly when compressed
-        with open(filename, "r") as f_in:
-            gz_filename = filename.with_suffix(".gz")
-            bz2_filename = filename.with_suffix(".bz2")
-            with gzip.open(filename, "wb") as f_gz:
+        file_suffix = filename.suffix
+
+        gz_filename = filename.with_suffix(f"{file_suffix}.gz")
+        with open(filename, "rb") as f_in:
+            with gzip.open(gz_filename, "wb") as f_gz:
                 shutil.copyfileobj(f_in, f_gz)
-            with bz2.open(filename, "wb") as f_bz2:
+
+        bz2_filename = filename.with_suffix(f"{file_suffix}.bz2")
+        with open(filename, "rb") as f_in:
+            with bz2.open(bz2_filename, "wb") as f_bz2:
                 shutil.copyfileobj(f_in, f_bz2)
 
         try:
             mole_gz = read_file(gz_filename)
             assert mole == mole_gz
         finally:
-            gz_filename.unlink()
+            if gz_filename.exists():
+                gz_filename.unlink()
 
         try:
             mole_bz2 = read_file(bz2_filename)
             assert mole == mole_bz2
         finally:
-            bz2_filename.unlink()
+            if bz2_filename.exists():
+                bz2_filename.unlink()
 
 
 def test_xyz_parser():

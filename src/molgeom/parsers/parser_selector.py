@@ -29,14 +29,15 @@ def read_file(filepath: str | Path) -> Molecule:
     }
 
     for ext in ext_parser_map:
-        if filepath.suffix == ext:
+        if ext in filepath.suffixes:
             return ext_parser_map[ext](filepath)
 
     if "poscar" in str(filepath).lower():
         return poscar_parser(filepath)
 
     raise RuntimeError(
-        f'file extension for "{filepath.name}" ' + "is not supported or extensionless file"
+        f'file extension for "{filepath.name}" '
+        + "is not supported or extensionless file"
     )
 
 

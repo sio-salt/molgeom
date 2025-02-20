@@ -19,7 +19,7 @@ def cif_tag_parser(filepath: str | Path) -> dict:
     filepath = validate_filepath(filepath)
     cif_tags = dict()
     cif_tags["filename"] = filepath.stem
-    with zopen(filepath, "rt") as file:
+    with zopen(filepath, mode="rt", encoding="utf-8") as file:
         lines = deque()
         # add empty line before loop_ block to separate tags
         for line in remove_trailing_empty_lines(file.readlines()):

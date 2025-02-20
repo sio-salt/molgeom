@@ -54,7 +54,7 @@ def from_mol_str(content: str) -> Molecule:
 def mol_parser(filepath: str | Path) -> Molecule:
     """Read MOL file and return Molecule object."""
     filepath = validate_filepath(filepath)
-    with zopen(filepath, "rt") as f:
+    with zopen(filepath, mode="rt", encoding="utf-8") as f:
         content = f.read()
     mol = from_mol_str(content)
     mol.name = filepath.stem

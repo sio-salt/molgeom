@@ -87,6 +87,9 @@ def zopen(file: str | Path, mode=None, **kwargs):
             stacklevel=2,
         )
 
+    if "t" in mode and "encoding" not in kwargs:
+        kwargs["encoding"] = "utf-8"
+
     ext = filepath.suffix.lower()
     if ext == ".gz":
         return gzip.open(str(filepath), mode, **kwargs)

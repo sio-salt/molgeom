@@ -64,7 +64,7 @@ def extract_head_tail_from_gms_inp(filepath: str | Path) -> tuple[str, str]:
         raise FileNotFoundError(f"{filepath} do not exist")
     if not filepath.is_file():
         raise ValueError(f"{filepath} is not a file")
-    with zopen(filepath, "rt") as file:
+    with zopen(filepath, mode="rt", encoding="utf-8") as file:
         while True:
             line = file.readline()
             if line.strip().upper().startswith("$DATA"):
@@ -92,7 +92,7 @@ def extract_head_tail_from_gms_inp(filepath: str | Path) -> tuple[str, str]:
 
 def gms_inp_parser(filepath: str | Path) -> Molecule:
     filepath = validate_filepath(filepath)
-    with zopen(filepath, "rt") as file:
+    with zopen(filepath, mode="rt", encoding="utf-8") as file:
         content = file.read()
     mol = from_gms_inp_str(content)
     mol.name = filepath.stem
