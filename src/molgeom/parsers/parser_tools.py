@@ -1,5 +1,10 @@
 import re
+import gzip
+import bz2
+import lzma
+import warnings
 from pathlib import Path
+
 
 from molgeom.data.consts import ATOMIC_MASSES, SPECIAL_ELEMENTS
 
@@ -47,3 +52,47 @@ def validate_filepath(filepath: str | Path) -> Path:
     if not filepath.is_file():
         raise ValueError(f"{filepath} is not a file")
     return filepath
+
+
+def zopen(file: str | Path, mode=None, **kwargs):
+    """
+    Open a file with transparent support for compressed files (.gz, .bz2, .xz/.lzma).
+    This version uses pathlib for path handling.
+
+    Args:
+        filename (str or Path): The file path.
+        mode (str, optional): Mode to open the file.
+            Must explicitly include 't' (text) or 'b' (binary).
+            If not specified, defaults to 'r' with a warning.
+        **kwargs: Additional keyword arguments for the underlying open functions.
+
+    Returns:
+        A file-like object.
+    """
+    filepath = Path(file)
+
+    if mode is None:
+        warnings.warn(
+            "Explicit mode not specified. Defaulting to 'r'. "
+            "Please specify mode including 't' (text) or 'b' (binary).",
+            FutureWarning,
+            stacklevel=2,
+        )
+        mode = "r"
+
+    if "t" not in mode and "b" not in mode:
+        warnings.warn(
+            "Mode should explicitly include 't' (text) or 'b' (binary).",
+            FutureWarning,
+            stacklevel=2,
+        )
+
+    ext = filepath.suffix.lower()
+    if ext == ".gz":
+        return gzip.open(str(filepath), mode, **kwargs)
+    elif ext == ".bz2":
+        return bz2.open(str(filepath), mode, **kwargs)
+    elif ext in (".xz", ".lzma"):
+        return lzma.open(str(filepath), mode, **kwargs)
+    else:
+        return filepath.open(mode, **kwargs)

@@ -1,100 +1,4 @@
-import gzip
-import bz2
-import shutil
-from pathlib import Path
-from molgeom import read_file
-from molgeom.parsers import (
-    extract_head_tail_from_gau_inp,
-    extract_head_tail_from_gms_inp,
-)
-
-
-def test_read_file():
-    basepath = Path(__file__).parent / "files"
-    filenames = basepath.iterdir()
-    for filename in filenames:
-        mole = read_file(filename)
-        assert mole is not None
-        assert mole.atoms is not None
-        assert len(mole.atoms) > 0
-
-        # test if file is read correctly when compressed
-        with open(filename, "r") as f_in:
-            gz_filename = filename.with_suffix(".gz")
-            bz2_filename = filename.with_suffix(".bz2")
-            with gzip.open(filename, "wb") as f_gz:
-                shutil.copyfileobj(f_in, f_gz)
-            with bz2.open(filename, "wb") as f_bz2:
-                shutil.copyfileobj(f_in, f_bz2)
-
-        try:
-            mole_gz = read_file(gz_filename)
-            assert mole == mole_gz
-        finally:
-            gz_filename.unlink()
-
-        try:
-            mole_bz2 = read_file(bz2_filename)
-            assert mole == mole_bz2
-        finally:
-            bz2_filename.unlink()
-
-
-def test_xyz_parser():
-    basepath = Path(__file__).parent / "files"
-    filepnames = [file for file in basepath.iterdir() if file.suffix == ".xyz"]
-    for filepname in filepnames:
-        mole = read_file(basepath / filepname)
-        assert mole is not None
-        assert mole.atoms is not None
-        assert len(mole.atoms) > 0
-
-
-def test_extract_head_tail_from_gau_inp():
-    gau_file = Path(__file__).parent / "files" / "CH2_opt.com"
-    head, tail = extract_head_tail_from_gau_inp(gau_file)
-    file_head = """#p UHF/Gen Scf(MaxCycle=250)
-opt=(z-matrix, maxcycle=30)
-GFOldPrint pop=full Guess=Huckel
-
-comment line
-
-0 3"""
-    file_tail = """
-H     0
-S    3   1.00
-      0.1873113696D+02       0.3349460434D-01
-      0.2825394365D+01       0.2347269535D+00
-      0.6401216923D+00       0.8137573261D+00
-S    1   1.00
-      0.1612777588D+00       1.0000000
-****
-C     0
-S    6   1.00
-      0.3047524880D+04       0.1834737132D-02
-      0.4573695180D+03       0.1403732281D-01
-      0.1039486850D+03       0.6884262226D-01
-      0.2921015530D+02       0.2321844432D+00
-      0.9286662960D+01       0.4679413484D+00
-      0.3163926960D+01       0.3623119853D+00
-SP   3   1.00
-      0.7868272350D+01      -0.1193324198D+00       0.6899906659D-01
-      0.1881288540D+01      -0.1608541517D+00       0.3164239610D+00
-      0.5442492580D+00       0.1143456438D+01       0.7443082909D+00
-SP   1   1.00
-      0.1687144782D+00       0.1000000000D+01       0.1000000000D+01
-D    1   1.00
-      0.8000000000D+00       1.0000000
-****
-"""
-    assert head == file_head
-    assert tail == file_tail
-
-
-def test_extract_head_tail_from_gms_inp():
-    gms_file = Path(__file__).parent / "files" / "I5_mp2.inp"
-    head, tail = extract_head_tail_from_gms_inp(gms_file)
-    file_head = """ $SYSTEM MWORDS= 2602 TIMLIM=2000000 $END
+ $SYSTEM MWORDS= 2602 TIMLIM=2000000 $END
  $CONTRL SCFTYP=RHF RUNTYP=ENERGY ICHARG=0 MULT=1
          ISPHER=0 MAXIT=80 EXETYP=RUN PP=READ MPLEVL=2  $END
  $BASIS  BASNAM(1)=I                                    $END
@@ -103,8 +7,9 @@ def test_extract_head_tail_from_gms_inp():
  $DATA
 nnnA / MP2 / origin
 C1
-"""
-    file_tail = """ $END
+ I   53.0       7.400321    7.063955   13.220596
+ I   53.0       7.724154    7.524773   10.548426
+ $END
  $I
 S   11
 1         5.546500E+03           1.560000E-04
@@ -208,6 +113,3 @@ I-ECP
  $END
 
 
-"""
-    assert head == file_head
-    assert tail == file_tail

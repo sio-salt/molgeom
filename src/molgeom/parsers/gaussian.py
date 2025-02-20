@@ -5,7 +5,12 @@ from collections import deque
 from molgeom import Vec3
 from molgeom.atom import Atom
 from molgeom.molecule import Molecule
-from molgeom.parsers.parser_tools import is_valid_xyz_line, remove_trailing_empty_lines, validate_filepath
+from molgeom.parsers.parser_tools import (
+    is_valid_xyz_line,
+    remove_trailing_empty_lines,
+    validate_filepath,
+    zopen,
+)
 
 
 def from_gau_inp_str(content: str) -> Molecule:
@@ -87,7 +92,7 @@ def from_gau_inp_str(content: str) -> Molecule:
     return mole
 
 
-def gau_inp_head_tail(filepath: str | Path) -> tuple[str, str]:
+def extract_head_tail_from_gau_inp(filepath: str | Path) -> tuple[str, str]:
     file_head = []
     file_tail = []
     filepath = Path(filepath)
@@ -95,7 +100,7 @@ def gau_inp_head_tail(filepath: str | Path) -> tuple[str, str]:
         raise FileNotFoundError(f"{filepath} do not exist")
     if not filepath.is_file():
         raise ValueError(f"{filepath} is not a file")
-    with open(filepath, "r") as file:
+    with zopen(filepath, "rt") as file:
         lines = deque(file.readlines())
 
         # # replace tabs, non-breaking spaces, and multiple spaces with single space
@@ -159,7 +164,7 @@ def gau_inp_head_tail(filepath: str | Path) -> tuple[str, str]:
 # Gaussian input file parser (com, gjf)
 def gau_inp_parser(filepath: str | Path) -> Molecule:
     filepath = validate_filepath(filepath)
-    with open(filepath, "r") as file:
+    with zopen(filepath, "rt") as file:
         content = file.read()
     mol = from_gau_inp_str(content)
     mol.name = filepath.stem

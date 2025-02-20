@@ -1,4 +1,3 @@
-import sys
 import re
 from pathlib import Path
 from collections import deque
@@ -9,6 +8,7 @@ from molgeom.parsers.parser_tools import (
     is_valid_gms_xyz_line,
     remove_trailing_empty_lines,
     validate_filepath,
+    zopen,
 )
 
 
@@ -32,28 +32,69 @@ def from_gms_inp_str(content: str) -> Molecule:
     # $DATA group
     lines.popleft()
     if not lines[0].strip() or not lines[1].strip():
-        print("inp_parser DATA group : invalid file format \n" + f"{lines[0]}\n" + f"{lines[1]}")
-        sys.exit(1)
+        raise ValueError(
+            "inp_parser DATA group : invalid file format \n"
+            + f"{lines[0]}\n"
+            + f"{lines[1]}"
+        )
     _title = lines.popleft().strip()
     _group_naxis = lines.popleft().strip()
 
     # atom cartesian coordinates
     while lines and lines[0].strip() != "$END":
         if not is_valid_gms_xyz_line(lines[0]):
-            print("inp_parser atom cartesian coords : " + f"invalid file format \n{lines[0]}")
-            sys.exit(1)
+            raise ValueError(
+                "inp_parser atom cartesian coords :"
+                + f"invalid file format \n{lines[0]}"
+            )
         data = lines.popleft().strip().split()
-        atom = Atom(symbol=data[0], x=float(data[2]), y=float(data[3]), z=float(data[4]))
+        atom = Atom(
+            symbol=data[0], x=float(data[2]), y=float(data[3]), z=float(data[4])
+        )
         mol.add_atom(atom)
 
     return mol
 
 
-# GAMESS input file parser
+def extract_head_tail_from_gms_inp(filepath: str | Path) -> tuple[str, str]:
+    file_head = []
+    file_tail = []
+    filepath = Path(filepath)
+    if not filepath.exists():
+        raise FileNotFoundError(f"{filepath} do not exist")
+    if not filepath.is_file():
+        raise ValueError(f"{filepath} is not a file")
+    with zopen(filepath, "rt") as file:
+        while True:
+            line = file.readline()
+            if line.strip().upper().startswith("$DATA"):
+                file_head.append(line)  # $DATA
+                line = file.readline()
+                file_head.append(line)  # comment line
+                line = file.readline()
+                if not line.strip().upper().startswith("C1"):
+                    raise ValueError(f"Symmetry group {line.strip()} is not supported")
+                file_head.append(line)  # symmetry group (e.g. C1)
+                break
+            file_head.append(line)
+        while True:
+            line = file.readline()
+            if line.strip().upper().startswith("$END"):
+                file_tail.append(line)
+                break
+        while True:
+            line = file.readline()
+            if not line:
+                break
+            file_tail.append(line)
+    return "".join(file_head), "".join(file_tail)
+
+
 def gms_inp_parser(filepath: str | Path) -> Molecule:
     filepath = validate_filepath(filepath)
-    with open(filepath, "r") as file:
+    with zopen(filepath, "rt") as file:
         content = file.read()
     mol = from_gms_inp_str(content)
     mol.name = filepath.stem
+
     return mol

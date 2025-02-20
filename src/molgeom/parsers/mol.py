@@ -3,7 +3,11 @@ from collections import deque
 
 from molgeom.atom import Atom
 from molgeom.molecule import Molecule
-from molgeom.parsers.parser_tools import remove_trailing_empty_lines, validate_filepath
+from molgeom.parsers.parser_tools import (
+    remove_trailing_empty_lines,
+    validate_filepath,
+    zopen,
+)
 
 
 def from_mol_str(content: str) -> Molecule:
@@ -50,7 +54,7 @@ def from_mol_str(content: str) -> Molecule:
 def mol_parser(filepath: str | Path) -> Molecule:
     """Read MOL file and return Molecule object."""
     filepath = validate_filepath(filepath)
-    with open(filepath, "r") as f:
+    with zopen(filepath, "rt") as f:
         content = f.read()
     mol = from_mol_str(content)
     mol.name = filepath.stem

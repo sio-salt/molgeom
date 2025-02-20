@@ -3,7 +3,11 @@ from pathlib import Path
 from collections import deque
 
 from molgeom import Vec3, Atom, Molecule, Mat3
-from molgeom.parsers.parser_tools import remove_trailing_empty_lines, validate_filepath
+from molgeom.parsers.parser_tools import (
+    remove_trailing_empty_lines,
+    validate_filepath,
+    zopen,
+)
 
 from molgeom.utils.lattice_utils import lat_params_to_lat_vecs
 
@@ -15,7 +19,7 @@ def cif_tag_parser(filepath: str | Path) -> dict:
     filepath = validate_filepath(filepath)
     cif_tags = dict()
     cif_tags["filename"] = filepath.stem
-    with open(filepath, "r") as file:
+    with zopen(filepath, "rt") as file:
         lines = deque()
         # add empty line before loop_ block to separate tags
         for line in remove_trailing_empty_lines(file.readlines()):
@@ -100,7 +104,14 @@ def cif_tag_parser(filepath: str | Path) -> dict:
                 )
                 > 0
             ) and (
-                len({atom_tag for atom_tag in atom_fract_tags if atom_tag in loop_tags_idx}) == 3
+                len(
+                    {
+                        atom_tag
+                        for atom_tag in atom_fract_tags
+                        if atom_tag in loop_tags_idx
+                    }
+                )
+                == 3
             ):
                 cif_tags["atoms"] = []
                 while len(line.split()) == len(loop_tags_idx):

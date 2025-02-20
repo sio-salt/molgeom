@@ -8,6 +8,7 @@ from molgeom.parsers.parser_tools import (
     is_valid_xyz_line,
     remove_trailing_empty_lines,
     validate_filepath,
+    zopen,
 )
 
 
@@ -37,7 +38,9 @@ def from_xyz_str(content: str) -> Molecule:
             raise ValueError(f"Invalid line format: \n{line}")
 
         data = line.strip().split()
-        atom = Atom(symbol=data[0], x=float(data[1]), y=float(data[2]), z=float(data[3]))
+        atom = Atom(
+            symbol=data[0], x=float(data[1]), y=float(data[2]), z=float(data[3])
+        )
         mole.atoms.append(atom)
 
     if num_atoms != len(mole):
@@ -51,7 +54,7 @@ def from_xyz_str(content: str) -> Molecule:
 
 def xyz_parser(filepath: str | Path) -> Molecule:
     filepath = validate_filepath(filepath)
-    with open(filepath, "r") as file:
+    with zopen(filepath, "rt") as file:
         content = file.read()
     mol = from_xyz_str(content)
     mol.name = filepath.stem

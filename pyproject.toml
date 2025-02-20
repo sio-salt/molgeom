@@ -10,7 +10,11 @@ readme = "README.md"
 license = { file = "LICENSE" }
 authors = [{ name = "sio-salt", email = "saltinthedesertyou@gmail.com" }]
 requires-python = ">=3.10"
-dependencies = ["cachetools>=5.2.0", "click>=8.1.7", "networkx>=2.6.3"]
+dependencies = [
+    "cachetools>=5.2.0",
+    "click>=8.1.7",
+    "networkx>=2.6.3",
+]
 keywords = [
     "molecular",
     "geometry",

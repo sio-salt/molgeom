@@ -9,8 +9,7 @@ from molgeom.utils.lattice_utils import frac2cart
 from molgeom.atom import Atom
 from molgeom.data.consts import ATOMIC_MASSES
 from molgeom.molecule import Molecule
-from molgeom.parsers.parser_tools import validate_filepath
-
+from molgeom.parsers.parser_tools import validate_filepath, zopen
 
 
 def poscar_parser(filepath: str | Path) -> Molecule:
@@ -25,7 +24,7 @@ def poscar_parser(filepath: str | Path) -> Molecule:
         raise ValueError(f"{filepath} is not a POSCAR file")
 
     mol = Molecule()
-    with open(filepath, "r") as file:
+    with zopen(filepath, "rt") as file:
 
         # replace tabs, non-breaking spaces, and multiple spaces with single space
         lines = file.readlines()
