@@ -215,6 +215,15 @@ class Molecule:
     def get_cart_coords(self) -> list[Vec3]:
         return [[atom.x, atom.y, atom.z] for atom in self]
 
+    def set_cart_coords(self, coords: list[Vec3 | list[float | int]]) -> None:
+        if len(coords) != len(self):
+            raise ValueError(
+                "Number of coordinates must match the number of atoms in the molecule"
+            )
+
+        for atom, coord in zip(self, coords):
+            atom.x, atom.y, atom.z = coord
+
     def get_frac_coords(self, wrap=False) -> list[Vec3]:
         if self.lattice_vecs is None:
             raise ValueError("Lattice vectors must be set to bound the molecule.")
