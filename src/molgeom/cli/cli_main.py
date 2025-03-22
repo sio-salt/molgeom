@@ -230,12 +230,14 @@ def view(files):
     Molecule.view_mols(mols)
 
 
-# make command that two or more combine molecules into one xyz file
 @cli.command()
 @click.argument(
     "files", nargs=-1, type=click.Path(exists=True), required=True, callback=validate_files
 )
-def onexyz(files):
+@click.option(
+    "-o", "--output", type=click.Path(), required=True, help="Output file path for combined XYZ",
+)
+def onexyz(files, output):
     """Combine molecular structures into one XYZ file."""
     mols = []
     for file_path in files:
@@ -250,5 +252,5 @@ def onexyz(files):
         click.echo("No valid molecular geometry files were provided.", err=True)
         return
 
-    combined_mol = Molecule.write_to_xyzs(mols)
-    click.echo(f"Combined {len(mols)} molecules into one XYZ file.")
+    Molecule.write_to_xyzs(mols=mols, filepath=output)
+    click.echo(f"Combined {len(mols)} molecules into one XYZ file: {output}")
