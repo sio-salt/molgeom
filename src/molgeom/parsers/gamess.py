@@ -33,9 +33,7 @@ def from_gms_inp_str(content: str) -> Molecule:
     lines.popleft()
     if not lines[0].strip() or not lines[1].strip():
         raise ValueError(
-            "inp_parser DATA group : invalid file format \n"
-            + f"{lines[0]}\n"
-            + f"{lines[1]}"
+            "inp_parser DATA group : invalid file format \n" + f"{lines[0]}\n" + f"{lines[1]}"
         )
     _title = lines.popleft().strip()
     _group_naxis = lines.popleft().strip()
@@ -44,13 +42,10 @@ def from_gms_inp_str(content: str) -> Molecule:
     while lines and lines[0].strip() != "$END":
         if not is_valid_gms_xyz_line(lines[0]):
             raise ValueError(
-                "inp_parser atom cartesian coords :"
-                + f"invalid file format \n{lines[0]}"
+                "inp_parser atom cartesian coords :" + f"invalid file format \n{lines[0]}"
             )
         data = lines.popleft().strip().split()
-        atom = Atom(
-            symbol=data[0], x=float(data[2]), y=float(data[3]), z=float(data[4])
-        )
+        atom = Atom(symbol=data[0], x=float(data[2]), y=float(data[3]), z=float(data[4]))
         mol.add_atom(atom)
 
     return mol
@@ -96,5 +91,35 @@ def gms_inp_parser(filepath: str | Path) -> Molecule:
         content = file.read()
     mol = from_gms_inp_str(content)
     mol.name = filepath.stem
+
+    return mol
+
+
+def gms_log_parser(filepath: str | Path) -> Molecule:
+    filepath = validate_filepath(filepath)
+    coords_data_frag_regex = re.compile(r"*ATOM\s+ATOMIC\s+COORDINATES")
+    mol = Molecule()
+    with zopen(filepath, mode="rt", encoding="utf-8") as file:
+        while True:
+            line = file.readline()
+
+            if "THE POINT GROUP OF THE MOLECULE" in line:
+                "THE POINT GROUP OF THE MOLECULE IS C1" not in line
+                raise ValueError(f"Only C1 Symmetry group is supported. got {line.strip()}")
+
+            if coords_data_frag_regex.search(line):
+                file.readline()
+                while True:
+                    if not line.strip():
+                        break
+                    line = file.readline()
+                    if not is_valid_gms_xyz_line(line):
+                        raise ValueError(f"invalid gamess file format \n{line}")
+                    data = line.strip().split()
+                    atom = Atom(
+                        symbol=data[0], x=float(data[2]), y=float(data[3]), z=float(data[4])
+                    )
+                    mol.add_atom(atom)
+                break
 
     return mol
