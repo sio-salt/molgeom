@@ -2,6 +2,7 @@ import re
 from pathlib import Path
 from collections import deque
 
+from molgeom.data.consts import ANGST2BOHR_GMS19
 from molgeom.atom import Atom
 from molgeom.molecule import Molecule
 from molgeom.parsers.parser_tools import (
@@ -45,7 +46,12 @@ def from_gms_inp_str(content: str) -> Molecule:
                 "inp_parser atom cartesian coords :" + f"invalid file format \n{lines[0]}"
             )
         data = lines.popleft().strip().split()
-        atom = Atom(symbol=data[0], x=float(data[2]), y=float(data[3]), z=float(data[4]))
+        atom = Atom(
+            symbol=data[0],
+            x=float(data[2]),
+            y=float(data[3]),
+            z=float(data[4]),
+        )
         mol.add_atom(atom)
 
     return mol
@@ -97,27 +103,36 @@ def gms_inp_parser(filepath: str | Path) -> Molecule:
 
 def gms_log_parser(filepath: str | Path) -> Molecule:
     filepath = validate_filepath(filepath)
-    coords_data_frag_regex = re.compile(r"*ATOM\s+ATOMIC\s+COORDINATES")
+    coords_data_frag_regex = re.compile(r"ATOM\s+ATOMIC\s+COORDINATES")
     mol = Molecule()
     with zopen(filepath, mode="rt", encoding="utf-8") as file:
         while True:
             line = file.readline()
 
             if "THE POINT GROUP OF THE MOLECULE" in line:
-                "THE POINT GROUP OF THE MOLECULE IS C1" not in line
-                raise ValueError(f"Only C1 Symmetry group is supported. got {line.strip()}")
+                if "THE POINT GROUP OF THE MOLECULE IS C1" not in line:
+                    raise ValueError(f"Only C1 Symmetry group is supported. got {line.strip()}")
 
             if coords_data_frag_regex.search(line):
                 file.readline()
                 while True:
+                    line = file.readline()
                     if not line.strip():
                         break
-                    line = file.readline()
                     if not is_valid_gms_xyz_line(line):
                         raise ValueError(f"invalid gamess file format \n{line}")
                     data = line.strip().split()
+
+                    # standardize the symbol LI -> Li
+                    if len(data[0]) == 1:
+                        std_symbol = data[0]
+                    elif len(data[0]) == 2:
+                        std_symbol = data[0][0] + data[0][1].lower()
                     atom = Atom(
-                        symbol=data[0], x=float(data[2]), y=float(data[3]), z=float(data[4])
+                        symbol=std_symbol,
+                        x=float(data[2]) / ANGST2BOHR_GMS19,
+                        y=float(data[3]) / ANGST2BOHR_GMS19,
+                        z=float(data[4]) / ANGST2BOHR_GMS19,
                     )
                     mol.add_atom(atom)
                 break

@@ -40,7 +40,14 @@ def is_valid_gms_xyz_line(line: str) -> bool:
         return False
     if not re.fullmatch(symbol_charge_xyz_regex, line.strip()):
         return False
-    if data[0] not in ATOMIC_MASSES:
+
+    if len(data[0]) == 1:
+        std_symbol = data[0]
+    elif len(data[0]) == 2:
+        std_symbol = data[0][0] + data[0][1].lower()
+    else:
+        return False
+    if std_symbol not in ATOMIC_MASSES:
         return False
     return True
 

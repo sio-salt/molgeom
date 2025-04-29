@@ -6,7 +6,7 @@ from pathlib import Path
 from molgeom.molecule import Molecule
 from molgeom.parsers.parser_tools import validate_filepath
 from molgeom.parsers.cif import cif_parser
-from molgeom.parsers.gamess import gms_inp_parser
+from molgeom.parsers.gamess import gms_inp_parser, gms_log_parser
 from molgeom.parsers.gaussian import gau_inp_parser
 from molgeom.parsers.poscar import poscar_parser
 from molgeom.parsers.xyz import xyz_parser
@@ -23,6 +23,7 @@ def read_file(filepath: str | Path) -> Molecule:
         ".com": gau_inp_parser,
         ".gjf": gau_inp_parser,
         ".inp": gms_inp_parser,
+        ".log": gms_log_parser,
         ".cif": cif_parser,
         ".mol": mol_parser,
         ".sdf": sdf_parser,
@@ -36,8 +37,7 @@ def read_file(filepath: str | Path) -> Molecule:
         return poscar_parser(filepath)
 
     raise RuntimeError(
-        f'file extension for "{filepath.name}" '
-        + "is not supported or extensionless file"
+        f'file extension for "{filepath.name}" ' + "is not supported or extensionless file"
     )
 
 
