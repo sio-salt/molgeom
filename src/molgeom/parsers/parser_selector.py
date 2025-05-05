@@ -37,7 +37,8 @@ def read_file(filepath: str | Path) -> Molecule:
         return poscar_parser(filepath)
 
     raise RuntimeError(
-        f'file extension for "{filepath.name}" ' + "is not supported or extensionless file"
+        f'file extension for "{filepath.name}" '
+        + "is not supported or extensionless file"
     )
 
 
@@ -51,7 +52,7 @@ def main():
     for filepath in filepaths:
         print(filepath)
         mole = read_file(filepath)
-        print(mole.to_xyz())
+        print(mole.to_xyz_str())
 
 
 if __name__ == "__main__":

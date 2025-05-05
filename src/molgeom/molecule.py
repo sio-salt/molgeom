@@ -535,8 +535,8 @@ class Molecule:
                 elec_energy += self.atoms[i].charge * self.atoms[j].charge / dist_bohr
         return elec_energy
 
-    def to_xyz(self) -> str:
-        return "\n".join([atom.to_xyz() for atom in self])
+    def to_xyz_str(self) -> str:
+        return "\n".join([atom.to_xyz_str() for atom in self])
 
     def to_dict(self) -> dict:
         mol_dict = dict()
@@ -549,7 +549,7 @@ class Molecule:
         with open(filepath, "w") as f:
             f.write(f"{len(self)}\n")
             f.write(self.get_formula() + "\n")
-            f.write(self.to_xyz())
+            f.write(self.to_xyz_str())
         print(f"File written to {filepath}")
 
     @staticmethod
@@ -562,53 +562,64 @@ class Molecule:
             for mol in mols:
                 f.write(f"{len(mol)}\n")
                 f.write(mol.get_formula() + "\n")
-                f.write(mol.to_xyz() + "\n")
+                f.write(mol.to_xyz_str() + "\n")
         print(f"File written to {filepath}")
+
+    def to_gaussian_input_str(
+        self, head: str | None = None, tail: str | None = None
+    ) -> str:
+        lines = []
+        if head is not None:
+            lines.append(head)
+        else:
+            lines.extend(["#p B3LYP", "", f"{self.get_formula()}", "", "0 1"])
+        lines.append(self.to_xyz_str())
+        if self.lattice_vecs is not None:
+            lines.extend(
+                f"{'Tv':<2s}{vec[0]:20.12f}{vec[1]:20.12f}{vec[2]:20.12f}"
+                for vec in self.lattice_vecs
+            )
+        if tail is not None:
+            lines.append(tail)
+            lines.append("")
+        return "\n".join(lines)
 
     def write_to_gaussian_input(
         self, filepath: str | Path, head: str | None = None, tail: str | None = None
     ) -> None:
         filepath = Path(str(filepath).strip()).expanduser()
         with open(filepath, "w") as f:
-            if head is not None:
-                f.write(head)
-                f.write("\n")
-            else:
-                f.write("#p B3LYP\n")
-                f.write("\n")
-                f.write(f"{self.get_formula()}\n")
-                f.write("\n")
-                f.write("0 1\n")
-            f.write(self.to_xyz() + "\n")
-            if self.lattice_vecs is not None:
-                for vec in self.lattice_vecs:
-                    f.write(
-                        f"{'Tv':2s} {vec[0]:19.12f} {vec[1]:19.12f} {vec[2]:19.12f}\n"
-                    )
-            if tail is not None:
-                f.write(tail)
-                f.write("\n")
+            f.write(self.to_gaussian_input_str(head, tail))
         print(f"File written to {filepath}")
+
+    def to_gamess_input_str(
+        self, head: str | None = None, tail: str | None = None
+    ) -> str:
+        """
+        Convert the molecule to a GAMESS input string.
+        """
+        lines = []
+        if head is not None:
+            lines.append(head.rstrip("\n"))
+        else:
+            lines.extend([" $DATA", f"{self.get_formula()}", "C1"])
+        lines.extend(
+            f" {self[i].symbol:<2s}{float(self[i].atomic_number):6.1f} "
+            f"{self[i].x:20.12f}{self[i].y:20.12f}{self[i].z:20.12f}"
+            for i in range(len(self))
+        )
+        if tail is not None:
+            lines.append(tail)
+        else:
+            lines.append(" $END\n")
+        return "\n".join(lines)
 
     def write_to_gamess_input(
         self, filepath: str | Path, head: str | None = None, tail: str | None = None
     ) -> None:
         filepath = Path(str(filepath).strip()).expanduser()
         with open(filepath, "w") as f:
-            if head is not None:
-                f.write(head)
-            else:
-                f.write("$DATA\n")
-                f.write(f"{self.get_formula()}\n")
-                f.write("C1\n")
-            for i in range(len(self)):
-                f.write(
-                    f" {self[i].symbol:2s}  {float(self[i].atomic_number):.1f}  {self[i].x:19.12f} {self[i].y:19.12f} {self[i].z:19.12f}\n"
-                )
-            if tail is not None:
-                f.write(tail)
-            else:
-                f.write("$END\n")
+            f.write(self.to_gamess_input_str(head, tail))
         print(f"File written to {filepath}")
 
     def write_to_poscar(
@@ -781,7 +792,7 @@ class Molecule:
             prefer_notebook: bool
                 If True, opens in Jupyter notebook if available (default: True)
         """
-        xyz_data = f"{len(self)}\n{self.name or str(self)}\n{self.to_xyz()}"
+        xyz_data = f"{len(self)}\n{self.name or str(self)}\n{self.to_xyz_str()}"
         view_mol(
             xyz_mol_data=xyz_data, cleanup=cleanup, prefer_notebook=prefer_notebook
         )
@@ -801,7 +812,7 @@ class Molecule:
                 If True, opens in Jupyter notebook if available (default: True)
         """
         xyz_data = "\n".join(
-            [f"{len(mol)}\n{mol.name or str(mol)}\n{mol.to_xyz()}" for mol in mols]
+            [f"{len(mol)}\n{mol.name or str(mol)}\n{mol.to_xyz_str()}" for mol in mols]
         )
         view_mol(
             xyz_mol_data=xyz_data, cleanup=cleanup, prefer_notebook=prefer_notebook

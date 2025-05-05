@@ -117,7 +117,7 @@ class Atom(Vec3):
     def to_Vec3(self) -> Vec3:
         return Vec3(self.x, self.y, self.z)
 
-    def to_xyz(self) -> str:
+    def to_xyz_str(self) -> str:
         return f"{self.symbol:2s} {self.x:19.12f} {self.y:19.12f} {self.z:19.12f}"
 
     def to_dict(self) -> dict:

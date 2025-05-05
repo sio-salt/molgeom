@@ -30,7 +30,11 @@ def cli():
 
 @cli.command()
 @click.argument(
-    "files", nargs=-1, type=click.Path(exists=True), required=True, callback=validate_files
+    "files",
+    nargs=-1,
+    type=click.Path(exists=True),
+    required=True,
+    callback=validate_files,
 )
 def center(files):
     """Calculate center of mass for molecular structures."""
@@ -43,7 +47,11 @@ def center(files):
 
 @cli.command()
 @click.argument(
-    "files", nargs=-1, type=click.Path(exists=True), required=True, callback=validate_files
+    "files",
+    nargs=-1,
+    type=click.Path(exists=True),
+    required=True,
+    callback=validate_files,
 )
 def nuclrep(files):
     """Calculate nuclear repulsion energy."""
@@ -56,14 +64,20 @@ def nuclrep(files):
 
 @cli.command()
 @click.argument(
-    "files", nargs=-1, type=click.Path(exists=True), required=True, callback=validate_files
+    "files",
+    nargs=-1,
+    type=click.Path(exists=True),
+    required=True,
+    callback=validate_files,
 )
 @click.option("-t", "--tol", type=float, help="Bond length tolerance (default: 0.15)")
 def bonds(files, tol):
     """Analyze molecular bonds with optional tolerance."""
     tolerance = tol
     if tolerance is None:
-        tolerance = click.prompt("Enter tolerance of bond length", default=0.15, type=float)
+        tolerance = click.prompt(
+            "Enter tolerance of bond length", default=0.15, type=float
+        )
 
     for filepath in files:
         click.echo(f"\n{filepath}")
@@ -150,7 +164,8 @@ def modify(file, operation):
     else:
         # Get operation order
         operations = click.prompt(
-            "Enter operation order (0: skip, 1-3: order) for [translate reflect rotate]", type=str
+            "Enter operation order (0: skip, 1-3: order) for [translate reflect rotate]",
+            type=str,
         )
         try:
             orders = [int(x) for x in operations.split()]
@@ -166,7 +181,7 @@ def modify(file, operation):
             raise click.BadParameter("Invalid operation order format")
 
     click.echo("\nFinal molecule geometry:\n")
-    click.echo(mol.to_xyz())
+    click.echo(mol.to_xyz_str())
 
 
 @cli.command()
@@ -190,7 +205,7 @@ def poscar2xyz(file, cell_range):
     )
     click.echo(len(mol))
     click.echo(f"{Path(file).stem}, rep: {cell_range}, {str(mol)}")
-    click.echo(mol.to_xyz())
+    click.echo(mol.to_xyz_str())
 
 
 @cli.command()
@@ -204,13 +219,17 @@ def split(file):
     for cluster in clusters:
         if len(cluster) >= 3:
             click.echo(cluster)
-            click.echo(cluster.to_xyz())
+            click.echo(cluster.to_xyz_str())
             click.echo()
 
 
 @cli.command()
 @click.argument(
-    "files", nargs=-1, type=click.Path(exists=True), required=True, callback=validate_files
+    "files",
+    nargs=-1,
+    type=click.Path(exists=True),
+    required=True,
+    callback=validate_files,
 )
 def view(files):
     """View molecular structure(s) in your browser."""
@@ -232,10 +251,18 @@ def view(files):
 
 @cli.command()
 @click.argument(
-    "files", nargs=-1, type=click.Path(exists=True), required=True, callback=validate_files
+    "files",
+    nargs=-1,
+    type=click.Path(exists=True),
+    required=True,
+    callback=validate_files,
 )
 @click.option(
-    "-o", "--output", type=click.Path(), required=True, help="Output file path for combined XYZ",
+    "-o",
+    "--output",
+    type=click.Path(),
+    required=True,
+    help="Output file path for combined XYZ",
 )
 def onexyz(files, output):
     """Combine molecular structures into one XYZ file."""

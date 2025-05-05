@@ -24,7 +24,7 @@ def from_gms_inp_str(content: str) -> Molecule:
 
     # input description section
     input_descriptions = []
-    while lines and not lines[0].strip().upper().startswith("$DATA"):
+    while lines and "$DATA" not in lines[0]:
         if lines[0].strip().startswith("!"):
             lines.popleft()
             continue
@@ -34,7 +34,9 @@ def from_gms_inp_str(content: str) -> Molecule:
     lines.popleft()
     if not lines[0].strip() or not lines[1].strip():
         raise ValueError(
-            "inp_parser DATA group : invalid file format \n" + f"{lines[0]}\n" + f"{lines[1]}"
+            "inp_parser DATA group : invalid file format \n"
+            + f"{lines[0]}\n"
+            + f"{lines[1]}"
         )
     _title = lines.popleft().strip()
     _group_naxis = lines.popleft().strip()
@@ -43,7 +45,8 @@ def from_gms_inp_str(content: str) -> Molecule:
     while lines and lines[0].strip() != "$END":
         if not is_valid_gms_xyz_line(lines[0]):
             raise ValueError(
-                "inp_parser atom cartesian coords :" + f"invalid file format \n{lines[0]}"
+                "inp_parser atom cartesian coords :"
+                + f"invalid file format \n{lines[0]}"
             )
         data = lines.popleft().strip().split()
         atom = Atom(
@@ -68,7 +71,7 @@ def extract_head_tail_from_gms_inp(filepath: str | Path) -> tuple[str, str]:
     with zopen(filepath, mode="rt", encoding="utf-8") as file:
         while True:
             line = file.readline()
-            if line.strip().upper().startswith("$DATA"):
+            if "$DATA" in line:
                 file_head.append(line)  # $DATA
                 line = file.readline()
                 file_head.append(line)  # comment line
@@ -80,7 +83,7 @@ def extract_head_tail_from_gms_inp(filepath: str | Path) -> tuple[str, str]:
             file_head.append(line)
         while True:
             line = file.readline()
-            if line.strip().upper().startswith("$END"):
+            if "$END" in line:
                 file_tail.append(line)
                 break
         while True:
@@ -111,7 +114,9 @@ def gms_log_parser(filepath: str | Path) -> Molecule:
 
             if "THE POINT GROUP OF THE MOLECULE" in line:
                 if "THE POINT GROUP OF THE MOLECULE IS C1" not in line:
-                    raise ValueError(f"Only C1 Symmetry group is supported. got {line.strip()}")
+                    raise ValueError(
+                        f"Only C1 Symmetry group is supported. got {line.strip()}"
+                    )
 
             if coords_data_frag_regex.search(line):
                 file.readline()
