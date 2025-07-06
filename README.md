@@ -1,12 +1,13 @@
 # molgeom
+
 A Simple Python library for molecular geometry manipulation.
 
 > **Note**: `molgeom` is under active development. The implemented features and method names may change in future updates. Please check the repository regularly for the latest information.
 
 ![molgeom_view_mols_example_1](https://github.com/user-attachments/assets/c6e7775c-6e07-4c99-8760-e4f7b7cc2679)
 
-
 ## ✨ Key Features
+
 - Read and write molecular geometries:
   - Formats supported: XYZ, Gaussian input, GAMESS input, MOL, SDF, CIF, VASP POSCAR.
 - Calculate molecular properties:
@@ -27,7 +28,6 @@ A Simple Python library for molecular geometry manipulation.
   - Cluster fragments.
   - Identify bond cycles.
 
-
 ## 🚀 Getting Started
 
 You can try out example of `molgeom` in Jupyter Notebook:  
@@ -37,12 +37,14 @@ For a version with NumPy, see the [**numpyfy branch**](https://github.com/sio-sa
 
 ---
 
-
 ## 🔽 Installation
+
 Install `molgeom` using pip:
+
 ```bash
 pip install molgeom
 ```
+
 Alternatively, clone the repository for development:
 
 ```bash
@@ -50,28 +52,33 @@ git clone https://github.com/sio-salt/molgeom.git
 cd molgeom
 pip install -e .
 ```
+
 The minimum Python version required is 3.10 for the main branch.
 
-
 ## 📟 Command Line Usage
+
 After installation, the `molgeom` command becomes available. Enable shell completion by copying and pasting the following command into your terminal:
 
 Bash:
+
 ```bash
 echo 'eval "$(_MOLGEOM_COMPLETE=bash_source molgeom)"' >> ~/.bashrc && source ~/.bashrc
 ```
 
 Zsh:
+
 ```zsh
 echo 'eval "$(_MOLGEOM_COMPLETE=zsh_source molgeom)"' >> ~/.zshrc && source ~/.zshrc
 ```
 
 Fish:
+
 ```fish
 _MOLGEOM_COMPLETE=fish_source molgeom | source
 ```
 
 Available commands:
+
 ```bash
 # Single file commands
 molgeom modify <file> [-op <op>]   # Transform structure (translate/reflect/rotate)
@@ -90,15 +97,15 @@ molgeom --help
 molgeom <command> --help
 ```
 
-
 ## 🛠️ Future Plans
+
 - Support Z-matrix format.
 - Add more symmetry utilities.
 - Handle multi-molecule systems.
 - Additional features and improvements.
 
-
 ## 🔗 Links
+
 - [main branch](https://github.com/sio-salt/molgeom/tree/main)
 - [numpyfy branch](https://github.com/sio-salt/molgeom/tree/numpyfy)
 - [PyPI](https://pypi.org/project/molgeom/)
