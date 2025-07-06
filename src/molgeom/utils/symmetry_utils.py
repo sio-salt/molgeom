@@ -9,9 +9,7 @@ from .mat3 import Mat3
 # License: MIT License
 # Copyright (c) 2011-2012 MIT & The Regents of the University of California, through Lawrence Berkeley National Laboratory
 # Modifications made by [sio-salt], [2024]
-def symmop_from_xyz_str(
-    xyz_str: str
-) -> (Mat3, Vec3):
+def symmop_from_xyz_str(xyz_str: str) -> (Mat3, Vec3):
     """
     Make rotation matrix and translation vector from symmetry operation xyz string.
     Args:
@@ -30,7 +28,6 @@ def symmop_from_xyz_str(
     rot_mat = Mat3([[0.0] * 3 for _ in range(3)])
     trans_vec_frac = Vec3(0, 0, 0)
     for i, op in enumerate(ops):
-
         # make rot mat
         for match in re_rot.finditer(op):
             # match[0] contains the whole match

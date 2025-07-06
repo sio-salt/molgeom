@@ -94,7 +94,7 @@ def bonds(files, tol):
             ai, aj = mol[(i, j)]
             dist_angst = ai.distance_to(aj)
             click.echo(
-                f"{label:3d}          {dist_angst:.9f}           {i+1:3d}   {ai}    -   {j+1:3d}   {aj}"
+                f"{label:3d}          {dist_angst:.9f}           {i + 1:3d}   {ai}    -   {j + 1:3d}   {aj}"
             )
 
 

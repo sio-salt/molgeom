@@ -6,7 +6,6 @@ from .vec3 import Vec3
 
 class Mat3:
     def __init__(self, mat: mat_type) -> None:
-
         if not is_mat_type(mat):
             raise TypeError(f"Expected 3x3 matrix list, got {type(mat)}")
         self.mat = [Vec3(*row) for row in mat]

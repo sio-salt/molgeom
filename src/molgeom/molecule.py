@@ -240,7 +240,6 @@ class Molecule:
         self,
         tol: float = default_tol,
     ) -> list[dict[tuple[int, int], float]]:
-
         bonds = list()
         num_atoms = len(self)
         for i in range(num_atoms):
@@ -394,7 +393,6 @@ class Molecule:
         for i in range(rep_a[0], rep_a[1]):
             for j in range(rep_b[0], rep_b[1]):
                 for k in range(rep_c[0], rep_c[1]):
-
                     trans_vec = (
                         i * tmp_mol.lattice_vecs[0]
                         + j * tmp_mol.lattice_vecs[1]
@@ -686,7 +684,7 @@ class Molecule:
             frac_coords = self.get_frac_coords(wrap=wrap)
             for i in range(len(self)):
                 f.write(
-                    f"{i+1:3d} {self[i].symbol:2s} {frac_coords[i][0]:19.12f} {frac_coords[i][1]:19.12f} {frac_coords[i][2]:19.12f}\n"
+                    f"{i + 1:3d} {self[i].symbol:2s} {frac_coords[i][0]:19.12f} {frac_coords[i][1]:19.12f} {frac_coords[i][2]:19.12f}\n"
                 )
         print(f"File written to {filepath}")
 
@@ -720,7 +718,7 @@ class Molecule:
             for bond in bonds:
                 i, j = bond["pair"]
                 # MOL format uses 1-based indexing
-                f.write(f"{i+1:3d}{j+1:3d}  1  0  0  0  0\n")
+                f.write(f"{i + 1:3d}{j + 1:3d}  1  0  0  0  0\n")
 
             # End marker
             f.write("M  END\n")
@@ -767,7 +765,9 @@ class Molecule:
                 for bond in bonds:
                     i, j = bond["pair"]
                     digits = len(str(len(mol)))
-                    f.write(f"{i+1:>{digits+2}d}{j+1:>{digits+2}d}  1  0  0  0  0\n")
+                    f.write(
+                        f"{i + 1:>{digits + 2}d}{j + 1:>{digits + 2}d}  1  0  0  0  0\n"
+                    )
 
                 f.write("M  END\n")
 
